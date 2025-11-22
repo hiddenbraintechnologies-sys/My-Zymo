@@ -62,13 +62,19 @@ export default function Navbar() {
             <Button 
               variant="ghost" 
               data-testid="button-login"
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => {
+                console.log("Login button clicked");
+                window.location.href = '/api/login';
+              }}
             >
               Log In
             </Button>
             <Button 
               data-testid="button-signup"
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => {
+                console.log("Signup button clicked");
+                window.location.href = '/api/login';
+              }}
             >
               Sign Up
             </Button>
@@ -95,13 +101,19 @@ export default function Navbar() {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => window.location.href = '/api/login'}
+                    onClick={() => {
+                      console.log("Mobile Login button clicked");
+                      window.location.href = '/api/login';
+                    }}
                   >
                     Log In
                   </Button>
                   <Button 
                     className="w-full"
-                    onClick={() => window.location.href = '/api/login'}
+                    onClick={() => {
+                      console.log("Mobile Signup button clicked");
+                      window.location.href = '/api/login';
+                    }}
                   >
                     Sign Up
                   </Button>
