@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, Menu, Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
@@ -30,8 +31,8 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Calendar className="w-6 h-6 text-primary" />
-          <span className="font-heading font-bold text-xl">Reunify</span>
+          <img src={logoUrl} alt="Myzymo" className="w-8 h-8" />
+          <span className="font-heading font-bold text-xl">Myzymo</span>
         </div>
         
         <div className="hidden md:flex items-center gap-6">

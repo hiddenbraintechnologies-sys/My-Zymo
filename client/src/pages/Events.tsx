@@ -7,6 +7,7 @@ import { Calendar, MapPin, Plus, LogOut } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@shared/schema";
 import { format } from "date-fns";
+import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 export default function Events() {
   const { user, isLoading: authLoading } = useAuth();
@@ -42,8 +43,8 @@ export default function Events() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-primary" />
-            <span className="font-heading font-bold text-xl">Reunify</span>
+            <img src={logoUrl} alt="Myzymo" className="w-8 h-8" />
+            <span className="font-heading font-bold text-xl">Myzymo</span>
           </div>
           
           <div className="flex items-center gap-4">

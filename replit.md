@@ -1,8 +1,13 @@
-# Social Gatherings Platform - Reunify
+# Social Gatherings Platform - Myzymo
 
 ## Overview
 
-Reunify is a comprehensive social gatherings platform designed for the Indian market, enabling users to plan and manage celebrations such as college reunions, birthday parties, and family gatherings. The platform provides an all-in-one solution combining event management, group communication, expense tracking, and vendor marketplace features. Built as a mobile-first web application, it emphasizes celebration-focused design with influences from Instagram's visual engagement, WhatsApp's familiar UX patterns, and Airbnb's event discovery model.
+Myzymo is a comprehensive social gatherings platform designed for the Indian market, enabling users to plan and manage celebrations such as college reunions, birthday parties, and family gatherings. The platform provides an all-in-one solution combining event management, group communication, expense tracking, and vendor marketplace features. Built as a mobile-first web application, it emphasizes celebration-focused design with influences from Instagram's visual engagement, WhatsApp's familiar UX patterns, and Airbnb's event discovery model.
+
+**Recent Changes (November 2025):**
+- Rebranded from "Reunify" to "Myzymo"
+- Added vibrant celebration-themed logo matching the orange/coral color scheme
+- Logo integrated across all pages (Navbar, Events, Vendors, Footer)
 
 ## User Preferences
 

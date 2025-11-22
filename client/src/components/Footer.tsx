@@ -1,5 +1,5 @@
-import { Calendar } from "lucide-react";
 import { SiX, SiFacebook, SiInstagram, SiLinkedin } from "react-icons/si";
+import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 export default function Footer() {
   return (
@@ -8,8 +8,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-6 h-6 text-primary" />
-              <span className="font-heading font-bold text-xl">Reunify</span>
+              <img src={logoUrl} alt="Myzymo" className="w-8 h-8" />
+              <span className="font-heading font-bold text-xl">Myzymo</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Making celebrations memorable, one gathering at a time.
@@ -48,7 +48,7 @@ export default function Footer() {
         
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2025 Reunify. All rights reserved.
+            © 2025 Myzymo. All rights reserved.
           </p>
           <div className="flex gap-4">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
