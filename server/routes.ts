@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
+import { z } from "zod";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, sessionStore } from "./replitAuth";
 import { 
@@ -98,14 +99,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       console.log("[POST /api/events] User ID:", userId);
       
-      // Validate request body
+      // Validate request body - accept ISO strings for date field
+      const apiEventSchema = insertEventSchema.extend({
+        date: z.coerce.date(),
+      });
+      
       const dataToValidate = {
         ...req.body,
         creatorId: userId,
       };
       console.log("[POST /api/events] Data to validate:", dataToValidate);
       
-      const validatedData = insertEventSchema.parse(dataToValidate);
+      const validatedData = apiEventSchema.parse(dataToValidate);
       console.log("[POST /api/events] Validation passed:", validatedData);
       
       const event = await storage.createEvent(validatedData);

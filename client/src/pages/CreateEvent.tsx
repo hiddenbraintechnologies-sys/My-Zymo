@@ -38,9 +38,18 @@ export default function CreateEvent() {
 
   const createEventMutation = useMutation({
     mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; date: string }) => {
-      return await apiRequest("/api/events", "POST", data);
+      console.log("[CreateEvent] Mutation starting with data:", data);
+      try {
+        const result = await apiRequest("/api/events", "POST", data);
+        console.log("[CreateEvent] API request succeeded:", result);
+        return result;
+      } catch (error) {
+        console.error("[CreateEvent] API request failed:", error);
+        throw error;
+      }
     },
     onSuccess: (data: any) => {
+      console.log("[CreateEvent] Mutation success:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Event created!",
@@ -48,7 +57,8 @@ export default function CreateEvent() {
       });
       setLocation(`/events/${data.id}`);
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("[CreateEvent] Mutation error:", error);
       toast({
         title: "Error",
         description: "Failed to create event. Please try again.",
