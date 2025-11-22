@@ -1,18 +1,255 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, decimal, index } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Session storage table - required for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Users table - modified for Replit Auth compatibility
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const usersRelations = relations(users, ({ many }) => ({
+  createdEvents: many(events),
+  eventParticipations: many(eventParticipants),
+  messages: many(messages),
+  expenses: many(expenses),
+  bookings: many(bookings),
+}));
+
+// Events table
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  date: timestamp("date").notNull(),
+  location: text("location").notNull(),
+  imageUrl: text("image_url"),
+  creatorId: varchar("creator_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [events.creatorId],
+    references: [users.id],
+  }),
+  participants: many(eventParticipants),
+  messages: many(messages),
+  expenses: many(expenses),
+  bookings: many(bookings),
+}));
+
+// Event Participants table (many-to-many)
+export const eventParticipants = pgTable("event_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("going"), // going, maybe, declined
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+});
+
+export const eventParticipantsRelations = relations(eventParticipants, ({ one }) => ({
+  event: one(events, {
+    fields: [eventParticipants.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [eventParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+// Messages table (for event chat)
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  event: one(events, {
+    fields: [messages.eventId],
+    references: [events.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+}));
+
+// Expenses table
+export const expenses = pgTable("expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paidById: varchar("paid_by_id").notNull().references(() => users.id),
+  splitAmong: integer("split_among").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const expensesRelations = relations(expenses, ({ one, many }) => ({
+  event: one(events, {
+    fields: [expenses.eventId],
+    references: [events.id],
+  }),
+  paidBy: one(users, {
+    fields: [expenses.paidById],
+    references: [users.id],
+  }),
+  splits: many(expenseSplits),
+}));
+
+// Expense Splits table
+export const expenseSplits = pgTable("expense_splits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  expenseId: varchar("expense_id").notNull().references(() => expenses.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  isPaid: boolean("is_paid").notNull().default(false),
+});
+
+export const expenseSplitsRelations = relations(expenseSplits, ({ one }) => ({
+  expense: one(expenses, {
+    fields: [expenseSplits.expenseId],
+    references: [expenses.id],
+  }),
+  user: one(users, {
+    fields: [expenseSplits.userId],
+    references: [users.id],
+  }),
+}));
+
+// Vendors table
+export const vendors = pgTable("vendors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // venue, catering, photography, decoration
+  description: text("description"),
+  imageUrl: text("image_url"),
+  location: text("location").notNull(),
+  priceRange: text("price_range").notNull(),
+  rating: decimal("rating", { precision: 2, scale: 1 }).notNull().default("0"),
+  reviewCount: integer("review_count").notNull().default(0),
+  responseTime: text("response_time").notNull().default("24 hours"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const vendorsRelations = relations(vendors, ({ many }) => ({
+  bookings: many(bookings),
+}));
+
+// Bookings table
+export const bookings = pgTable("bookings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  vendorId: varchar("vendor_id").notNull().references(() => vendors.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // pending, confirmed, cancelled
+  message: text("message"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const bookingsRelations = relations(bookings, ({ one }) => ({
+  event: one(events, {
+    fields: [bookings.eventId],
+    references: [events.id],
+  }),
+  vendor: one(vendors, {
+    fields: [bookings.vendorId],
+    references: [vendors.id],
+  }),
+  user: one(users, {
+    fields: [bookings.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventParticipantSchema = createInsertSchema(eventParticipants).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertExpenseSchema = createInsertSchema(expenses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertExpenseSplitSchema = createInsertSchema(expenseSplits).omit({
+  id: true,
+});
+
+export const insertVendorSchema = createInsertSchema(vendors).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBookingSchema = createInsertSchema(bookings).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type Event = typeof events.$inferSelect;
+
+export type InsertEventParticipant = z.infer<typeof insertEventParticipantSchema>;
+export type EventParticipant = typeof eventParticipants.$inferSelect;
+
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;
+
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type Expense = typeof expenses.$inferSelect;
+
+export type InsertExpenseSplit = z.infer<typeof insertExpenseSplitSchema>;
+export type ExpenseSplit = typeof expenseSplits.$inferSelect;
+
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type Vendor = typeof vendors.$inferSelect;
+
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type Booking = typeof bookings.$inferSelect;
