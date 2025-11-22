@@ -1,0 +1,174 @@
+h1. 🏗️ Project: Social Gatherings Platform
+*(College Reunions | Birthdays | Events | Social Groups)*  
+
+h2. 🔖 Summary
+A mobile and web-based platform that simplifies organizing social gatherings — from planning and chatting to splitting expenses and booking vendors.
+
+---
+
+h2. 🎯 1. Project Overview
+|| Item || Details ||
+| *Project Name* | Social Gatherings / Reunify (suggested) |
+| *Owner* | Your Name |
+| *Type* | Web + Mobile Application |
+| *Objective* | Create an all-in-one solution for planning, managing, and engaging in social events such as reunions, birthdays, and parties. |
+| *Status* | Planning / MVP Design Stage |
+| *Target Market* | India (Phase 1), Global (Phase 2) |
+
+---
+
+h2. 🧩 2. Key Features (MVP Scope)
+
+h3. 👤 User App
+* Event creation & management  
+* Group chat & media sharing  
+* Expense tracking & payment integration  
+* Booking venues & service providers  
+* Notifications & polls  
+
+h3. 🏪 Vendor Portal
+* Vendor registration & verification  
+* Dashboard for listings & availability  
+* Booking management  
+* Ratings & reviews  
+
+h3. ⚙️ Admin Panel
+* Dashboard overview (users, vendors, events)  
+* User & vendor management  
+* Commission tracking & reports  
+* Push notifications & content management  
+
+---
+
+h2. 🧭 3. Architecture Diagram
+Attach this image to your Confluence page:  
+*File:* *A_flowchart_in_a_digital_vector_graphic_illustrate.png*  
+Use “Insert → Files and Images → Upload from computer”.
+
+---
+
+h2. ⚙️ 4. Tech Stack
+|| Layer || Recommended Tools ||
+| *Frontend (Mobile)* | Flutter / React Native |
+| *Frontend (Web)* | React.js / Next.js |
+| *Backend* | Node.js + Express / Django |
+| *Database* | MongoDB / PostgreSQL |
+| *Auth* | Firebase Auth / Google OAuth |
+| *Payments* | Razorpay (India), Stripe/PayPal (Global) |
+| *Hosting* | AWS / Google Cloud / Vercel |
+| *Chat* | Firebase / Socket.io |
+
+---
+
+h2. 🪜 5. MVP Development Phases
+|| Phase || Focus || Deliverables ||
+| *Phase 1* | Event creation + chat | Event setup, invites, group chat |
+| *Phase 2* | Expense management | Splitwise-style expense tracking |
+| *Phase 3* | Vendor marketplace | Booking & vendor dashboards |
+| *Phase 4* | Admin panel | Reports, approvals, analytics |
+| *Phase 5* | AI & expansion | Smart planner, multi-language, multi-currency |
+
+---
+
+h2. 💰 6. Monetization
+* Vendor commissions  
+* Premium event features (AI planner, ad-free)  
+* Sponsored vendor listings  
+* Affiliate deals (travel, catering, photography)
+
+---
+
+h2. 🧠 7. Future Enhancements
+* AI-powered event suggestions  
+* Smart reminders & countdowns  
+* Auto photo albums  
+* Social feed for shared memories  
+
+---
+
+h2. 👥 8. Team & Roles
+|| Role || Responsibility ||
+| *Product Owner* | Define features, prioritize roadmap |
+| *UX/UI Designer* | Wireframes, app flows |
+| *Frontend Dev* | Mobile & web development |
+| *Backend Dev* | API, database, and payments |
+| *QA / Tester* | Functionality and performance testing |
+| *Admin* | Vendor onboarding & monitoring |
+
+---
+
+h2. 📋 9. Next Steps
+* [ ] Finalize MVP scope  
+* [ ] Create wireframes & UI mockups  
+* [ ] Set up development environment  
+* [ ] Build event creation + chat module  
+* [ ] Prepare for internal testing  
+
+---
+
+h2. 📌 10. Requirements & User Stories
+
+h3. 🎯 Functional Requirements
+|| ID || Requirement || Priority ||
+| FR-01 | Users can create and manage events with date, location, and description | High |
+| FR-02 | Users can invite members through shareable links | High |
+| FR-03 | Users can chat within the event group | High |
+| FR-04 | Users can split expenses and track payments | High |
+| FR-05 | Vendors can register and list services (venue, catering, etc.) | High |
+| FR-06 | Users can browse and book vendor services | Medium |
+| FR-07 | Admin can manage users, vendors, and payments | High |
+| FR-08 | Push notifications for reminders and updates | Medium |
+| FR-09 | Ratings & reviews for vendors | Low |
+| FR-10 | AI-based event suggestions (future release) | Low |
+
+---
+
+h3. 👥 User Stories
+
+|| ID || As a (Role) || I want to... || So that I can... || Priority ||
+| US-01 | User | Create a new event | Organize a gathering easily | High |
+| US-02 | User | Invite others via link or contact | Bring my friends to join the event | High |
+| US-03 | User | Chat with attendees | Discuss event details in one place | High |
+| US-04 | User | Split and manage expenses | Know how much each person owes | High |
+| US-05 | Vendor | Register my business | Offer my services to event organizers | High |
+| US-06 | Vendor | Manage bookings | Track client requests | Medium |
+| US-07 | Admin | View and manage all users/vendors | Ensure safe and smooth operation | High |
+| US-08 | Admin | Approve or reject vendor requests | Maintain quality control | Medium |
+| US-09 | User | Book a venue or service | Save time finding providers | Medium |
+| US-10 | User | Receive notifications | Stay updated about changes | Medium |
+
+---
+
+h3. ⚙️ Non-Functional Requirements
+* The system should support at least 10,000 concurrent users.  
+* Mobile app must load under 3 seconds on 4G networks.  
+* Chat messages should appear in real-time (<1s delay).  
+* Data should be stored securely (AES encryption).  
+* Uptime target: 99.5%.  
+* Scalable cloud infrastructure (AWS/GCP).  
+* Comply with GDPR & Indian IT Act for data privacy.  
+
+---
+
+h2. 📈 11. Integration Points
+* Payment Gateway: Razorpay / Stripe  
+* Notifications: Firebase Cloud Messaging  
+* Social Login: Google / Apple  
+* File Storage: AWS S3 or Firebase Storage  
+
+---
+
+h2. 📅 12. Milestone Targets
+|| Milestone || Description || Timeline ||
+| M1 | Wireframe & UI Design | 3 Weeks |
+| M2 | MVP Development (Core modules) | 8 Weeks |
+| M3 | Internal QA & UAT | 2 Weeks |
+| M4 | Beta Launch (India) | 1 Week |
+| M5 | Global Release & AI Integration | TBD |
+
+---
+
+h2. 🧩 13. Attachments
+* Architecture Diagram – *A_flowchart_in_a_digital_vector_graphic_illustrate.png*  
+* Wireframes (To be uploaded)  
+* Requirements Doc (To be linked with Jira)  
