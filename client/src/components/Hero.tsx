@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, IndianRupee } from "lucide-react";
+import { useLocation } from "wouter";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 
 export default function Hero() {
+  const [, setLocation] = useLocation();
+  
   return (
     <div className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden">
       <img 
@@ -25,7 +28,10 @@ export default function Hero() {
             size="lg" 
             className="bg-white/20 hover:bg-white/30 backdrop-blur-lg border border-white/30 text-white text-base md:text-lg px-8 py-6"
             data-testid="button-get-started"
-            onClick={() => console.log('Get Started clicked')}
+            onClick={() => {
+              console.log('[Hero] Get Started clicked, navigating to /events');
+              setLocation('/events');
+            }}
           >
             Get Started Free
           </Button>
@@ -34,7 +40,10 @@ export default function Hero() {
             variant="outline"
             className="bg-white/10 hover:bg-white/20 backdrop-blur-lg border-white/40 text-white text-base md:text-lg px-8 py-6"
             data-testid="button-explore-vendors"
-            onClick={() => console.log('Explore Vendors clicked')}
+            onClick={() => {
+              console.log('[Hero] Explore Vendors clicked, navigating to /vendors');
+              setLocation('/vendors');
+            }}
           >
             Explore Vendors
           </Button>

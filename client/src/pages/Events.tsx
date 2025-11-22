@@ -34,7 +34,8 @@ export default function Events() {
   }
 
   if (!user) {
-    window.location.href = "/";
+    console.log('[Events] User not authenticated, redirecting to login');
+    window.location.href = "/api/login";
     return null;
   }
 

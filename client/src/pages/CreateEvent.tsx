@@ -40,22 +40,23 @@ export default function CreateEvent() {
     mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; date: string }) => {
       console.log("[CreateEvent] Mutation starting with data:", data);
       try {
-        const result = await apiRequest("/api/events", "POST", data);
-        console.log("[CreateEvent] API request succeeded:", result);
-        return result;
+        const response = await apiRequest("/api/events", "POST", data);
+        const createdEvent = await response.json();
+        console.log("[CreateEvent] API request succeeded:", createdEvent);
+        return createdEvent;
       } catch (error) {
         console.error("[CreateEvent] API request failed:", error);
         throw error;
       }
     },
-    onSuccess: (data: any) => {
-      console.log("[CreateEvent] Mutation success:", data);
+    onSuccess: (createdEvent: any) => {
+      console.log("[CreateEvent] Mutation success, created event:", createdEvent);
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Event created!",
         description: "Your event has been created successfully.",
       });
-      setLocation(`/events/${data.id}`);
+      setLocation(`/events`);
     },
     onError: (error: any) => {
       console.error("[CreateEvent] Mutation error:", error);
