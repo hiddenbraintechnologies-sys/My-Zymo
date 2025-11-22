@@ -14,7 +14,8 @@ import { Link } from "wouter";
 import { z } from "zod";
 
 // Form schema with string date (for datetime-local input)
-const formSchema = insertEventSchema.extend({
+// Omit creatorId since backend sets it from session
+const formSchema = insertEventSchema.omit({ creatorId: true }).extend({
   date: z.string(),
 });
 
@@ -57,6 +58,9 @@ export default function CreateEvent() {
   });
 
   const onSubmit = (data: FormData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
+    
     // Transform form data to match backend schema
     // Backend sets creatorId from session, so we don't send it
     const payload = {
@@ -66,6 +70,8 @@ export default function CreateEvent() {
       imageUrl: data.imageUrl?.trim() ? data.imageUrl : null,
       date: new Date(data.date).toISOString(), // Backend expects ISO string
     };
+    
+    console.log("Payload to send:", payload);
     createEventMutation.mutate(payload);
   };
 
