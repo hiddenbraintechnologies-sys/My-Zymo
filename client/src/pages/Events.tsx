@@ -43,10 +43,12 @@ export default function Events() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
-            <span className="font-heading font-bold text-xl">Myzymo</span>
-          </div>
+          <Link href="/" data-testid="link-home">
+            <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
+              <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
+              <span className="font-heading font-bold text-xl">Myzymo</span>
+            </div>
+          </Link>
           
           <div className="flex items-center gap-4">
             <Link href="/events" data-testid="link-events">

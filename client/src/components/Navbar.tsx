@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import {
   Sheet,
   SheetContent,
@@ -30,10 +31,12 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
-          <span className="font-heading font-bold text-xl">Myzymo</span>
-        </div>
+        <Link href="/" data-testid="link-home">
+          <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
+            <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
+            <span className="font-heading font-bold text-xl">Myzymo</span>
+          </div>
+        </Link>
         
         <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
