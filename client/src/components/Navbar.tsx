@@ -58,10 +58,17 @@ export default function Navbar() {
           </Button>
           
           <div className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" data-testid="button-login">
+            <Button 
+              variant="ghost" 
+              data-testid="button-login"
+              onClick={() => window.location.href = '/api/login'}
+            >
               Log In
             </Button>
-            <Button data-testid="button-signup">
+            <Button 
+              data-testid="button-signup"
+              onClick={() => window.location.href = '/api/login'}
+            >
               Sign Up
             </Button>
           </div>
@@ -84,10 +91,17 @@ export default function Navbar() {
                   </a>
                 ))}
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => window.location.href = '/api/login'}
+                  >
                     Log In
                   </Button>
-                  <Button className="w-full">
+                  <Button 
+                    className="w-full"
+                    onClick={() => window.location.href = '/api/login'}
+                  >
                     Sign Up
                   </Button>
                 </div>
