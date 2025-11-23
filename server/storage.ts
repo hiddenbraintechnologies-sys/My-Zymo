@@ -21,6 +21,7 @@ export interface IStorage {
   
   // Event methods
   getEvent(id: string): Promise<Event | undefined>;
+  getAllEvents(): Promise<Event[]>;
   getEventsByUser(userId: string): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
@@ -73,11 +74,13 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: users.email,
         set: {
+          // Only update auth-related fields, preserve user's profile data
           email: userData.email,
           firstName: userData.firstName,
           lastName: userData.lastName,
           profileImageUrl: userData.profileImageUrl,
           updatedAt: new Date(),
+          // Do NOT update: age, dateOfBirth, phone, bio, college, graduationYear, degree, currentCity, profession, company
         },
       })
       .returning();
@@ -100,6 +103,10 @@ export class DatabaseStorage implements IStorage {
   async getEvent(id: string): Promise<Event | undefined> {
     const [event] = await db.select().from(events).where(eq(events.id, id));
     return event || undefined;
+  }
+
+  async getAllEvents(): Promise<Event[]> {
+    return await db.select().from(events).orderBy(desc(events.date));
   }
 
   async getEventsByUser(userId: string): Promise<Event[]> {

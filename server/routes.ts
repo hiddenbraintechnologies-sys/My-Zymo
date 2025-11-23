@@ -61,26 +61,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Event Management APIs ===
   
-  // Get all user's events (both created and participating)
+  // Get all events (for discovery)
   app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const [createdEvents, participatingEvents] = await Promise.all([
-        storage.getEventsByUser(userId),
-        storage.getUserEvents(userId),
-      ]);
-      
-      const allEvents = [
-        ...createdEvents.map(e => ({ ...e, role: 'creator' })),
-        ...participatingEvents.map(p => ({ ...p.event, role: 'participant' })),
-      ];
-      
-      // Remove duplicates and sort by date
-      const uniqueEvents = Array.from(
-        new Map(allEvents.map(e => [e.id, e])).values()
-      ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      res.json(uniqueEvents);
+      // Return all events so users can discover and join them
+      const allEvents = await storage.getAllEvents();
+      res.json(allEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
       res.status(500).json({ message: "Failed to fetch events" });
@@ -90,23 +76,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get single event with details
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const event = await storage.getEvent(req.params.id);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      // Verify user is creator or participant
-      const participants = await storage.getEventParticipants(req.params.id);
-      const participantUserIds = participants.map(p => p.userId);
-      const isCreator = event.creatorId === userId;
-      const isParticipant = participantUserIds.includes(userId);
-      
-      if (!isCreator && !isParticipant) {
-        return res.status(403).json({ message: "Only event participants can view event details" });
-      }
-      
-      const [messages, expenses, bookings] = await Promise.all([
+      // Anyone can view event details (for discovery)
+      // Get participants, messages, expenses, and bookings
+      const [participants, messages, expenses, bookings] = await Promise.all([
+        storage.getEventParticipants(req.params.id),
         storage.getEventMessages(req.params.id),
         storage.getEventExpenses(req.params.id),
         storage.getEventBookings(req.params.id),
