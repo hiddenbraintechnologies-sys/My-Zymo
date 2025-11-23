@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Myzymo</string>
+    <string name="title_activity_main">Myzymo</string>
+    <string name="package_name">com.myzymo.app</string>
+    <string name="custom_url_scheme">com.myzymo.app</string>
+</resources>
