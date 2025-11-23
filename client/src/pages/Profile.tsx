@@ -161,6 +161,7 @@ export default function Profile() {
         title: "Profile updated!",
         description: "Your profile has been saved successfully.",
       });
+      navigate("/ai-assistant");
     },
     onError: (error: any) => {
       toast({

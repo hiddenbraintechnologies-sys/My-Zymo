@@ -6,12 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, MessageSquare, Plus, Send, Trash2 } from "lucide-react";
+import { LogOut, MessageSquare, Plus, Send, Trash2, UserCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { AiConversation, AiMessage } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AIAssistant() {
   const { user, isLoading: authLoading } = useAuth();
@@ -213,6 +214,26 @@ export default function AIAssistant() {
         <div className="flex-1 flex flex-col">
           {selectedConversationId ? (
             <>
+              {conversationData?.isOnboarding && (
+                <div className="p-4 border-b">
+                  <Alert className="border-primary/50 bg-primary/5" data-testid="alert-onboarding-profile">
+                    <UserCircle className="h-4 w-4 text-primary" />
+                    <AlertTitle>Complete Your Profile</AlertTitle>
+                    <AlertDescription className="flex items-start justify-between gap-4">
+                      <p className="flex-1">
+                        Ready to save your information? Head to your Profile page to review and complete all your details.
+                      </p>
+                      <Button
+                        onClick={() => setLocation("/profile")}
+                        size="sm"
+                        data-testid="button-go-to-profile"
+                      >
+                        Go to Profile
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
               <div className="flex-1 overflow-hidden">
                 <ScrollArea className="h-full p-6" ref={scrollRef}>
                   {messagesLoading ? (
