@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -13,6 +14,15 @@ interface Message {
   role: "user" | "assistant";
   content: string;
 }
+
+const SUGGESTED_ACTIONS = [
+  "How do I create an event?",
+  "Show me available vendors",
+  "Help me complete my profile",
+  "What features does Myzymo offer?",
+  "How do I invite friends to an event?",
+  "Find vendors in my city",
+];
 
 export default function AIAssistantNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -119,6 +129,13 @@ export default function AIAssistantNavbar() {
     }
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputMessage(suggestion);
+    setTimeout(() => {
+      handleSend();
+    }, 100);
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -191,6 +208,25 @@ export default function AIAssistantNavbar() {
                 </Avatar>
                 <div className="rounded-lg px-3 py-2 bg-muted">
                   <Loader2 className="w-4 h-4 animate-spin" />
+                </div>
+              </div>
+            )}
+
+            {messages.length <= 1 && !sendMessageMutation.isPending && (
+              <div className="mt-4">
+                <p className="text-xs text-muted-foreground mb-3">Quick actions:</p>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTED_ACTIONS.map((suggestion, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="cursor-pointer hover-elevate active-elevate-2 text-xs py-1.5 px-3"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      data-testid={`button-suggestion-${index}`}
+                    >
+                      {suggestion}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             )}
