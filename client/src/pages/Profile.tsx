@@ -8,20 +8,90 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateProfileSchema, type UpdateProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { LogOut, User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap } from "lucide-react";
+import { LogOut, User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload } from "lucide-react";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function Profile() {
   const { user, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Helper function to check if profile is incomplete
+  const isProfileIncomplete = (user: any) => {
+    if (!user) return false;
+    
+    // Profile is considered incomplete if missing basic name information
+    const hasBasicInfo = user.firstName && user.lastName;
+    
+    // Only show onboarding if truly essential fields are missing
+    return !hasBasicInfo;
+  };
+  
+  // Handle profile photo upload
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Convert to data URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      form.setValue('profileImageUrl', dataUrl);
+      toast({
+        title: "Photo uploaded",
+        description: "Remember to save your profile to keep the changes.",
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Mutation to start onboarding conversation
+  const startOnboardingMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("/api/ai/onboarding/start", "POST");
+      return await res.json();
+    },
+    onSuccess: () => {
+      navigate("/ai-assistant");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to start AI assistant. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const form = useForm<UpdateProfile>({
     resolver: zodResolver(updateProfileSchema),
@@ -60,6 +130,9 @@ export default function Profile() {
         profession: user.profession || "",
         company: user.company || "",
       });
+      
+      // Check if should show onboarding prompt
+      setShowOnboardingPrompt(isProfileIncomplete(user));
     }
   }, [user, form]);
 
@@ -167,6 +240,27 @@ export default function Profile() {
           </p>
         </div>
 
+        {showOnboardingPrompt && (
+          <Alert className="mb-6 border-primary/50 bg-primary/5" data-testid="alert-onboarding">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <AlertTitle>Complete Your Profile with AI Assistance</AlertTitle>
+            <AlertDescription className="flex items-start justify-between gap-4">
+              <p className="flex-1">
+                Let our AI assistant guide you through completing your profile in a friendly conversation. 
+                It's quick, easy, and personalized just for you!
+              </p>
+              <Button
+                onClick={() => startOnboardingMutation.mutate()}
+                disabled={startOnboardingMutation.isPending}
+                size="sm"
+                data-testid="button-start-ai-onboarding"
+              >
+                {startOnboardingMutation.isPending ? "Starting..." : "Start AI Assistant"}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card>
@@ -180,29 +274,65 @@ export default function Profile() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-4 mb-4">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src={user.profileImageUrl || undefined} alt={`${user.firstName} ${user.lastName}`} />
-                    <AvatarFallback className="text-xl">{initials}</AvatarFallback>
-                  </Avatar>
-                  <FormField
-                    control={form.control}
-                    name="profileImageUrl"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Profile Photo URL</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://example.com/photo.jpg" 
-                            data-testid="input-profile-image"
-                            {...field}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="flex items-start gap-6 mb-4">
+                  <div className="flex flex-col items-center gap-2">
+                    <Avatar className="w-24 h-24">
+                      <AvatarImage 
+                        src={form.watch('profileImageUrl') || user.profileImageUrl || undefined} 
+                        alt={`${user.firstName} ${user.lastName}`} 
+                      />
+                      <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                    </Avatar>
+                    <FormField
+                      control={form.control}
+                      name="profileImageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              ref={fileInputRef}
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              data-testid="input-profile-photo-file"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Profile Photo</p>
+                    <p className="text-sm text-muted-foreground">
+                      Upload a photo or take one with your camera
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        data-testid="button-upload-photo"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Photo
+                      </Button>
+                      {form.watch('profileImageUrl') && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => form.setValue('profileImageUrl', '')}
+                          data-testid="button-remove-photo"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">

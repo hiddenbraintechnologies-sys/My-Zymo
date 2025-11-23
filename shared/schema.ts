@@ -247,7 +247,35 @@ export type User = typeof users.$inferSelect;
 export const updateProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").optional(),
   lastName: z.string().min(1, "Last name is required").optional(),
-  profileImageUrl: z.string().url().optional().nullable(),
+  profileImageUrl: z.string().optional().nullable().refine(
+    (val) => {
+      if (!val) return true; // Allow empty/null
+      
+      // Allow HTTP(S) URLs
+      if (val.startsWith('http://') || val.startsWith('https://')) {
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      
+      // Allow data URLs but check size (max ~3.5MB base64 = ~2.6MB file)
+      if (val.startsWith('data:image/')) {
+        const base64Data = val.split(',')[1];
+        if (base64Data && base64Data.length > 3500000) {
+          return false; // Too large
+        }
+        return true;
+      }
+      
+      return false; // Invalid format
+    },
+    {
+      message: "Profile image must be a valid URL or image data under 2.5MB",
+    }
+  ),
   age: z.number().min(1).max(150).optional().nullable(),
   dateOfBirth: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
@@ -288,6 +316,7 @@ export const aiConversations = pgTable("ai_conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull().default("New Chat"),
+  isOnboarding: boolean("is_onboarding").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

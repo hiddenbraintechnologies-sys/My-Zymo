@@ -519,6 +519,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Start or get onboarding conversation
+  app.post('/api/ai/onboarding/start', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Check if user already has an onboarding conversation
+      const existingConversations = await storage.getUserConversations(userId);
+      const onboardingConversation = existingConversations.find(c => c.isOnboarding);
+      
+      if (onboardingConversation) {
+        // Return existing onboarding conversation
+        const messages = await storage.getConversationMessages(onboardingConversation.id);
+        return res.json({ ...onboardingConversation, messages });
+      }
+      
+      // Create new onboarding conversation
+      const conversation = await storage.createConversation({
+        userId,
+        title: "Profile Setup Assistant",
+        isOnboarding: true,
+      });
+      
+      // Create initial AI greeting message
+      const welcomeMessage = await storage.createAiMessage({
+        conversationId: conversation.id,
+        role: "assistant",
+        content: "Welcome to Myzymo! I'm your personal assistant, here to help you set up your profile and get the most out of our platform.\n\nTo create the best experience for you and help you connect with others for celebrations, I'd love to learn more about you. Let's start with some basics:\n\nWhat's your name? (First and Last name)\n\nFeel free to share as much or as little as you'd like. I'm here to make this easy for you!",
+      });
+      
+      res.status(201).json({ 
+        ...conversation, 
+        messages: [welcomeMessage] 
+      });
+    } catch (error) {
+      console.error("Error starting onboarding:", error);
+      res.status(500).json({ message: "Failed to start onboarding" });
+    }
+  });
+  
   // Send message to AI
   app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
     try {
@@ -549,11 +588,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get conversation history
       const conversationHistory = await storage.getConversationMessages(conversationId);
       
+      // Determine system prompt based on conversation type
+      let systemPrompt = "You are a helpful AI assistant for Myzymo, a social gatherings platform for planning celebrations like college reunions, birthday parties, and family gatherings in India. Help users with event planning, vendor recommendations, and general questions about using the platform. Be friendly, concise, and helpful.";
+      
+      if (conversation.isOnboarding) {
+        systemPrompt = `You are a friendly onboarding assistant for Myzymo, a social gatherings platform for celebrations in India. Your goal is to help new users complete their profile in a conversational, natural way.
+
+Profile fields to collect:
+- First Name and Last Name (required)
+- Age and Date of Birth
+- Phone number
+- Bio (a brief description about themselves)
+- College name, Degree, and Graduation Year (important for reunions)
+- Current City
+- Profession and Company
+
+Guidelines:
+1. Ask for information naturally, one or two fields at a time - don't overwhelm them
+2. Be conversational and friendly, not robotic
+3. If they provide multiple pieces of information at once, acknowledge all of them
+4. After collecting basic info, remind them they can update their profile anytime at the Profile page
+5. Once they've shared basic information (at minimum: name), let them know they can start exploring events and connecting with others
+6. Keep responses concise and engaging
+7. Use emojis sparingly to be friendly but professional
+8. Don't be too pushy - if they want to skip certain fields, that's okay
+
+Remember: You're guiding them through onboarding, not interrogating them. Make it feel like a friendly conversation, not a form to fill out.`;
+      }
+      
       // Prepare messages for AI (including system prompt)
       const aiMessages = [
         {
           role: "system" as const,
-          content: "You are a helpful AI assistant for Myzymo, a social gatherings platform for planning celebrations like college reunions, birthday parties, and family gatherings in India. Help users with event planning, vendor recommendations, and general questions about using the platform. Be friendly, concise, and helpful."
+          content: systemPrompt
         },
         ...conversationHistory.map(m => ({
           role: m.role as "user" | "assistant",
