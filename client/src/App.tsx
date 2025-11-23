@@ -8,6 +8,7 @@ import Events from "@/pages/Events";
 import CreateEvent from "@/pages/CreateEvent";
 import EventDetail from "@/pages/EventDetail";
 import Vendors from "@/pages/Vendors";
+import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/events/create" component={CreateEvent} />
       <Route path="/events/:id" component={EventDetail} />
       <Route path="/vendors" component={Vendors} />
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );

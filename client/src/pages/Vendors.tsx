@@ -51,19 +51,24 @@ export default function Vendors() {
               <Button variant="ghost">Vendors</Button>
             </Link>
             {user && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm" data-testid="text-user-name">
-                  {user.firstName} {user.lastName}
-                </span>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={handleLogout}
-                  data-testid="button-logout"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
+              <>
+                <Link href="/profile" data-testid="link-profile">
+                  <Button variant="ghost">Profile</Button>
+                </Link>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm" data-testid="text-user-name">
+                    {user.firstName} {user.lastName}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={handleLogout}
+                    data-testid="button-logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         </div>

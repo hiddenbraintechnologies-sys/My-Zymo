@@ -87,6 +87,9 @@ export default function EventDetail() {
             <Link href="/vendors" data-testid="link-vendors">
               <Button variant="ghost">Vendors</Button>
             </Link>
+            <Link href="/profile" data-testid="link-profile">
+              <Button variant="ghost">Profile</Button>
+            </Link>
             <div className="flex items-center gap-2">
               <span className="text-sm" data-testid="text-user-name">
                 {user.firstName} {user.lastName}

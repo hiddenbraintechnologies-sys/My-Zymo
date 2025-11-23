@@ -22,6 +22,16 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  age: integer("age"),
+  dateOfBirth: timestamp("date_of_birth"),
+  phone: varchar("phone"),
+  bio: text("bio"),
+  college: varchar("college"),
+  graduationYear: integer("graduation_year"),
+  degree: varchar("degree"),
+  currentCity: varchar("current_city"),
+  profession: varchar("profession"),
+  company: varchar("company"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -232,6 +242,24 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, "First name is required").optional(),
+  lastName: z.string().min(1, "Last name is required").optional(),
+  profileImageUrl: z.string().url().optional().nullable(),
+  age: z.number().min(1).max(150).optional().nullable(),
+  dateOfBirth: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  bio: z.string().max(500).optional().nullable(),
+  college: z.string().optional().nullable(),
+  graduationYear: z.number().min(1950).max(2030).optional().nullable(),
+  degree: z.string().optional().nullable(),
+  currentCity: z.string().optional().nullable(),
+  profession: z.string().optional().nullable(),
+  company: z.string().optional().nullable(),
+});
+
+export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;

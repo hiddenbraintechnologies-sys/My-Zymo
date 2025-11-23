@@ -12,6 +12,7 @@ import {
   insertEventParticipantSchema,
   insertExpenseSchema,
   insertBookingSchema,
+  updateProfileSchema,
 } from "@shared/schema";
 import { db } from "./db";
 import type { IncomingMessage } from "http";
@@ -29,6 +30,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Update user profile
+  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = updateProfileSchema.parse(req.body);
+      
+      console.log('[Profile Update] User ID:', userId);
+      console.log('[Profile Update] Validated data:', JSON.stringify(validatedData, null, 2));
+      
+      const profileUpdate: any = { ...validatedData };
+      if (validatedData.dateOfBirth) {
+        profileUpdate.dateOfBirth = new Date(validatedData.dateOfBirth);
+      }
+      
+      const updatedUser = await storage.updateUserProfile(userId, profileUpdate);
+      console.log('[Profile Update] Updated user:', JSON.stringify(updatedUser, null, 2));
+      res.json(updatedUser);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid profile data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 
