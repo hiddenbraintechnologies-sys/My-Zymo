@@ -5,6 +5,12 @@
 Myzymo is a comprehensive social gatherings platform designed for the Indian market, enabling users to plan and manage celebrations such as college reunions, birthday parties, and family gatherings. The platform provides an all-in-one solution combining event management, group communication, expense tracking, and vendor marketplace features. Built as a mobile-first web application, it emphasizes celebration-focused design with influences from Instagram's visual engagement, WhatsApp's familiar UX patterns, and Airbnb's event discovery model.
 
 **Most Recent Session (November 23, 2025):**
+- **✅ Completed: Profile-First Authentication Flow**
+  - Updated login/signup redirect to send users directly to their profile page (/profile)
+  - Users land on profile page after authentication instead of homepage
+  - Profile page serves as the onboarding destination for new users
+  - Deep links and returnTo parameter still honored by Passport authentication
+  
 - **✅ Completed: AI Assistant Chat Feature**
   - Integrated OpenAI GPT-5 via Replit AI Integrations (no API key required)
   - Created AI conversations and messages database schema
