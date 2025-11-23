@@ -57,6 +57,9 @@ export default function Events() {
             <Link href="/vendors" data-testid="link-vendors">
               <Button variant="ghost">Vendors</Button>
             </Link>
+            <Link href="/ai-assistant" data-testid="link-ai-assistant">
+              <Button variant="ghost">AI Assistant</Button>
+            </Link>
             <Link href="/profile" data-testid="link-profile">
               <Button variant="ghost">Profile</Button>
             </Link>

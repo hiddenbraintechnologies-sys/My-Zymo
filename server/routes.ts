@@ -525,6 +525,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { conversationId, message } = req.body;
       
+      if (!conversationId || !message) {
+        return res.status(400).json({ message: "conversationId and message are required" });
+      }
+      
       // Verify conversation exists and user owns it
       const conversation = await storage.getConversation(conversationId);
       if (!conversation) {
@@ -572,9 +576,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userMessage,
         assistantMessage,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in AI chat:", error);
-      res.status(500).json({ message: "Failed to process AI chat" });
+      const statusCode = error.message?.includes("404") ? 404 : 
+                         error.message?.includes("403") ? 403 : 500;
+      res.status(statusCode).json({ 
+        message: error.message || "Failed to process AI chat" 
+      });
     }
   });
 
