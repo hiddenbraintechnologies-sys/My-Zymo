@@ -9,6 +9,7 @@ import type { Event } from "@shared/schema";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { useToast } from "@/hooks/use-toast";
+import DashboardChat from "@/components/DashboardChat";
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -145,97 +146,110 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-2xl font-heading font-bold mb-4">Your Recent Events</h2>
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-80" />
-            ))}
-          </div>
-        ) : events && events.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.slice(0, 6).map((event) => (
-              <Card 
-                key={event.id} 
-                className="hover-elevate"
-                data-testid={`card-event-${event.id}`}
-              >
-                {event.imageUrl && (
-                  <div className="aspect-video w-full overflow-hidden rounded-t-md">
-                    <img 
-                      src={event.imageUrl} 
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle 
-                    className="cursor-pointer"
-                    onClick={() => setLocation(`/events/${event.id}`)}
-                    data-testid={`text-event-title-${event.id}`}
-                  >
-                    {event.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {event.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {format(new Date(event.date), 'PPP')}
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {event.location}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleWhatsAppShare(event)}
-                    data-testid={`button-whatsapp-share-${event.id}`}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleCopyLink(event.id)}
-                    data-testid={`button-copy-link-${event.id}`}
-                  >
-                    <LinkIcon className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="p-12">
-            <div className="text-center space-y-4">
-              <Calendar className="w-16 h-16 mx-auto text-muted-foreground" />
-              <div>
-                <h3 className="font-semibold text-lg mb-2">No events yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first celebration and start sharing with friends!
-                </p>
-                <Button onClick={() => setLocation("/events/create")} data-testid="button-create-first-event">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Event
-                </Button>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Events Section */}
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-heading font-bold mb-4">Your Recent Events</h2>
             </div>
-          </Card>
-        )}
+
+            {isLoading ? (
+              <div className="space-y-6">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-48" />
+                ))}
+              </div>
+            ) : events && events.length > 0 ? (
+              <div className="space-y-4">
+                {events.slice(0, 4).map((event) => (
+                  <Card 
+                    key={event.id} 
+                    className="hover-elevate"
+                    data-testid={`card-event-${event.id}`}
+                  >
+                    <div className="flex gap-4">
+                      {event.imageUrl && (
+                        <div className="w-32 h-32 flex-shrink-0 overflow-hidden rounded-l-md">
+                          <img 
+                            src={event.imageUrl} 
+                            alt={event.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 p-4">
+                        <CardTitle 
+                          className="cursor-pointer mb-2"
+                          onClick={() => setLocation(`/events/${event.id}`)}
+                          data-testid={`text-event-title-${event.id}`}
+                        >
+                          {event.title}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2 mb-3">
+                          {event.description}
+                        </CardDescription>
+                        <div className="space-y-1 mb-3">
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            {format(new Date(event.date), 'PPP')}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            {event.location}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleWhatsAppShare(event)}
+                            data-testid={`button-whatsapp-share-${event.id}`}
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            WhatsApp
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopyLink(event.id)}
+                            data-testid={`button-copy-link-${event.id}`}
+                          >
+                            <LinkIcon className="w-4 h-4 mr-2" />
+                            Copy Link
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-12">
+                <div className="text-center space-y-4">
+                  <Calendar className="w-16 h-16 mx-auto text-muted-foreground" />
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">No events yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Create your first celebration and start sharing with friends!
+                    </p>
+                    <Button onClick={() => setLocation("/events/create")} data-testid="button-create-first-event">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Event
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+
+          {/* Chat Section */}
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-heading font-bold mb-4">Chat with Participants</h2>
+            </div>
+            <DashboardChat />
+          </div>
+        </div>
       </main>
     </div>
   );
