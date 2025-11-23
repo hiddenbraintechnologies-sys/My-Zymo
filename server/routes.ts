@@ -6,6 +6,19 @@ import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, sessionStore } from "./replitAuth";
+
+// Extend express-session types to include passport data
+declare module 'express-session' {
+  interface SessionData {
+    passport?: {
+      user?: {
+        claims?: {
+          sub?: string;
+        };
+      };
+    };
+  }
+}
 import { 
   insertMessageSchema, 
   insertEventSchema, 
@@ -43,8 +56,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[Profile Update] Validated data:', JSON.stringify(validatedData, null, 2));
       
       const profileUpdate: any = { ...validatedData };
-      if (validatedData.dateOfBirth) {
+      // Handle dateOfBirth: convert to Date if valid, otherwise set to null
+      if (validatedData.dateOfBirth && validatedData.dateOfBirth !== '') {
         profileUpdate.dateOfBirth = new Date(validatedData.dateOfBirth);
+      } else {
+        // Convert empty string, undefined, or null to null for timestamp field
+        profileUpdate.dateOfBirth = null;
       }
       
       const updatedUser = await storage.updateUserProfile(userId, profileUpdate);
