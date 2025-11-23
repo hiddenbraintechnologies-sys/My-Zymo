@@ -1,0 +1,18 @@
+{
+	"appId": "com.myzymo.app",
+	"appName": "Myzymo",
+	"webDir": "dist/public",
+	"server": {
+		"androidScheme": "https",
+		"allowNavigation": [
+			"*"
+		]
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"backgroundColor": "#FF6B35",
+			"showSpinner": false
+		}
+	}
+}
