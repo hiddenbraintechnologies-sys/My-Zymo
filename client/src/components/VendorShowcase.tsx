@@ -31,7 +31,7 @@ const categories = [
 
 export default function VendorShowcase() {
   return (
-    <section className="py-12 md:py-20 px-4">
+    <section id="vendors" className="py-12 md:py-20 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
           <div>
