@@ -1,5 +1,6 @@
 import { 
   users, events, eventParticipants, messages, expenses, expenseSplits, vendors, bookings,
+  aiConversations, aiMessages,
   type User, type UpsertUser,
   type Event, type InsertEvent,
   type EventParticipant, type InsertEventParticipant,
@@ -8,6 +9,8 @@ import {
   type ExpenseSplit, type InsertExpenseSplit,
   type Vendor, type InsertVendor,
   type Booking, type InsertBooking,
+  type AiConversation, type InsertAiConversation,
+  type AiMessage, type InsertAiMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -53,6 +56,17 @@ export interface IStorage {
   getEventBookings(eventId: string): Promise<(Booking & { vendor: Vendor })[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: string, status: string): Promise<void>;
+  
+  // AI Conversation methods
+  getUserConversations(userId: string): Promise<AiConversation[]>;
+  getConversation(id: string): Promise<AiConversation | undefined>;
+  createConversation(conversation: InsertAiConversation): Promise<AiConversation>;
+  updateConversationTitle(id: string, title: string): Promise<void>;
+  deleteConversation(id: string): Promise<void>;
+  
+  // AI Message methods
+  getConversationMessages(conversationId: string): Promise<AiMessage[]>;
+  createAiMessage(message: InsertAiMessage): Promise<AiMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -291,6 +305,60 @@ export class DatabaseStorage implements IStorage {
 
   async updateBookingStatus(id: string, status: string): Promise<void> {
     await db.update(bookings).set({ status }).where(eq(bookings.id, id));
+  }
+
+  // AI Conversation methods
+  async getUserConversations(userId: string): Promise<AiConversation[]> {
+    return await db
+      .select()
+      .from(aiConversations)
+      .where(eq(aiConversations.userId, userId))
+      .orderBy(desc(aiConversations.updatedAt));
+  }
+
+  async getConversation(id: string): Promise<AiConversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(aiConversations)
+      .where(eq(aiConversations.id, id));
+    return conversation || undefined;
+  }
+
+  async createConversation(conversation: InsertAiConversation): Promise<AiConversation> {
+    const [result] = await db.insert(aiConversations).values(conversation).returning();
+    return result;
+  }
+
+  async updateConversationTitle(id: string, title: string): Promise<void> {
+    await db
+      .update(aiConversations)
+      .set({ title, updatedAt: new Date() })
+      .where(eq(aiConversations.id, id));
+  }
+
+  async deleteConversation(id: string): Promise<void> {
+    await db.delete(aiConversations).where(eq(aiConversations.id, id));
+  }
+
+  // AI Message methods
+  async getConversationMessages(conversationId: string): Promise<AiMessage[]> {
+    return await db
+      .select()
+      .from(aiMessages)
+      .where(eq(aiMessages.conversationId, conversationId))
+      .orderBy(aiMessages.createdAt);
+  }
+
+  async createAiMessage(message: InsertAiMessage): Promise<AiMessage> {
+    const [result] = await db.insert(aiMessages).values(message).returning();
+    
+    // Update conversation's updatedAt timestamp
+    await db
+      .update(aiConversations)
+      .set({ updatedAt: new Date() })
+      .where(eq(aiConversations.id, message.conversationId));
+    
+    return result;
   }
 }
 
