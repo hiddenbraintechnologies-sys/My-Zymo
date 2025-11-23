@@ -6,7 +6,6 @@ import VendorShowcase from "@/components/VendorShowcase";
 import Testimonials from "@/components/Testimonials";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
-import ChatbotWidget from "@/components/ChatbotWidget";
 
 export default function LandingPage() {
   return (
@@ -19,7 +18,6 @@ export default function LandingPage() {
       <Testimonials />
       <FinalCTA />
       <Footer />
-      <ChatbotWidget />
     </div>
   );
 }
