@@ -7,7 +7,13 @@ Myzymo is a comprehensive social gatherings platform designed for the Indian mar
 **Recent Changes (November 2025):**
 - Rebranded from "Reunify" to "Myzymo"
 - Added vibrant celebration-themed logo matching the orange/coral color scheme
-- Logo integrated across all pages (Navbar, Events, Vendors, Footer)
+- Logo integrated across all pages (Navbar, Events, Vendors, Footer) with larger 40px size
+- Added favicon using Myzymo logo
+- Made logo clickable to navigate back to homepage from all pages
+- Added 23 sample vendors across 4 categories (venues, catering, photography, decoration) from major Indian cities
+- Created EventDetail page with WhatsApp sharing functionality
+- Implemented event invitation system with copy link and WhatsApp share buttons
+- Fixed 404 error when clicking on events - now shows full event details with participant list
 
 ## User Preferences
 
