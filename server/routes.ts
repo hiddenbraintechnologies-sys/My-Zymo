@@ -423,6 +423,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === AI Assistant APIs ===
+  
+  // Get user's conversations
+  app.get('/api/ai/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversations = await storage.getUserConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+  
+  // Get single conversation with messages
+  app.get('/api/ai/conversations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversation = await storage.getConversation(req.params.id);
+      
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      // Verify user owns this conversation
+      if (conversation.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const messages = await storage.getConversationMessages(req.params.id);
+      res.json({ ...conversation, messages });
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+  
+  // Create new conversation
+  app.post('/api/ai/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversation = await storage.createConversation({
+        userId,
+        title: req.body.title || "New Chat",
+      });
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ message: "Failed to create conversation" });
+    }
+  });
+  
+  // Update conversation title
+  app.patch('/api/ai/conversations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversation = await storage.getConversation(req.params.id);
+      
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      if (conversation.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.updateConversationTitle(req.params.id, req.body.title);
+      res.json({ message: "Conversation updated" });
+    } catch (error) {
+      console.error("Error updating conversation:", error);
+      res.status(500).json({ message: "Failed to update conversation" });
+    }
+  });
+  
+  // Delete conversation
+  app.delete('/api/ai/conversations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversation = await storage.getConversation(req.params.id);
+      
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      if (conversation.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteConversation(req.params.id);
+      res.json({ message: "Conversation deleted" });
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      res.status(500).json({ message: "Failed to delete conversation" });
+    }
+  });
+  
+  // Send message to AI
+  app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { conversationId, message } = req.body;
+      
+      // Verify conversation exists and user owns it
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      if (conversation.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Save user message
+      const userMessage = await storage.createAiMessage({
+        conversationId,
+        role: "user",
+        content: message,
+      });
+      
+      // Get conversation history
+      const conversationHistory = await storage.getConversationMessages(conversationId);
+      
+      // Prepare messages for AI (including system prompt)
+      const aiMessages = [
+        {
+          role: "system" as const,
+          content: "You are a helpful AI assistant for Myzymo, a social gatherings platform for planning celebrations like college reunions, birthday parties, and family gatherings in India. Help users with event planning, vendor recommendations, and general questions about using the platform. Be friendly, concise, and helpful."
+        },
+        ...conversationHistory.map(m => ({
+          role: m.role as "user" | "assistant",
+          content: m.content
+        }))
+      ];
+      
+      // Import and call the AI
+      const { chatWithAI } = await import('./openai');
+      const aiResponse = await chatWithAI(aiMessages);
+      
+      // Save AI response
+      const assistantMessage = await storage.createAiMessage({
+        conversationId,
+        role: "assistant",
+        content: aiResponse,
+      });
+      
+      res.json({
+        userMessage,
+        assistantMessage,
+      });
+    } catch (error) {
+      console.error("Error in AI chat:", error);
+      res.status(500).json({ message: "Failed to process AI chat" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time chat - blueprint: javascript_websocket
