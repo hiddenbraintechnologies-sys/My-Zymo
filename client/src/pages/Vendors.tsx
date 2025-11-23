@@ -16,17 +16,13 @@ export default function Vendors() {
   const [category, setCategory] = useState<string>("all");
   
   const { data: vendors, isLoading } = useQuery<Vendor[]>({
-    queryKey: ["/api/vendors", category],
+    queryKey: category === "all" ? ["/api/vendors"] : ["/api/vendors", { category }],
     enabled: true,
   });
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
-
-  const filteredVendors = vendors?.filter(v => 
-    category === "all" || v.category === category
-  );
 
   if (authLoading) {
     return (
@@ -102,9 +98,9 @@ export default function Vendors() {
               <Skeleton key={i} className="h-80" />
             ))}
           </div>
-        ) : filteredVendors && filteredVendors.length > 0 ? (
+        ) : vendors && vendors.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVendors.map((vendor) => (
+            {vendors.map((vendor) => (
               <Card 
                 key={vendor.id} 
                 className="hover-elevate cursor-pointer"
