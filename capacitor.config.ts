@@ -5,9 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Myzymo',
   webDir: 'dist/public',
   server: {
-    androidScheme: 'https',
-    // Allow local network access for development
-    allowNavigation: ['*']
+    androidScheme: 'https'
   },
   plugins: {
     SplashScreen: {
