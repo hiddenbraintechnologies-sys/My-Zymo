@@ -60,7 +60,7 @@ export default function EventInvites() {
         <CardContent>
           <p className="text-sm text-muted-foreground">No pending invites</p>
           <Link href="/events">
-            <Button variant="link" className="p-0 h-auto mt-2">
+            <Button variant="ghost" className="mt-2">
               Discover events
             </Button>
           </Link>

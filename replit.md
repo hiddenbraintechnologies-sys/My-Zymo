@@ -5,7 +5,24 @@
 Myzymo is a comprehensive social gatherings platform designed for the Indian market, enabling users to plan and manage celebrations such as college reunions, birthday parties, and family gatherings. The platform provides an all-in-one solution combining event management, group communication, expense tracking, and vendor marketplace features. Built as a mobile-first web application, it emphasizes celebration-focused design with influences from Instagram's visual engagement, WhatsApp's familiar UX patterns, and Airbnb's event discovery model.
 
 **Most Recent Session (November 23, 2025):**
-- **✅ Completed: Default Sample Events System**
+- **✅ Completed: LinkedIn-Style Profile Landing Page**
+  - **Profile page is now the main landing page (/)** - users land on their profile instead of events
+  - **LinkedIn-style three-column layout:**
+    - Left sidebar: Profile card with avatar, name, bio, profession, education, location, and Edit Profile button
+    - Main content: Chat room with real-time WebSocket messaging UI, message input, and connection status
+    - Right sidebar: Event invites showing upcoming events with accept/decline buttons
+  - **New Components Created:**
+    - `ProfileSidebar.tsx` - User profile summary with avatar and key info
+    - `ChatRoom.tsx` - Real-time group chat with WebSocket support and image upload UI
+    - `EventInvites.tsx` - Shows upcoming event invitations with RSVP functionality
+  - **Routing Changes:**
+    - `/` → Profile page (LinkedIn-style layout)
+    - `/profile/edit` → ProfileEdit page (form for editing profile details)
+    - Old LandingPage component no longer used in routing
+  - Chat room includes message input, send button, image upload button, and connection status indicator
+  - Event invites filter to show only upcoming events (max 3 displayed)
+  
+- **Previous: Default Sample Events System**
   - Automatically creates 7 celebration-themed events on first startup
   - Events visible to all users for discovery
   - Modified API to show all events (not just user's own events)

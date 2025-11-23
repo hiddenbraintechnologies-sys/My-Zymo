@@ -8,7 +8,7 @@ import ProfileSidebar from "@/components/ProfileSidebar";
 import EventInvites from "@/components/EventInvites";
 import ChatRoom from "@/components/ChatRoom";
 
-export default function ProfileNew() {
+export default function Profile() {
   const { user, isLoading: authLoading } = useAuth();
 
   const handleLogout = () => {
