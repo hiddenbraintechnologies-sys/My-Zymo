@@ -3,17 +3,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Share2, LogOut } from "lucide-react";
+import { Calendar, MapPin, Users, Share2, LogOut, MessageCircle, DollarSign, Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import type { Event, User, EventParticipant } from "@shared/schema";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
-import EventChat from "@/components/EventChat";
-import EventExpenses from "@/components/EventExpenses";
-import EventVendors from "@/components/EventVendors";
 
 type EventDetail = Event & {
   participants: (EventParticipant & { user: User })[];
@@ -74,47 +71,43 @@ export default function EventDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - Mobile Optimized */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" data-testid="link-home">
-            <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-1.5 sm:px-2 py-1 -ml-1.5 sm:-ml-2">
-              <img src={logoUrl} alt="Myzymo" className="w-8 h-8 sm:w-10 sm:h-10" />
-              <span className="font-heading font-bold text-lg sm:text-xl">Myzymo</span>
+            <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
+              <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
+              <span className="font-heading font-bold text-xl">Myzymo</span>
             </div>
           </Link>
           
-          <div className="flex items-center gap-1 sm:gap-4">
+          <div className="flex items-center gap-4">
             <Link href="/events" data-testid="link-events">
-              <Button variant="ghost" size="sm" className="hidden sm:flex">Events</Button>
-              <Button variant="ghost" size="icon" className="sm:hidden">
-                <span className="text-xs font-medium">Events</span>
-              </Button>
+              <Button variant="ghost">Events</Button>
             </Link>
             <Link href="/vendors" data-testid="link-vendors">
-              <Button variant="ghost" size="sm" className="hidden sm:flex">Vendors</Button>
-              <Button variant="ghost" size="icon" className="sm:hidden">
-                <span className="text-xs font-medium">Vendors</span>
-              </Button>
+              <Button variant="ghost">Vendors</Button>
             </Link>
-            <div className="hidden sm:flex items-center gap-2">
+            <Link href="/profile" data-testid="link-profile">
+              <Button variant="ghost">Profile</Button>
+            </Link>
+            <div className="flex items-center gap-2">
               <span className="text-sm" data-testid="text-user-name">
                 {user.firstName} {user.lastName}
               </span>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleLogout}
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {isLoading ? (
           <div className="space-y-6">
             <Skeleton className="h-12 w-64" />
@@ -241,33 +234,45 @@ export default function EventDetail() {
               </Card>
             </div>
 
-            {/* Integrated Tabs - Mobile First */}
-            <Tabs defaultValue="chat" className="mt-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="chat" data-testid="tab-chat">Chat</TabsTrigger>
-                <TabsTrigger value="expenses" data-testid="tab-expenses">Expenses</TabsTrigger>
-                <TabsTrigger value="vendors" data-testid="tab-vendors">Vendors</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="chat" className="mt-4">
-                <EventChat eventId={event.id} />
-              </TabsContent>
-              
-              <TabsContent value="expenses" className="mt-4">
-                <EventExpenses 
-                  eventId={event.id}
-                  participants={event.participants.map(p => ({
-                    id: p.userId,
-                    name: `${p.user.firstName} ${p.user.lastName}`,
-                    image: p.user.profileImageUrl || undefined
-                  }))}
-                />
-              </TabsContent>
-              
-              <TabsContent value="vendors" className="mt-4">
-                <EventVendors eventId={event.id} />
-              </TabsContent>
-            </Tabs>
+            <Separator />
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="hover-elevate cursor-pointer" onClick={() => navigate(`/events/${event.id}/chat`)}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-primary" />
+                    Group Chat
+                  </CardTitle>
+                  <CardDescription>
+                    Discuss event details with participants
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card className="hover-elevate cursor-pointer" onClick={() => navigate(`/events/${event.id}/expenses`)}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    Split Expenses
+                  </CardTitle>
+                  <CardDescription>
+                    Track and split event costs
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card className="hover-elevate cursor-pointer" onClick={() => navigate(`/events/${event.id}/vendors`)}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5 text-primary" />
+                    Book Vendors
+                  </CardTitle>
+                  <CardDescription>
+                    Find and book services
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
           </div>
         )}
       </main>
