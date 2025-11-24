@@ -1,9 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, X } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
 
 export default function TopBanner() {
   const [, setLocation] = useLocation();
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const bannerClosed = localStorage.getItem('topBannerClosed');
+    if (bannerClosed === 'true') {
+      setIsVisible(false);
+    }
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    localStorage.setItem('topBannerClosed', 'true');
+  };
+
+  if (!isVisible) return null;
 
   return (
     <div className="relative bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 dark:from-orange-950/30 dark:via-amber-950/30 dark:to-orange-950/30 border-b-4 border-primary/30 overflow-hidden">
@@ -15,6 +31,15 @@ export default function TopBanner() {
       </div>
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,146,60,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_120%,rgba(251,146,60,0.05),transparent_50%)]" />
+
+      <button
+        onClick={handleClose}
+        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors group"
+        aria-label="Close banner"
+        data-testid="button-close-top-banner"
+      >
+        <X className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </button>
 
       <div className="relative max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
