@@ -203,35 +203,15 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handleSocialLogin("google")}
-                  data-testid="button-google-login"
-                  className="gap-1"
-                >
-                  <SiGoogle className="h-4 w-4" />
-                  <span className="sr-only">Google</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleSocialLogin("facebook")}
-                  data-testid="button-facebook-login"
-                  className="gap-1"
-                >
-                  <SiFacebook className="h-4 w-4" />
-                  <span className="sr-only">Facebook</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleSocialLogin("twitter")}
-                  data-testid="button-twitter-login"
-                  className="gap-1"
-                >
-                  <FaXTwitter className="h-4 w-4" />
-                  <span className="sr-only">Twitter</span>
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = "/api/login"}
+                data-testid="button-replit-login"
+                className="w-full gap-2"
+              >
+                <SiGoogle className="h-4 w-4" />
+                Continue with Social Login
+              </Button>
 
               <Button
                 variant="ghost"

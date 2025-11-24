@@ -76,35 +76,15 @@ export default function Signup() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                variant="outline"
-                onClick={() => handleSocialSignup("google")}
-                data-testid="button-google-signup"
-                className="gap-1"
-              >
-                <SiGoogle className="h-4 w-4" />
-                <span className="sr-only">Google</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSocialSignup("facebook")}
-                data-testid="button-facebook-signup"
-                className="gap-1"
-              >
-                <SiFacebook className="h-4 w-4" />
-                <span className="sr-only">Facebook</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSocialSignup("twitter")}
-                data-testid="button-twitter-signup"
-                className="gap-1"
-              >
-                <FaXTwitter className="h-4 w-4" />
-                <span className="sr-only">Twitter</span>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = "/api/login"}
+              data-testid="button-replit-signup"
+              className="w-full gap-2"
+            >
+              <SiGoogle className="h-4 w-4" />
+              Continue with Social Login
+            </Button>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

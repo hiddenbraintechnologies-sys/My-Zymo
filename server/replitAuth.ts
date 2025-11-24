@@ -134,6 +134,11 @@ export async function setupAuth(app: Express) {
           const userId = user.claims.sub;
           const dbUser = await storage.getUser(userId);
           
+          // Check for admin role and redirect to admin dashboard
+          if (dbUser && (dbUser.role === "super_admin" || dbUser.role === "admin" || dbUser.role === "master_user")) {
+            return res.redirect("/admin");
+          }
+          
           // Check if user has completed their profile (beyond auth fields)
           // New users will only have firstName/lastName from auth
           // Existing users will have additional profile fields
