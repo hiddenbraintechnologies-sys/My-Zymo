@@ -20,9 +20,9 @@ export async function ensureSuperAdmin() {
     // Require SUPER_ADMIN_PASSWORD environment variable for security
     const password = process.env.SUPER_ADMIN_PASSWORD;
     if (!password) {
-      console.error('[Seed] ERROR: SUPER_ADMIN_PASSWORD environment variable is required!');
-      console.error('[Seed] Please set SUPER_ADMIN_PASSWORD to create the super admin account.');
-      return;
+      const errorMsg = 'SUPER_ADMIN_PASSWORD environment variable is required to create super admin account!';
+      console.error('[Seed] ERROR:', errorMsg);
+      throw new Error(errorMsg);
     }
     
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);

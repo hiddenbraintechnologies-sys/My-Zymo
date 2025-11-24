@@ -36,6 +36,13 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
 *   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields, validated using Zod schemas.
 *   **Sample Events:** Default celebration-themed events are created on first startup for discovery purposes.
+*   **Admin Dashboard:** Full-featured admin panel with role-based access control (super_admin, admin, master_user, user). Features include:
+    *   **User Management:** View all users, create privileged accounts (admin/master_user), change user roles, delete users (super admins only for privileged users)
+    *   **Event Management:** View all events, delete any event (master_user+ required)
+    *   **Vendor Management:** Create, edit, and delete vendors (master_user+ required)
+    *   **Statistics Dashboard:** Overview of total users, events, and vendors
+    *   **Role Hierarchy:** user < master_user < admin < super_admin
+    *   **Security:** All admin routes protected with middleware (requireAdmin, requireMasterUser, requireSuperAdmin). Super admin seeding uses SUPER_ADMIN_PASSWORD environment variable for secure credential management.
 
 ### UI/UX Decisions
 
