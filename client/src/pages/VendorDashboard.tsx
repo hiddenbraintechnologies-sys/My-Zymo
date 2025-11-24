@@ -13,20 +13,17 @@ export default function VendorDashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
-  // Fetch vendor profile
-  const { data: vendors, isLoading: isLoadingVendor } = useQuery<Vendor[]>({
-    queryKey: ["/api/vendors"],
+  // Fetch vendor profile (protected endpoint)
+  const { data: myVendor, isLoading: isLoadingVendor } = useQuery<Vendor>({
+    queryKey: ["/api/vendor/profile"],
+    enabled: !!user && user.role === "vendor",
   });
 
-  const myVendor = vendors?.find(v => v.userId === user?.id);
-
-  // Fetch bookings for this vendor
-  const { data: allBookings, isLoading: isLoadingBookings } = useQuery<(Booking & { user: User; vendor: Vendor })[]>({
-    queryKey: ["/api/bookings"],
+  // Fetch bookings for this vendor (protected endpoint)
+  const { data: myBookings = [], isLoading: isLoadingBookings } = useQuery<(Booking & { user: User; vendor: Vendor })[]>({
+    queryKey: ["/api/vendor/bookings"],
     enabled: !!myVendor,
   });
-
-  const myBookings = allBookings?.filter(b => b.vendorId === myVendor?.id) || [];
 
   const pendingBookings = myBookings.filter(b => b.status === "pending");
   const confirmedBookings = myBookings.filter(b => b.status === "confirmed");

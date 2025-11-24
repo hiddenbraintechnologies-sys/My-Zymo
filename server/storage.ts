@@ -77,6 +77,7 @@ export interface IStorage {
   deleteVendor(id: string): Promise<void>;
   
   // Booking methods
+  getAllBookings(): Promise<Booking[]>;
   getEventBookings(eventId: string): Promise<(Booking & { vendor: Vendor })[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: string, status: string): Promise<void>;
@@ -703,6 +704,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Booking methods
+  async getAllBookings(): Promise<Booking[]> {
+    return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
+  }
+
   async getEventBookings(eventId: string): Promise<(Booking & { vendor: Vendor })[]> {
     const results = await db
       .select()

@@ -1,10 +1,38 @@
 import bcrypt from "bcrypt";
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { z } from "zod";
 import { ROLES } from "./adminAuth";
 
 const SALT_ROUNDS = 10;
+
+// Middleware to require vendor authentication
+export async function requireVendor(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.session as any)?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Fetch user
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    
+    if (user.role !== ROLES.VENDOR) {
+      return res.status(403).json({ message: "Vendor access required" });
+    }
+    
+    // Attach user to request for use in route handlers
+    (req as any).user = user;
+    next();
+  } catch (error) {
+    console.error("Error in requireVendor middleware:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
 
 // Vendor registration schema
 const vendorSignupSchema = z.object({
@@ -192,6 +220,62 @@ export async function setupVendorAuth(app: Express) {
         return res.status(400).json({ message: "Invalid login data", errors: error.errors });
       }
       res.status(500).json({ message: "Vendor login failed" });
+    }
+  });
+
+  // Get vendor profile (protected route)
+  app.get('/api/vendor/profile', requireVendor, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      
+      // Get vendor profile for this user
+      const vendors = await storage.getAllVendors();
+      const vendor = vendors.find(v => v.userId === user.id);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor profile not found" });
+      }
+      
+      res.json(vendor);
+    } catch (error: any) {
+      console.error("Error fetching vendor profile:", error);
+      res.status(500).json({ message: "Failed to fetch vendor profile" });
+    }
+  });
+
+  // Get vendor bookings (protected route)
+  app.get('/api/vendor/bookings', requireVendor, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      
+      // Get vendor profile for this user
+      const vendors = await storage.getAllVendors();
+      const vendor = vendors.find(v => v.userId === user.id);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor profile not found" });
+      }
+      
+      // Get all bookings for this vendor
+      const allBookings = await storage.getAllBookings();
+      const vendorBookings = allBookings.filter(b => b.vendorId === vendor.id);
+      
+      // Enrich bookings with user and vendor data
+      const enrichedBookings = await Promise.all(
+        vendorBookings.map(async (booking) => {
+          const bookingUser = await storage.getUser(booking.userId);
+          return {
+            ...booking,
+            user: bookingUser || { id: booking.userId, firstName: 'Unknown', lastName: 'User', email: '' },
+            vendor: vendor
+          };
+        })
+      );
+      
+      res.json(enrichedBookings);
+    } catch (error: any) {
+      console.error("Error fetching vendor bookings:", error);
+      res.status(500).json({ message: "Failed to fetch vendor bookings" });
     }
   });
 }
