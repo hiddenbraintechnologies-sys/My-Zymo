@@ -467,6 +467,9 @@ export const insertQuoteSchema = createInsertSchema(quotes).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  eventDateTime: z.coerce.date(),
+  guestCount: z.coerce.number().min(1).optional(),
 });
 
 // Types for quotes

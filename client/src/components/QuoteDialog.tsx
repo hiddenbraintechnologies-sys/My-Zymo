@@ -183,7 +183,7 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
         ? ["guestName", "email", "phone"]
         : currentStep === 2
         ? ["eventType", "eventDateTime"]
-        : ["locationCity"];
+        : ["locationCity", "locationState", "guestCount"];
 
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
