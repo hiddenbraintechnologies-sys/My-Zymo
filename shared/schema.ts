@@ -62,6 +62,7 @@ export const events = pgTable("events", {
   date: timestamp("date").notNull(),
   location: text("location").notNull(),
   imageUrl: text("image_url"),
+  isPublic: boolean("is_public").notNull().default(false), // false = private, true = public
   creatorId: varchar("creator_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -95,6 +96,25 @@ export const eventParticipantsRelations = relations(eventParticipants, ({ one })
   user: one(users, {
     fields: [eventParticipants.userId],
     references: [users.id],
+  }),
+}));
+
+// User Followed Events table (for tracking which public events users want to see)
+export const userFollowedEvents = pgTable("user_followed_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  followedAt: timestamp("followed_at").notNull().defaultNow(),
+});
+
+export const userFollowedEventsRelations = relations(userFollowedEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [userFollowedEvents.userId],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [userFollowedEvents.eventId],
+    references: [events.id],
   }),
 }));
 

@@ -151,6 +151,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/events/private', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const privateEvents = await storage.getPrivateEventsForUser(userId);
+      res.json(privateEvents);
+    } catch (error) {
+      console.error("Error fetching private events:", error);
+      res.status(500).json({ message: "Failed to fetch private events" });
+    }
+  });
+
+  app.get('/api/events/public', isAuthenticated, async (req: any, res) => {
+    try {
+      const publicEvents = await storage.getPublicEvents();
+      res.json(publicEvents);
+    } catch (error) {
+      console.error("Error fetching public events:", error);
+      res.status(500).json({ message: "Failed to fetch public events" });
+    }
+  });
+
+  app.get('/api/events/followed', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const followedEvents = await storage.getFollowedPublicEvents(userId);
+      res.json(followedEvents);
+    } catch (error) {
+      console.error("Error fetching followed events:", error);
+      res.status(500).json({ message: "Failed to fetch followed events" });
+    }
+  });
+
+  app.post('/api/events/:id/follow', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const eventId = req.params.id;
+
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      if (!event.isPublic) {
+        return res.status(400).json({ message: "Cannot follow a private event" });
+      }
+
+      const isAlreadyFollowed = await storage.isEventFollowedByUser(userId, eventId);
+      if (isAlreadyFollowed) {
+        return res.status(400).json({ message: "Already following this event" });
+      }
+
+      await storage.followPublicEvent(userId, eventId);
+      res.json({ message: "Event followed successfully" });
+    } catch (error) {
+      console.error("Error following event:", error);
+      res.status(500).json({ message: "Failed to follow event" });
+    }
+  });
+
+  app.delete('/api/events/:id/follow', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const eventId = req.params.id;
+
+      const isFollowed = await storage.isEventFollowedByUser(userId, eventId);
+      if (!isFollowed) {
+        return res.status(400).json({ message: "Not following this event" });
+      }
+
+      await storage.unfollowPublicEvent(userId, eventId);
+      res.json({ message: "Event unfollowed successfully" });
+    } catch (error) {
+      console.error("Error unfollowing event:", error);
+      res.status(500).json({ message: "Failed to unfollow event" });
+    }
+  });
+
   // Export event members with all details and photos (creator/organizer only)
   app.get('/api/events/:id/export-members', isAuthenticated, async (req: any, res) => {
     try {
@@ -178,7 +255,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: event.description,
           date: event.date,
           location: event.location,
-          budget: event.budget,
           createdAt: event.createdAt,
         },
         members: participants.map(p => ({
@@ -199,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profession: p.user.profession,
           company: p.user.company,
           status: p.status,
-          joinedAt: p.createdAt,
+          joinedAt: p.joinedAt,
         })),
         totalMembers: participants.length,
         exportedAt: new Date().toISOString(),

@@ -1,6 +1,6 @@
 import { 
   users, events, eventParticipants, messages, directMessages, expenses, expenseSplits, vendors, bookings,
-  aiConversations, aiMessages, quotes,
+  aiConversations, aiMessages, quotes, userFollowedEvents,
   type User, type UpsertUser,
   type Event, type InsertEvent,
   type EventParticipant, type InsertEventParticipant,
@@ -40,9 +40,15 @@ export interface IStorage {
   getAllEvents(): Promise<Event[]>;
   getAllEventsForAdmin(): Promise<Event[]>;
   getEventsByUser(userId: string): Promise<Event[]>;
+  getPrivateEventsForUser(userId: string): Promise<Event[]>; // Events created by or joined by user
+  getPublicEvents(): Promise<Event[]>; // All public events
+  getFollowedPublicEvents(userId: string): Promise<Event[]>; // Public events user follows
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
   deleteEvent(id: string): Promise<void>;
+  followPublicEvent(userId: string, eventId: string): Promise<void>;
+  unfollowPublicEvent(userId: string, eventId: string): Promise<void>;
+  isEventFollowedByUser(userId: string, eventId: string): Promise<boolean>;
   
   // Event participant methods
   getEventParticipants(eventId: string): Promise<(EventParticipant & { user: User })[]>;
@@ -317,9 +323,79 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(events).where(eq(events.creatorId, userId)).orderBy(desc(events.date));
   }
 
+  async getPrivateEventsForUser(userId: string): Promise<Event[]> {
+    // Get ALL events created by the user (regardless of isPublic status)
+    // Event creators should always see their own events in "My Events"
+    const createdEvents = await db
+      .select()
+      .from(events)
+      .where(eq(events.creatorId, userId))
+      .orderBy(desc(events.date));
+
+    // Get only PRIVATE events where user is a participant (not creator)
+    const joinedEventsData = await db
+      .select({ event: events })
+      .from(eventParticipants)
+      .innerJoin(events, eq(eventParticipants.eventId, events.id))
+      .where(and(
+        eq(eventParticipants.userId, userId),
+        eq(events.isPublic, false),
+        // Exclude events created by this user (already included above)
+        sql`${events.creatorId} != ${userId}`
+      ))
+      .orderBy(desc(events.date));
+
+    const joinedEvents = joinedEventsData.map(row => row.event);
+    const allPrivateEvents = [...createdEvents, ...joinedEvents];
+    const uniqueEvents = Array.from(new Map(allPrivateEvents.map(e => [e.id, e])).values());
+    return uniqueEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  async getPublicEvents(): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(eq(events.isPublic, true))
+      .orderBy(desc(events.date));
+  }
+
+  async getFollowedPublicEvents(userId: string): Promise<Event[]> {
+    const followedEvents = await db
+      .select({ event: events })
+      .from(userFollowedEvents)
+      .innerJoin(events, eq(userFollowedEvents.eventId, events.id))
+      .where(eq(userFollowedEvents.userId, userId))
+      .orderBy(desc(events.date));
+
+    return followedEvents.map(row => row.event);
+  }
+
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const [event] = await db.insert(events).values(insertEvent).returning();
     return event;
+  }
+
+  async followPublicEvent(userId: string, eventId: string): Promise<void> {
+    await db.insert(userFollowedEvents).values({
+      userId,
+      eventId,
+    });
+  }
+
+  async unfollowPublicEvent(userId: string, eventId: string): Promise<void> {
+    await db
+      .delete(userFollowedEvents)
+      .where(and(eq(userFollowedEvents.userId, userId), eq(userFollowedEvents.eventId, eventId)));
+  }
+
+  async isEventFollowedByUser(userId: string, eventId: string): Promise<boolean> {
+    const [follow] = await db
+      .select()
+      .from(userFollowedEvents)
+      .where(and(eq(userFollowedEvents.userId, userId), eq(userFollowedEvents.eventId, eventId)))
+      .limit(1);
+
+    return !!follow;
   }
 
   async updateEvent(id: string, updateData: Partial<InsertEvent>): Promise<Event | undefined> {

@@ -3,8 +3,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download } from "lucide-react";
+import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Event } from "@shared/schema";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
@@ -23,6 +24,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 
+type EventFilter = "private" | "public";
+
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -30,19 +33,30 @@ export default function Dashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const [downloadingEventId, setDownloadingEventId] = useState<string | null>(null);
+  const [eventFilter, setEventFilter] = useState<EventFilter>("private");
   
-  const { data: events, isLoading } = useQuery<Event[]>({
-    queryKey: ["/api/events"],
-    enabled: !!user,
+  const { data: privateEvents, isLoading: isLoadingPrivate } = useQuery<Event[]>({
+    queryKey: ["/api/events/private"],
+    enabled: !!user && eventFilter === "private",
   });
+
+  const { data: followedPublicEvents, isLoading: isLoadingFollowed } = useQuery<Event[]>({
+    queryKey: ["/api/events/followed"],
+    enabled: !!user && eventFilter === "public",
+  });
+
+  const events = eventFilter === "private" ? privateEvents : followedPublicEvents;
+  const isLoading = eventFilter === "private" ? isLoadingPrivate : isLoadingFollowed;
 
   const deleteMutation = useMutation({
     mutationFn: async (eventId: string) => {
       await apiRequest(`/api/events/${eventId}`, "DELETE");
     },
     onSuccess: async () => {
-      // Invalidate and refetch events list
+      // Invalidate all event queries
       await queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/events/private"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/events/followed"] });
       toast({
         title: "Event deleted",
         description: "Your event has been successfully deleted.",
@@ -247,7 +261,19 @@ export default function Dashboard() {
           {/* Events Section */}
           <div>
             <div className="mb-6">
-              <h2 className="text-2xl font-heading font-bold mb-4">Your Recent Events</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-heading font-bold">Your Events</h2>
+              </div>
+              <Tabs value={eventFilter} onValueChange={(value) => setEventFilter(value as EventFilter)} className="w-full">
+                <TabsList className="grid w-full grid-cols-2" data-testid="tabs-event-filter">
+                  <TabsTrigger value="private" data-testid="tab-private-events">
+                    My Events
+                  </TabsTrigger>
+                  <TabsTrigger value="public" data-testid="tab-public-events">
+                    Followed Public Events
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             {isLoading ? (
@@ -359,14 +385,29 @@ export default function Dashboard() {
                 <div className="text-center space-y-4">
                   <Calendar className="w-16 h-16 mx-auto text-muted-foreground" />
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">No events yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Create your first celebration and start sharing with friends!
-                    </p>
-                    <Button onClick={() => setLocation("/events/create")} data-testid="button-create-first-event">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Your First Event
-                    </Button>
+                    {eventFilter === "private" ? (
+                      <>
+                        <h3 className="font-semibold text-lg mb-2">No events yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Create your first celebration and start sharing with friends!
+                        </p>
+                        <Button onClick={() => setLocation("/events/create")} data-testid="button-create-first-event">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Your First Event
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="font-semibold text-lg mb-2">No followed events yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Browse and follow public events to see them here
+                        </p>
+                        <Button onClick={() => setLocation("/events")} data-testid="button-browse-events">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Browse Events
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </Card>
