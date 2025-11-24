@@ -5,6 +5,12 @@
 Myzymo is a comprehensive social gatherings platform designed for the Indian market, enabling users to plan and manage celebrations such as college reunions, birthday parties, and family gatherings. The platform provides an all-in-one solution combining event management, group communication, expense tracking, and vendor marketplace features. Built as a mobile-first web application, it emphasizes celebration-focused design with influences from Instagram's visual engagement, WhatsApp's familiar UX patterns, and Airbnb's event discovery model.
 
 **Most Recent Session (November 24, 2025):**
+- **✅ Completed: Dashboard Shows Only Private Events**
+  - Dashboard now displays only truly private events (user-created or explicitly joined)
+  - Sample events (system-created) are excluded from dashboard view
+  - Users still auto-enrolled to sample events for discovery via Events page
+  - Dashboard shows clean view of user's personal events and invitations
+  
 - **✅ Completed: Event Privacy System**
   - Implemented private event access control - events only accessible by creator and invited participants
   - Added `getUserAccessibleEvents(userId)` method to return events user can access

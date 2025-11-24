@@ -85,7 +85,7 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     // Check if user exists before insert
-    const existingUser = await this.getUserByEmail(userData.email);
+    const existingUser = userData.email ? await this.getUserByEmail(userData.email) : null;
     const isNewUser = !existingUser;
     
     const [user] = await db
@@ -217,11 +217,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserAccessibleEvents(userId: string): Promise<Event[]> {
+    // Get events created by the user
     const createdEvents = await db
       .select()
       .from(events)
       .where(eq(events.creatorId, userId));
     
+    // Get events where user is a participant
     const participantEvents = await db
       .select({
         id: events.id,
@@ -239,9 +241,15 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(events, eq(eventParticipants.eventId, events.id));
     
     const eventMap = new Map<string, Event>();
+    
+    // Add user's created events
     createdEvents.forEach(e => eventMap.set(e.id, e));
+    
+    // Add events where user is participant, but EXCLUDE sample events (system-created)
     participantEvents.forEach(e => {
-      if (e.id) eventMap.set(e.id, e as Event);
+      if (e.id && e.creatorId !== 'system-myzymo-user') {
+        eventMap.set(e.id, e as Event);
+      }
     });
     
     return Array.from(eventMap.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
