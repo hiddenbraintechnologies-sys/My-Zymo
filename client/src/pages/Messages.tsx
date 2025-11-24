@@ -196,11 +196,11 @@ export default function Messages() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Messages</h1>
+        <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Messages</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Conversations List */}

@@ -85,18 +85,19 @@ export default function VendorDashboard() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-heading font-bold text-foreground">Vendor Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Welcome back, {user.firstName}! Manage your business and bookings.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-heading font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Vendor Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Welcome back, {user.firstName}! Manage your business and bookings.
+            </p>
+          </div>
+          <Button onClick={() => navigate("/")} variant="outline" data-testid="button-home">
+            Back to Home
+          </Button>
         </div>
-        <Button onClick={() => navigate("/")} variant="outline" data-testid="button-home">
-          Back to Home
-        </Button>
-      </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card data-testid="card-total-bookings">
@@ -262,6 +263,7 @@ export default function VendorDashboard() {
           )}
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

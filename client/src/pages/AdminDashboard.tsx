@@ -40,25 +40,26 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage users, events, and vendors</p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Manage users, events, and vendors</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="gap-2"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+            <Shield className="w-10 h-10 text-orange-400" />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="gap-2"
-            data-testid="button-logout"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
-          <Shield className="w-10 h-10 text-primary" />
-        </div>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover-elevate active-elevate-2 cursor-pointer transition-shadow" onClick={() => setLocation('/admin/users')} data-testid="card-total-users">
@@ -160,6 +161,7 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );

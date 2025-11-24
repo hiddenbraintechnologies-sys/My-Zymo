@@ -113,8 +113,8 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
           <Link href="/events" data-testid="link-back-events">
             <Button variant="ghost" size="icon">
@@ -122,8 +122,8 @@ export default function CreateEvent() {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-primary" />
-            <span className="font-heading font-bold text-xl">Create Event</span>
+            <Calendar className="w-6 h-6 text-orange-400" />
+            <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Create Event</span>
           </div>
         </div>
       </header>
