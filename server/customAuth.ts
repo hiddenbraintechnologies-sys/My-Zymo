@@ -121,21 +121,27 @@ export async function setupCustomAuth(app: Express) {
   app.post('/api/auth/login', async (req, res) => {
     try {
       const validatedData = loginSchema.parse(req.body);
+      console.log('[Login] Attempting login for:', validatedData.username);
       
       // Find user by username OR email
       // Try username first
       let user = await storage.getUserByUsername(validatedData.username);
+      console.log('[Login] Username lookup result:', user ? `Found user ${user.id}` : 'Not found');
       let passwordMatch = false;
       
       if (user && user.password) {
         passwordMatch = await bcrypt.compare(validatedData.password, user.password);
+        console.log('[Login] Username password match:', passwordMatch);
       }
       
       // If username authentication failed and input contains @, try email lookup
       if (!passwordMatch && validatedData.username.includes('@')) {
+        console.log('[Login] Trying email lookup for:', validatedData.username);
         const emailUser = await storage.getUserByEmail(validatedData.username);
+        console.log('[Login] Email lookup result:', emailUser ? `Found user ${emailUser.id}` : 'Not found');
         if (emailUser && emailUser.password) {
           passwordMatch = await bcrypt.compare(validatedData.password, emailUser.password);
+          console.log('[Login] Email password match:', passwordMatch);
           if (passwordMatch) {
             user = emailUser;
           }
@@ -144,8 +150,11 @@ export async function setupCustomAuth(app: Express) {
       
       // Final authentication check
       if (!user || !user.password || !passwordMatch) {
+        console.log('[Login] Authentication failed for:', validatedData.username);
         return res.status(401).json({ message: "Invalid username or password" });
       }
+      
+      console.log('[Login] Authentication successful for user:', user.id);
       
       // SECURITY: Regenerate session to prevent session fixation attacks
       await new Promise<void>((resolve, reject) => {
