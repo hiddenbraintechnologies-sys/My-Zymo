@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle } from "lucide-react";
+import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle, Mail } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@shared/schema";
 import { format } from "date-fns";
@@ -75,6 +75,9 @@ export default function Dashboard() {
             </Link>
             <Link href="/events" data-testid="link-events">
               <Button variant="ghost">Events</Button>
+            </Link>
+            <Link href="/messages" data-testid="link-messages">
+              <Button variant="ghost">Messages</Button>
             </Link>
             <Link href="/vendors" data-testid="link-vendors">
               <Button variant="ghost">Vendors</Button>

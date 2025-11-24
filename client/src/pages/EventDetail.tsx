@@ -84,6 +84,9 @@ export default function EventDetail() {
             <Link href="/events" data-testid="link-events">
               <Button variant="ghost">Events</Button>
             </Link>
+            <Link href="/messages" data-testid="link-messages">
+              <Button variant="ghost">Messages</Button>
+            </Link>
             <Link href="/vendors" data-testid="link-vendors">
               <Button variant="ghost">Vendors</Button>
             </Link>
