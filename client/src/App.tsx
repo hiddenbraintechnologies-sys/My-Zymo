@@ -20,6 +20,7 @@ import UserManagement from "@/pages/UserManagement";
 import EventManagement from "@/pages/EventManagement";
 import VendorManagement from "@/pages/VendorManagement";
 import NotFound from "@/pages/not-found";
+import FloatingAIGuide from "@/components/FloatingAIGuide";
 
 function Router() {
   return (
@@ -52,6 +53,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <FloatingAIGuide />
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -8,7 +8,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
-import AIAssistantNavbar from "@/components/AIAssistantNavbar";
 
 export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
@@ -38,7 +37,7 @@ export default function Navbar() {
           </div>
         </Link>
         
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           {navLinks.map((link) => (
             <a 
               key={link.label}
@@ -52,8 +51,6 @@ export default function Navbar() {
         </div>
         
         <div className="flex items-center gap-2">
-          <AIAssistantNavbar />
-          
           <Button
             variant="ghost"
             size="icon"
