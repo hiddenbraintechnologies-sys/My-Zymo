@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
@@ -31,6 +31,8 @@ export default function Messages() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(params?.userId || null);
   const [messageContent, setMessageContent] = useState("");
   const [messages, setMessages] = useState<DirectMessageWithUser[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -132,6 +134,29 @@ export default function Messages() {
     );
 
     setMessageContent("");
+    setShowSuggestions(false);
+    setAiSuggestions([]);
+  };
+
+  const getSuggestionsMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await apiRequest(`/api/direct-messages/${userId}/suggestions`, "POST");
+      return await res.json() as { suggestions: string[] };
+    },
+    onSuccess: (data) => {
+      setAiSuggestions(data.suggestions);
+      setShowSuggestions(true);
+    },
+  });
+
+  const handleGetSuggestions = () => {
+    if (!selectedUserId) return;
+    getSuggestionsMutation.mutate(selectedUserId);
+  };
+
+  const handleUseSuggestion = (suggestion: string) => {
+    setMessageContent(suggestion);
+    setShowSuggestions(false);
   };
 
   const selectedConversation = conversations.find((c) => c.userId === selectedUserId);
@@ -288,8 +313,42 @@ export default function Messages() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* AI Suggestions */}
+                {showSuggestions && aiSuggestions.length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">AI Suggested Replies:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {aiSuggestions.map((suggestion, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="cursor-pointer hover-elevate active-elevate-2 px-3 py-1"
+                          onClick={() => handleUseSuggestion(suggestion)}
+                          data-testid={`badge-ai-suggestion-${index}`}
+                        >
+                          {suggestion}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Input */}
                 <div className="flex gap-2">
+                  <Button
+                    onClick={handleGetSuggestions}
+                    disabled={getSuggestionsMutation.isPending}
+                    size="icon"
+                    variant="ghost"
+                    title="Get AI suggestions"
+                    data-testid="button-ai-suggestions"
+                  >
+                    {getSuggestionsMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Input
                     value={messageContent}
                     onChange={(e) => setMessageContent(e.target.value)}
