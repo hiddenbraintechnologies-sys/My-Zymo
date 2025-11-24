@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Store, Edit, Trash2, Plus, MapPin, Phone, Mail, IndianRupee, ChevronLeft } from "lucide-react";
+import { Store, Edit, Trash2, Plus, MapPin, Phone, Mail, IndianRupee, ChevronLeft, Check, X } from "lucide-react";
 import { Link } from "wouter";
 import type { Vendor } from "@shared/schema";
 
@@ -114,6 +114,44 @@ export default function VendorManagement() {
     onError: (error: Error) => {
       toast({
         title: "Error deleting vendor",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const approveVendorMutation = useMutation({
+    mutationFn: (vendorId: string) =>
+      apiRequest(`/api/admin/vendors/${vendorId}/approve`, 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vendors'] });
+      toast({
+        title: "Vendor approved",
+        description: "Vendor has been approved successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error approving vendor",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectVendorMutation = useMutation({
+    mutationFn: (vendorId: string) =>
+      apiRequest(`/api/admin/vendors/${vendorId}/reject`, 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vendors'] });
+      toast({
+        title: "Vendor rejected",
+        description: "Vendor has been rejected successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error rejecting vendor",
         description: error.message,
         variant: "destructive",
       });
@@ -283,9 +321,23 @@ export default function VendorManagement() {
                       <h3 className="font-semibold text-lg text-foreground" data-testid={`text-name-${vendor.id}`}>
                         {vendor.name}
                       </h3>
-                      <Badge className="mt-1" variant="secondary">
-                        {vendor.category.charAt(0).toUpperCase() + vendor.category.slice(1)}
-                      </Badge>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="secondary">
+                          {vendor.category.charAt(0).toUpperCase() + vendor.category.slice(1)}
+                        </Badge>
+                        <Badge 
+                          variant={
+                            vendor.approvalStatus === 'approved' ? 'default' :
+                            vendor.approvalStatus === 'rejected' ? 'destructive' :
+                            'outline'
+                          }
+                          data-testid={`badge-status-${vendor.id}`}
+                        >
+                          {vendor.approvalStatus === 'approved' ? '✓ Approved' :
+                           vendor.approvalStatus === 'rejected' ? '✗ Rejected' :
+                           '⏳ Pending'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
 
@@ -318,6 +370,28 @@ export default function VendorManagement() {
                 </div>
 
                 <div className="flex gap-2 ml-4">
+                  {vendor.approvalStatus === 'pending' && (
+                    <>
+                      <Button
+                        variant="default"
+                        size="icon"
+                        onClick={() => approveVendorMutation.mutate(vendor.id)}
+                        data-testid={`button-approve-${vendor.id}`}
+                        title="Approve vendor"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => rejectVendorMutation.mutate(vendor.id)}
+                        data-testid={`button-reject-${vendor.id}`}
+                        title="Reject vendor"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                   <Button
                     variant="outline"
                     size="icon"
