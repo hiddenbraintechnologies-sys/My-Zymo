@@ -1022,6 +1022,69 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
           if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
             recipientWs.send(messageData);
           }
+        } else if (message.type === 'call-offer' && message.recipientId) {
+          // WebRTC signaling: forward call offer to recipient
+          const recipientId = message.recipientId;
+          const recipient = await storage.getUser(recipientId);
+          if (!recipient) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Recipient not found' }));
+            return;
+          }
+          
+          const sender = await storage.getUser(authenticatedUserId);
+          const recipientWs = userConnections.get(recipientId);
+          if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
+            recipientWs.send(JSON.stringify({
+              type: 'call-offer',
+              callerId: authenticatedUserId,
+              caller: sender,
+              offer: message.offer,
+              callType: message.callType,
+            }));
+          } else {
+            ws.send(JSON.stringify({ 
+              type: 'call-failed', 
+              message: 'User is offline' 
+            }));
+          }
+        } else if (message.type === 'call-answer' && message.callerId) {
+          // WebRTC signaling: forward call answer to caller
+          const callerWs = userConnections.get(message.callerId);
+          if (callerWs && callerWs.readyState === WebSocket.OPEN) {
+            callerWs.send(JSON.stringify({
+              type: 'call-answer',
+              answererId: authenticatedUserId,
+              answer: message.answer,
+            }));
+          }
+        } else if (message.type === 'call-ice-candidate' && message.targetId) {
+          // WebRTC signaling: forward ICE candidate to peer
+          const targetWs = userConnections.get(message.targetId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'call-ice-candidate',
+              senderId: authenticatedUserId,
+              candidate: message.candidate,
+            }));
+          }
+        } else if (message.type === 'call-reject' && message.callerId) {
+          // Forward call rejection to caller
+          const callerWs = userConnections.get(message.callerId);
+          if (callerWs && callerWs.readyState === WebSocket.OPEN) {
+            callerWs.send(JSON.stringify({
+              type: 'call-rejected',
+              rejecterId: authenticatedUserId,
+            }));
+          }
+        } else if (message.type === 'call-end' && message.peerId) {
+          // Forward call end to peer
+          const peerWs = userConnections.get(message.peerId);
+          if (peerWs && peerWs.readyState === WebSocket.OPEN) {
+            peerWs.send(JSON.stringify({
+              type: 'call-ended',
+              senderId: authenticatedUserId,
+            }));
+          }
         }
       } catch (error: any) {
         console.error('WebSocket error:', error);
