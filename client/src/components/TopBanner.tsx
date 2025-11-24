@@ -1,22 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function TopBanner() {
   const [, setLocation] = useLocation();
   const [isVisible, setIsVisible] = useState(true);
 
-  useEffect(() => {
-    const bannerClosed = localStorage.getItem('topBannerClosed');
-    if (bannerClosed === 'true') {
-      setIsVisible(false);
-    }
-  }, []);
-
   const handleClose = () => {
     setIsVisible(false);
-    localStorage.setItem('topBannerClosed', 'true');
   };
 
   if (!isVisible) return null;
