@@ -7,6 +7,13 @@ import { z } from "zod";
 
 const SALT_ROUNDS = 10;
 
+// SECURITY: Helper to remove password from user objects
+export function sanitizeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 // Export sessionStore for WebSocket verification
 const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
 const pgStore = connectPg(session);
@@ -79,8 +86,32 @@ export async function setupCustomAuth(app: Express) {
         lastName: validatedData.lastName,
       });
       
+      // SECURITY: Regenerate session to prevent session fixation attacks
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error("Session regeneration error during signup:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+      
       // Set session
       (req.session as any).userId = user.id;
+      
+      // Ensure session is saved before responding
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error during signup:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
       
       res.json({ message: "Signup successful", userId: user.id });
     } catch (error: any) {
@@ -109,8 +140,32 @@ export async function setupCustomAuth(app: Express) {
         return res.status(401).json({ message: "Invalid username or password" });
       }
       
+      // SECURITY: Regenerate session to prevent session fixation attacks
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error("Session regeneration error during login:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+      
       // Set session
       (req.session as any).userId = user.id;
+      
+      // Ensure session is saved before responding
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error during login:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
       
       res.json({ message: "Login successful", userId: user.id });
     } catch (error: any) {
@@ -147,7 +202,8 @@ export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    req.user = user;
+    // SECURITY: Always sanitize user object before attaching to request
+    req.user = sanitizeUser(user);
     next();
   } catch (error) {
     console.error("Authentication error:", error);

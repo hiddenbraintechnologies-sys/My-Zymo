@@ -5,7 +5,7 @@ import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
+import { setupCustomAuth, isAuthenticated, sessionStore, sanitizeUser } from "./customAuth";
 
 // Extend express-session types to include passport data
 declare module 'express-session' {
@@ -37,7 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // With custom auth, user is already attached to req by middleware
+      // With custom auth, user is already attached to req by middleware (sanitized)
       const user = req.user;
       res.json(user);
     } catch (error) {
@@ -66,7 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedUser = await storage.updateUserProfile(userId, profileUpdate);
       console.log('[Profile Update] Updated user:', JSON.stringify(updatedUser, null, 2));
-      res.json(updatedUser);
+      // SECURITY: Sanitize user object before returning
+      res.json(sanitizeUser(updatedUser));
     } catch (error: any) {
       console.error("Error updating profile:", error);
       if (error.name === 'ZodError') {
@@ -124,7 +125,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getEventBookings(req.params.id),
       ]);
       
-      res.json({ ...event, participants, messages, expenses, bookings, hasJoined: true });
+      // SECURITY: Sanitize user data in participants
+      const safeParticipants = participants.map(p => ({
+        ...p,
+        user: p.user ? sanitizeUser(p.user) : p.user
+      }));
+      
+      // SECURITY: Sanitize user data in messages
+      const safeMessages = messages.map(m => ({
+        ...m,
+        user: m.user ? sanitizeUser(m.user) : m.user
+      }));
+      
+      // SECURITY: Sanitize user data in expenses
+      const safeExpenses = expenses.map(e => ({
+        ...e,
+        paidBy: e.paidBy ? sanitizeUser(e.paidBy) : e.paidBy,
+        splits: e.splits ? e.splits.map(s => ({
+          ...s,
+          user: s.user ? sanitizeUser(s.user) : s.user
+        })) : e.splits
+      }));
+      
+      res.json({ ...event, participants: safeParticipants, messages: safeMessages, expenses: safeExpenses, bookings, hasJoined: true });
     } catch (error) {
       console.error("Error fetching event:", error);
       res.status(500).json({ message: "Failed to fetch event" });
@@ -466,7 +489,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const conversations = await storage.getUserConversationsList(userId);
-      res.json(conversations);
+      // SECURITY: Sanitize user data in conversations
+      const safeConversations = conversations.map(c => ({
+        ...c,
+        user: c.user ? sanitizeUser(c.user) : c.user
+      }));
+      res.json(safeConversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
       res.status(500).json({ message: "Failed to fetch conversations" });
@@ -486,7 +514,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const messages = await storage.getDirectMessagesWithUser(userId, otherUserId);
-      res.json(messages);
+      // SECURITY: Sanitize user data in messages
+      const safeMessages = messages.map(m => ({
+        ...m,
+        sender: m.sender ? sanitizeUser(m.sender) : m.sender,
+        recipient: m.recipient ? sanitizeUser(m.recipient) : m.recipient
+      }));
+      res.json(safeMessages);
     } catch (error) {
       console.error("Error fetching direct messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });
