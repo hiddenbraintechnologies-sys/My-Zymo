@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Send, MessageSquare, Smile } from "lucide-react";
+import { Send, MessageSquare, Smile, Users, Circle, X, Maximize2, Minimize2 } from "lucide-react";
 import type { Event } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,9 @@ export default function DashboardChat() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [activeUserIds, setActiveUserIds] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +79,9 @@ export default function DashboardChat() {
               scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
             }
           }, 100);
+        } else if (data.type === 'presence') {
+          // Update active users list
+          setActiveUserIds(data.activeUsers || []);
         } else if (data.type === 'error') {
           toast({
             title: "Chat Error",
@@ -102,6 +108,11 @@ export default function DashboardChat() {
       ws.close();
     };
   }, [selectedEventId, user]);
+
+  // Reset active users when changing events
+  useEffect(() => {
+    setActiveUserIds([]);
+  }, [selectedEventId]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -142,14 +153,61 @@ export default function DashboardChat() {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-primary" />
-          Event Chats
-        </CardTitle>
-      </CardHeader>
-      <div className="flex-1 flex overflow-hidden">
+    <>
+      {/* Floating Chat Button */}
+      {!isOpen && (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-lg z-50"
+          size="icon"
+          data-testid="button-open-chat"
+        >
+          <MessageSquare className="w-6 h-6" />
+        </Button>
+      )}
+
+      {/* Floating Chat Window */}
+      {isOpen && (
+        <Card 
+          className={`flex flex-col shadow-2xl border-2 z-50 ${
+            isMaximized 
+              ? 'fixed inset-4' 
+              : 'fixed bottom-6 right-6 w-[800px] h-[600px]'
+          }`}
+          data-testid="card-floating-chat"
+        >
+          <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              Event Chats
+            </CardTitle>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMaximized(!isMaximized)}
+                data-testid="button-toggle-maximize"
+              >
+                {isMaximized ? (
+                  <Minimize2 className="w-4 h-4" />
+                ) : (
+                  <Maximize2 className="w-4 h-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsMaximized(false);
+                }}
+                data-testid="button-close-chat"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <div className="flex-1 flex overflow-hidden">
         {/* Events List */}
         <div className="w-64 border-r">
           <ScrollArea className="h-full">
@@ -188,10 +246,12 @@ export default function DashboardChat() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex">
           {selectedEventId ? (
             <>
-              <div className="flex-1 overflow-hidden">
+              {/* Messages Column */}
+              <div className="flex-1 flex flex-col">
+                <div className="flex-1 overflow-hidden">
                 <ScrollArea className="h-full p-4" ref={scrollRef}>
                   {allMessages.length > 0 ? (
                     <div className="space-y-4">
@@ -295,6 +355,70 @@ export default function DashboardChat() {
                   </Button>
                 </div>
               </div>
+              </div>
+
+              {/* Participants Sidebar */}
+              <div className="w-64 border-l">
+                <div className="p-4 border-b">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    <h3 className="font-semibold text-sm">Participants</h3>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {activeUserIds.length} online
+                    </span>
+                  </div>
+                </div>
+                <ScrollArea className="h-[calc(100%-57px)]">
+                  <div className="p-2 space-y-1">
+                    {selectedEvent?.participants && selectedEvent.participants.length > 0 ? (
+                      selectedEvent.participants.map((participant: any) => {
+                        const isActive = activeUserIds.includes(participant.userId);
+                        const userName = participant.user
+                          ? `${participant.user.firstName || ''} ${participant.user.lastName || ''}`.trim()
+                          : 'Unknown User';
+                        const initials = participant.user
+                          ? getInitials(participant.user.firstName, participant.user.lastName)
+                          : '?';
+                        
+                        return (
+                          <div
+                            key={participant.userId}
+                            className="flex items-center gap-2 p-2 rounded-md"
+                            data-testid={`participant-${participant.userId}`}
+                          >
+                            <div className="relative">
+                              <Avatar className="w-8 h-8">
+                                {participant.user?.profileImageUrl ? (
+                                  <AvatarImage src={participant.user.profileImageUrl} />
+                                ) : null}
+                                <AvatarFallback className="text-xs">
+                                  {initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <Circle
+                                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${
+                                  isActive ? 'fill-green-500 text-green-500' : 'fill-muted text-muted'
+                                }`}
+                                data-testid={`status-${participant.userId}-${isActive ? 'active' : 'inactive'}`}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium truncate">{userName}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {isActive ? 'Active' : 'Offline'}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        No participants
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
@@ -307,5 +431,7 @@ export default function DashboardChat() {
         </div>
       </div>
     </Card>
+      )}
+    </>
   );
 }
