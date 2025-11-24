@@ -105,11 +105,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasAccess = await storage.canUserAccessEvent(userId, req.params.id);
       
       if (!hasAccess) {
-        // Return preview data for invite links (basic info without sensitive details)
-        const participants = await storage.getEventParticipants(req.params.id);
+        // Return preview data for invite links (basic info WITHOUT sensitive participant details)
         return res.json({
           ...event,
-          participants,
+          participants: [], // No participant data for non-members
           messages: [],
           expenses: [],
           bookings: [],

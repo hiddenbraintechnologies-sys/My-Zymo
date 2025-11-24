@@ -223,103 +223,111 @@ export default function EventDetail() {
                       {event.location}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Participants</p>
-                    <p className="font-medium flex items-center gap-1" data-testid="text-participant-count">
-                      <Users className="w-4 h-4" />
-                      {event.participants.length} {event.participants.length === 1 ? 'person' : 'people'}
-                    </p>
-                  </div>
+                  {event.hasJoined !== false && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Participants</p>
+                      <p className="font-medium flex items-center gap-1" data-testid="text-participant-count">
+                        <Users className="w-4 h-4" />
+                        {event.participants.length} {event.participants.length === 1 ? 'person' : 'people'}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    Participants ({event.participants.length})
-                  </CardTitle>
-                  <CardDescription>
-                    Invite your friends and family via WhatsApp
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {event.participants.map((participant) => (
-                      <div
-                        key={participant.id}
-                        className="flex items-center justify-between p-3 rounded-md bg-muted/50"
-                        data-testid={`participant-${participant.userId}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          {participant.user.profileImageUrl && (
-                            <img
-                              src={participant.user.profileImageUrl}
-                              alt={`${participant.user.firstName} ${participant.user.lastName}`}
-                              className="w-10 h-10 rounded-full"
-                            />
-                          )}
-                          <div>
-                            <p className="font-medium" data-testid={`participant-name-${participant.userId}`}>
-                              {participant.user.firstName} {participant.user.lastName}
-                              {participant.userId === event.creatorId && (
-                                <Badge variant="secondary" className="ml-2">Organizer</Badge>
-                              )}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {participant.user.email}
-                            </p>
+              {event.hasJoined !== false && (
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary" />
+                      Participants ({event.participants.length})
+                    </CardTitle>
+                    <CardDescription>
+                      Invite your friends and family via WhatsApp
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {event.participants.map((participant) => (
+                        <div
+                          key={participant.id}
+                          className="flex items-center justify-between p-3 rounded-md bg-muted/50"
+                          data-testid={`participant-${participant.userId}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {participant.user.profileImageUrl && (
+                              <img
+                                src={participant.user.profileImageUrl}
+                                alt={`${participant.user.firstName} ${participant.user.lastName}`}
+                                className="w-10 h-10 rounded-full"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium" data-testid={`participant-name-${participant.userId}`}>
+                                {participant.user.firstName} {participant.user.lastName}
+                                {participant.userId === event.creatorId && (
+                                  <Badge variant="secondary" className="ml-2">Organizer</Badge>
+                                )}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {participant.user.email}
+                              </p>
+                            </div>
                           </div>
+                          <Badge variant={participant.status === 'going' ? 'default' : 'secondary'}>
+                            {participant.status}
+                          </Badge>
                         </div>
-                        <Badge variant={participant.status === 'going' ? 'default' : 'secondary'}>
-                          {participant.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            <Separator />
+            {event.hasJoined !== false && (
+              <>
+                <Separator />
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="hover-elevate cursor-pointer" onClick={() => navigate('/dashboard')} data-testid="card-group-chat">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5 text-primary" />
-                    Group Chat
-                  </CardTitle>
-                  <CardDescription>
-                    Discuss event details with participants
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <Card className="hover-elevate cursor-pointer" onClick={() => navigate('/dashboard')} data-testid="card-group-chat">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MessageCircle className="w-5 h-5 text-primary" />
+                        Group Chat
+                      </CardTitle>
+                      <CardDescription>
+                        Discuss event details with participants
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
 
-              <Card className="hover-elevate cursor-pointer" data-testid="card-split-expenses">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-primary" />
-                    Split Expenses
-                  </CardTitle>
-                  <CardDescription>
-                    Track and split event costs (Coming soon)
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+                  <Card className="hover-elevate cursor-pointer" data-testid="card-split-expenses">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-primary" />
+                        Split Expenses
+                      </CardTitle>
+                      <CardDescription>
+                        Track and split event costs (Coming soon)
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
 
-              <Card className="hover-elevate cursor-pointer" data-testid="card-book-vendors">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="w-5 h-5 text-primary" />
-                    Book Vendors
-                  </CardTitle>
-                  <CardDescription>
-                    Find and book services (Coming soon)
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
+                  <Card className="hover-elevate cursor-pointer" data-testid="card-book-vendors">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="w-5 h-5 text-primary" />
+                        Book Vendors
+                      </CardTitle>
+                      <CardDescription>
+                        Find and book services (Coming soon)
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>
