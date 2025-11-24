@@ -16,6 +16,13 @@ import {
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
 
+// SECURITY: Import sanitizeUser to strip password from all user objects at storage layer
+function sanitizeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 export interface IStorage {
   // User methods (required for Replit Auth and custom auth)
   getUser(id: string): Promise<User | undefined>;
@@ -85,16 +92,18 @@ export class DatabaseStorage implements IStorage {
   // User methods (required for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return user ? sanitizeUser(user) : undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    // NOTE: Don't sanitize here - this is used for authentication and needs password field
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    // NOTE: Don't sanitize here - this is used for authentication and needs password field
     return user || undefined;
   }
 
@@ -129,7 +138,7 @@ export class DatabaseStorage implements IStorage {
       console.error('[Storage] Error adding new user to sample events:', error);
     }
     
-    return user;
+    return sanitizeUser(user);
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
@@ -179,7 +188,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    return user;
+    return sanitizeUser(user);
   }
 
   async updateUserProfile(userId: string, profileData: Partial<User>): Promise<User> {
@@ -191,7 +200,7 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(users.id, userId))
       .returning();
-    return user;
+    return sanitizeUser(user);
   }
 
   // Event methods
@@ -234,9 +243,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(eventParticipants.eventId, eventId))
       .leftJoin(users, eq(eventParticipants.userId, users.id));
     
+    // SECURITY: Sanitize user objects before returning
     return results.map(r => ({
       ...r.event_participants,
-      user: r.users!,
+      user: sanitizeUser(r.users!),
     }));
   }
 
@@ -392,9 +402,10 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(messages.senderId, users.id))
       .orderBy(messages.createdAt);
     
+    // SECURITY: Sanitize user objects before returning
     return results.map(r => ({
       ...r.messages,
-      sender: r.users!,
+      sender: sanitizeUser(r.users!),
     }));
   }
 
@@ -418,10 +429,11 @@ export class DatabaseStorage implements IStorage {
     const messagesWithUsers = await Promise.all(
       results.map(async (r) => {
         const recipient = await db.select().from(users).where(eq(users.id, r.direct_messages.recipientId)).limit(1);
+        // SECURITY: Sanitize user objects before returning
         return {
           ...r.direct_messages,
-          sender: r.users!,
-          recipient: recipient[0]!,
+          sender: sanitizeUser(r.users!),
+          recipient: sanitizeUser(recipient[0]!),
         };
       })
     );
@@ -472,9 +484,10 @@ export class DatabaseStorage implements IStorage {
             )
           );
         
+        // SECURITY: Sanitize user object before returning
         return {
           userId: otherUserId,
-          user: user!,
+          user: sanitizeUser(user!),
           lastMessage: lastMessage || null,
           unreadCount: Number(unreadCount[0]?.count || 0),
         };
@@ -524,12 +537,13 @@ export class DatabaseStorage implements IStorage {
           .where(eq(expenseSplits.expenseId, exp.expenses.id))
           .leftJoin(users, eq(expenseSplits.userId, users.id));
         
+        // SECURITY: Sanitize user objects before returning
         return {
           ...exp.expenses,
-          paidBy: exp.users!,
+          paidBy: sanitizeUser(exp.users!),
           splits: splits.map(s => ({
             ...s.expense_splits,
-            user: s.users!,
+            user: sanitizeUser(s.users!),
           })),
         };
       })

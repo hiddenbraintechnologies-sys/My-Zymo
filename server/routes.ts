@@ -125,29 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getEventBookings(req.params.id),
       ]);
       
-      // SECURITY: Sanitize user data in participants
-      const safeParticipants = participants.map(p => ({
-        ...p,
-        user: p.user ? sanitizeUser(p.user) : p.user
-      }));
-      
-      // SECURITY: Sanitize user data in messages
-      const safeMessages = messages.map(m => ({
-        ...m,
-        user: m.user ? sanitizeUser(m.user) : m.user
-      }));
-      
-      // SECURITY: Sanitize user data in expenses
-      const safeExpenses = expenses.map(e => ({
-        ...e,
-        paidBy: e.paidBy ? sanitizeUser(e.paidBy) : e.paidBy,
-        splits: e.splits ? e.splits.map(s => ({
-          ...s,
-          user: s.user ? sanitizeUser(s.user) : s.user
-        })) : e.splits
-      }));
-      
-      res.json({ ...event, participants: safeParticipants, messages: safeMessages, expenses: safeExpenses, bookings, hasJoined: true });
+      // NOTE: User data is automatically sanitized at storage layer
+      res.json({ ...event, participants, messages, expenses, bookings, hasJoined: true });
     } catch (error) {
       console.error("Error fetching event:", error);
       res.status(500).json({ message: "Failed to fetch event" });
@@ -489,12 +468,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const conversations = await storage.getUserConversationsList(userId);
-      // SECURITY: Sanitize user data in conversations
-      const safeConversations = conversations.map(c => ({
-        ...c,
-        user: c.user ? sanitizeUser(c.user) : c.user
-      }));
-      res.json(safeConversations);
+      // NOTE: User data is automatically sanitized at storage layer
+      res.json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
       res.status(500).json({ message: "Failed to fetch conversations" });
@@ -514,13 +489,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const messages = await storage.getDirectMessagesWithUser(userId, otherUserId);
-      // SECURITY: Sanitize user data in messages
-      const safeMessages = messages.map(m => ({
-        ...m,
-        sender: m.sender ? sanitizeUser(m.sender) : m.sender,
-        recipient: m.recipient ? sanitizeUser(m.recipient) : m.recipient
-      }));
-      res.json(safeMessages);
+      // NOTE: User data is automatically sanitized at storage layer
+      res.json(messages);
     } catch (error) {
       console.error("Error fetching direct messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });
