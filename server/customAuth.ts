@@ -171,13 +171,23 @@ export async function setupCustomAuth(app: Express) {
     }
   });
 
-  // Logout route
+  // Logout route (POST for API calls)
   app.post('/api/auth/logout', (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
       }
       res.json({ message: "Logout successful" });
+    });
+  });
+  
+  // Logout route (GET for browser navigation)
+  app.get('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+      }
+      res.redirect('/');
     });
   });
 }
