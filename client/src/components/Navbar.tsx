@@ -25,6 +25,7 @@ export default function Navbar() {
 
   // Landing page navigation links (for non-authenticated users)
   const landingNavLinks = [
+    { label: "Events", href: "/events" },
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Vendors", href: "/vendor/login" },

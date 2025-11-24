@@ -45,7 +45,14 @@ Myzymo includes a comprehensive set of features:
 *   **AI-Powered Business Description Generator:** Assists vendors in creating compelling business descriptions using OpenAI GPT-5.
 *   **Video and Audio Calling:** Peer-to-peer communication via WebRTC in direct messages, with WebSocket signaling.
 *   **AI-Assisted Reply Suggestions:** Generates contextual reply suggestions for direct messages using OpenAI GPT-5.
-*   **Public and Private Events System:** Allows event creators to define event visibility, with public events discoverable by unauthenticated users and private events accessible only to invited participants. Features include a public events showcase, dual-mode event detail pages, and protected mutations.
+*   **Public and Private Events System:** Allows event creators to define event visibility, with public events discoverable by unauthenticated users and private events accessible only to invited participants. Features include:
+    *   Public events showcase accessible from homepage navigation
+    *   Dual-mode event detail pages with privacy controls
+    *   Protected mutations ensuring security
+    *   Comprehensive error handling with retry functionality
+    *   Advanced sorting (by date/title) and filtering capabilities
+    *   Vibrant gradient design with rotating event card color schemes
+    *   Festive empty states for enhanced user experience
 *   **Invite Link Flow:** Secure sharing of event invite links with privacy-protected previews.
 *   **Vibrant Dashboard:** A personalized, celebration-themed dashboard with gradient designs, quick action cards, rotating event card gradients, and festive empty states.
 *   **Event Management:** Event creators can edit and delete their events, with backend authorization ensuring security.
