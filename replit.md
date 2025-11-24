@@ -2,7 +2,7 @@
 
 ## Overview
 
-Myzymo is a mobile-first web application designed for the Indian market, facilitating the planning and management of social gatherings such as college reunions, birthday parties, and family events. The platform integrates event management, group communication, expense tracking, and a vendor marketplace into an all-in-one solution. It draws inspiration from Instagram for visual engagement, WhatsApp for user experience, and Airbnb for event discovery, aiming to provide a comprehensive and celebration-focused experience. The project's ambition is to become the leading platform for social event planning in India.
+Myzymo is a mobile-first web application for the Indian market, designed to streamline the planning and management of social gatherings like college reunions, birthday parties, and family events. It integrates event management, group communication, expense tracking, and a vendor marketplace into a single platform. Inspired by Instagram for visual engagement, WhatsApp for user experience, and Airbnb for event discovery, Myzymo aims to be the leading platform for social event planning in India, offering a comprehensive and celebration-focused experience.
 
 ## User Preferences
 
@@ -10,86 +10,63 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
+### UI/UX Decisions
 
-The frontend is built with React 18 and TypeScript, using Vite for development and Wouter for routing. UI components leverage Shadcn/ui and Radix UI primitives, styled with Tailwind CSS, following a celebration-first design with Poppins and Inter fonts. Key design decisions include a mobile-first, responsive approach optimized for 4G networks, a component-based architecture, and an event-driven design using WebSockets for real-time interactions. TanStack React Query manages server state, while local component state is handled by React hooks.
+The frontend employs a vibrant, celebration-themed design with an orange/coral color scheme and a custom logo. It features a mobile-native layout with touch-optimized components, integrating popular UX patterns from Instagram, WhatsApp, and Airbnb.
 
-### Backend Architecture
+**Vibrant Design System:**
+*   **Color Gradients:** Extensive use of CSS gradients throughout the application for depth and energy (orange/amber, blue/cyan, purple/pink, green/emerald, rose/pink)
+*   **Dashboard Welcome Banner:** Full-width gradient hero section with pattern overlay, Sparkles icon, event statistics cards with glass-morphism effects
+*   **Color-Coded Quick Actions:** Three distinct gradient cards (orange for Create Event, blue for My Events, purple for Find Vendors) with themed icons and badges
+*   **Rotating Event Cards:** Five distinct gradient color schemes that rotate by index for visual variety
+*   **Gradient Typography:** Section headers use gradient text (bg-clip-text technique) for visual hierarchy
+*   **Festive Empty States:** Vibrant designs with blur effects and themed call-to-action buttons
+*   **Glass-Morphism Effects:** Backdrop blur and semi-transparent backgrounds for modern aesthetics
+*   **Shadow System:** Consistent use of shadow-lg and shadow-xl for elevation and depth
+*   **Smooth Transitions:** Hover effects and animations throughout for interactive feedback
 
-The backend utilizes Node.js with Express.js and TypeScript, employing Drizzle ORM for PostgreSQL database interactions. Real-time messaging is handled by WebSockets (`ws` library). The API is RESTful, secured with session-based authentication using custom username/password authentication with bcrypt hashing. Session management uses Express session with PostgreSQL store, implementing proper session regeneration to prevent session fixation attacks. The server structure supports both development and production environments, with a centralized route registration and a storage abstraction layer. A monolithic architecture with a shared schema between client and server (`/shared` directory) is a core architectural decision.
+**Navigation Features:**
+*   Prominent AI Guide in the navbar with popover interface
+*   Smart logo navigation that links to dashboard when authenticated, home page when logged out
+*   Persistent dashboard navigation across all authenticated pages
+*   Dark mode support with proper contrast ratios across all gradients and colors
 
-### Data Storage Solutions
+### Technical Implementations
 
-PostgreSQL, via Neon serverless driver, is the primary database, managed with Drizzle ORM for type-safe queries and schema migrations. The schema includes tables for users, events, participants, messages, expenses, vendors, and bookings, all designed with UUIDs as primary keys and robust foreign key relationships. Timestamp tracking is implemented across major entities, and JSON fields offer flexible metadata storage.
+The frontend is built with React 18, TypeScript, Vite, Wouter, Shadcn/ui, Radix UI, and Tailwind CSS. It follows a mobile-first, responsive, and component-based architecture optimized for 4G networks. TanStack React Query manages server state, while React hooks handle local state.
+
+The backend uses Node.js, Express.js, and TypeScript, with Drizzle ORM for PostgreSQL interactions. Real-time communication is powered by WebSockets. The API is RESTful, secured with session-based authentication using custom username/password and Replit Auth (OIDC-based social login). A monolithic architecture with a shared schema (`/shared` directory) ensures consistency between client and server.
 
 ### Feature Specifications
 
-*   **Dual Authentication System:** 
-    *   **Custom Authentication:** Username/password authentication with bcrypt hashing (10 salt rounds). Includes signup and login flows with proper session regeneration to prevent session fixation attacks. Storage-layer sanitization ensures password hashes never leak in API responses. All user-facing storage methods automatically strip password fields before returning data. Supports login with either username or email address. Password fields include visibility toggle (eye icon) for better user experience.
-    *   **Replit Auth (Social Login):** OIDC-based authentication providing Google, GitHub, X (Twitter), Apple, and email/password login options. Integrated via `/api/login` endpoint with automatic user creation/update. Uses email-based user lookup to preserve existing user records and roles across authentication methods.
-    *   **Unified Authentication Middleware:** A unified `isAuthenticated` middleware in `server/routes.ts` supports both custom auth (session.userId) and Replit Auth (Passport req.user), ensuring seamless authentication across both methods without redirect loops.
-    *   **Vendor Social Login:** Dedicated vendor authentication flow using Replit Auth with separate strategy and endpoints (`/api/vendor/auth/login`, `/api/vendor/auth/callback`). Vendors can sign up using social platforms (Google, GitHub, X, Apple, email) and complete their vendor profile with business details. Session management properly established in vendor callback to ensure downstream routes work correctly. Profile completion endpoint (`/api/vendor/complete-profile`) allows social login users to submit business information after authentication.
-    *   **AI-Powered Business Description Generator:** Vendor registration form includes an AI assistant that helps vendors write compelling business descriptions. The "Generate with AI" button creates professional descriptions based on business name, category, location, and price range. When users manually edit the description and regenerate, the AI preserves all existing content while improving grammar, flow, and professionalism. Powered by OpenAI GPT-5 with Indian market expertise.
-    *   **Admin Redirect:** Admin users (super_admin, admin, master_user) are automatically redirected to the admin dashboard (/admin) upon successful login via either authentication method, while regular users are directed to the dashboard or profile completion page.
-*   **Video and Audio Calling:** Peer-to-peer video and audio calling between users in direct messages using WebRTC. Features include call initiation buttons (phone/video), incoming call modal with accept/reject, active call dialog with mute/video toggle, and proper cleanup on termination. Uses WebSocket signaling and public STUN servers.
-*   **AI-Assisted Reply Suggestions:** AI (OpenAI GPT-5) generates contextual reply suggestions for direct messages, displayed as clickable badges.
-*   **Public and Private Events System:** Events can be marked as public or private during creation/editing. Events are private by default, accessible only by the creator and invited participants. Public events are discoverable on the landing page and viewable by anyone without authentication. Features include:
-    *   **Event Creation Toggle:** Public/private toggle (Switch component) with visual indicators (Globe icon for public, Lock icon for private)
-    *   **Public Events Showcase:** Landing page displays up to 6 public events in a grid layout with "View All Events" button
-    *   **Dual-Mode Event Detail Page:** Single EventDetail page handles both authenticated and unauthenticated viewing:
-        *   **Unauthenticated Users:** Fetch public preview from `/api/public-events/:id` (basic info only: title, description, date, location, imageUrl). No participant data, messages, expenses, or bookings shown. "Log in to join" CTA redirects to login.
-        *   **Authenticated Non-Participants:** Fetch from `/api/events/:id`, see "Join Event" button to become participants
-        *   **Authenticated Participants:** Full access to all event features (chat, expenses, vendors, participant list)
-    *   **Type-Safe Implementation:** Discriminated types (`EventDetail` vs `PublicEventPreview`) with type guard (`hasFullAccess`) to safely distinguish public preview from full event access
-    *   **Protected Mutations:** Join mutation only accessible to authenticated users
-    *   **Security:** Public preview endpoint returns only non-sensitive data. Private events return 404 on public endpoint. Access control checks implemented across all endpoints and WebSockets.
-*   **Invite Link Flow with Privacy Protection:** Users can share event invite links via WhatsApp or copy link. Recipients see a privacy-protected preview (title, description, date, location only) and must explicitly click "Join Event" to become participants. Participant data, chat, expenses, and vendor bookings are hidden until user joins. After joining, the event appears in the user's dashboard and they gain full access to all event features.
-*   **Dashboard:** A personalized dashboard shows user-created or explicitly joined private events, featuring a LinkedIn-style chat interface for selected events.
-*   **Event Management:** Event creators can edit and delete their events from the dashboard. Edit and Delete buttons appear on event cards only for the creator. Editing opens a pre-populated form that updates the event details. Deletion requires confirmation via an AlertDialog. Backend authorization ensures only creators can modify their events.
-*   **Event Member Export:** Event creators can download complete member details including photos and all personal information (name, email, phone, education, profession, etc.) as a JSON file from the dashboard. The "Download Members" button appears only for event creators, ensuring privacy protection. The export includes event details, all participant data, and export metadata.
-*   **Chat System:** Real-time chat via WebSockets with emoji picker, proper sender attribution, and message persistence.
-*   **AI Guide:** A prominent AI Guide in the navbar provides application walkthroughs and feature suggestions, supporting onboarding and general queries.
+Myzymo includes a comprehensive set of features:
+
+*   **Dual Authentication System:** Supports custom username/password login with bcrypt and Replit Auth (Google, GitHub, X, Apple, email/password) for users and vendors, with unified middleware and admin redirection upon successful login.
+*   **AI-Powered Business Description Generator:** Assists vendors in creating compelling business descriptions using OpenAI GPT-5.
+*   **Video and Audio Calling:** Peer-to-peer communication via WebRTC in direct messages, with WebSocket signaling.
+*   **AI-Assisted Reply Suggestions:** Generates contextual reply suggestions for direct messages using OpenAI GPT-5.
+*   **Public and Private Events System:** Allows event creators to define event visibility, with public events discoverable by unauthenticated users and private events accessible only to invited participants. Features include a public events showcase, dual-mode event detail pages, and protected mutations.
+*   **Invite Link Flow:** Secure sharing of event invite links with privacy-protected previews.
+*   **Vibrant Dashboard:** A personalized, celebration-themed dashboard with gradient designs, quick action cards, rotating event card gradients, and festive empty states.
+*   **Event Management:** Event creators can edit and delete their events, with backend authorization ensuring security.
+*   **Event Member Export:** Creators can download complete member details as JSON files for their events.
+*   **Chat System:** Real-time WebSocket-based chat with emoji support and message persistence.
+*   **AI Guide:** Provides application walkthroughs and feature suggestions in the navbar.
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
-*   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields, validated using Zod schemas.
-*   **Sample Events:** Default celebration-themed events are created on first startup for discovery purposes.
-*   **Admin Dashboard:** Full-featured admin panel with role-based access control (super_admin, admin, master_user, user). Features include:
-    *   **User Management:** View all users, create privileged accounts (admin/master_user), change user roles, delete users (super admins only for privileged users)
-    *   **Event Management:** View all events, delete any event (master_user+ required)
-    *   **Vendor Management:** Create, edit, and delete vendors (master_user+ required)
-    *   **Statistics Dashboard:** Overview of total users, events, and vendors
-    *   **Role Hierarchy:** user < master_user < admin < super_admin
-    *   **Security:** All admin routes protected with middleware (requireAdmin, requireMasterUser, requireSuperAdmin). Super admin seeding uses SUPER_ADMIN_PASSWORD environment variable for secure credential management.
-*   **AI-Powered Quote Estimation:** Free instant cost estimates for events using OpenAI GPT with Indian market-specific pricing intelligence. Features include:
-    *   **Multi-Step Form:** 3-step wizard collecting guest info, event details (type, date, location), and guest count
-    *   **Event Types:** Wedding, Birthday Party, College Reunion, School Reunion, Corporate Event, Engagement, Anniversary, Baby Shower, Housewarming, Festival Celebration, Others
-    *   **Intelligent Pricing:** AI analyzes city tier (metro/tier-1/tier-2/tier-3), seasonal factors, and event type to generate accurate cost breakdowns (venue, catering, decoration, photography, entertainment, miscellaneous)
-    *   **Guest Privacy:** Non-logged-in users see watermarked previews with screenshot prevention (disabled right-click, print shortcuts, clipboard)
-    *   **User Features:** Logged-in users can save quotes and download as JSON files
-*   **AI Event Title & Description Suggestions:** Intelligent event creation assistant powered by OpenAI GPT-5 with cultural awareness for Indian celebrations. Features include:
-    *   **Event Type Selector:** Dropdown with 16 common Indian event types (Birthday Party, Wedding, Diwali Celebration, Holi Celebration, College Reunion, etc.)
-    *   **Context-Aware Suggestions:** AI generates culturally appropriate titles and descriptions based on event type, date, location, and guest count
-    *   **Multiple Options:** Provides 4 creative title suggestions and 3 engaging description suggestions per generation
-    *   **Regeneration:** Users can regenerate suggestions for more variety without losing form data
-    *   **One-Click Application:** Clicking a suggestion instantly populates the respective form field
-    *   **Optional Feature:** Completely non-intrusive - users can skip AI and manually enter details
-    *   **API Endpoint:** POST /api/ai/event-suggestions (authenticated) with graceful fallbacks
-    *   **Clean UX:** Clear loading states, error handling with retry, and clickable badge/button suggestions
+*   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields.
+*   **Admin Dashboard:** Full-featured panel with role-based access control (super_admin, admin, master_user, user) for managing users, events, and vendors.
+*   **AI-Powered Quote Estimation:** Provides instant event cost estimates using OpenAI GPT with Indian market pricing intelligence, including multi-step forms and guest privacy features.
+*   **AI Event Title & Description Suggestions:** Assists event creation with culturally aware title and description suggestions using OpenAI GPT-5.
 
-### UI/UX Decisions
+### System Design Choices
 
-*   Vibrant, celebration-themed design with an orange/coral color scheme and custom logo.
-*   Mobile-native layout with touch-optimized components.
-*   Integration of popular UX patterns from Instagram, WhatsApp, and Airbnb.
-*   Prominent AI Guide in the navbar with a popover interface for enhanced visibility and user assistance.
-*   **Smart Logo Navigation:** Logo link is context-aware - links to dashboard when user is authenticated, links to home page only when logged out. This keeps authenticated users on the dashboard when clicking the logo.
-*   **Persistent Dashboard Navigation:** Dashboard button is prominently displayed in the navigation menu across all authenticated pages (Dashboard, Events, Messages, Profile, AI Assistant, Vendors, Event Details), allowing users to easily return to their dashboard from anywhere in the application. The Navbar component intelligently switches between landing page navigation (for guests) and full application navigation (for authenticated users).
+PostgreSQL, leveraging Neon serverless driver and Drizzle ORM, serves as the primary database. The schema utilizes UUIDs for primary keys and robust foreign key relationships across tables for users, events, participants, messages, expenses, vendors, and bookings. Timestamp tracking and JSON fields for flexible metadata storage are implemented.
 
 ## External Dependencies
 
-*   **Authentication:** Custom username/password authentication with bcrypt
-*   **Database:** Neon PostgreSQL (serverless driver)
+*   **Authentication:** Replit Auth (OIDC-based social login)
+*   **Database:** Neon PostgreSQL
 *   **Typography:** Google Fonts (Inter, Poppins)
 *   **Real-time Communication:** WebSocket (`ws` library)
 *   **AI Integration:** OpenAI GPT-5 (via Replit AI Integrations)
 *   **Development Tools:** Vite, ESBuild, Drizzle Kit
-*   **Asset Management:** Static assets from `/attached_assets`
