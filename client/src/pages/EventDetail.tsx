@@ -240,7 +240,7 @@ export default function EventDetail() {
             <Separator />
 
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="hover-elevate cursor-pointer" onClick={() => navigate(`/events/${event.id}/chat`)}>
+              <Card className="hover-elevate cursor-pointer" onClick={() => navigate('/dashboard')} data-testid="card-group-chat">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-primary" />
@@ -252,26 +252,26 @@ export default function EventDetail() {
                 </CardHeader>
               </Card>
 
-              <Card className="hover-elevate cursor-pointer" onClick={() => navigate(`/events/${event.id}/expenses`)}>
+              <Card className="hover-elevate cursor-pointer" data-testid="card-split-expenses">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-primary" />
                     Split Expenses
                   </CardTitle>
                   <CardDescription>
-                    Track and split event costs
+                    Track and split event costs (Coming soon)
                   </CardDescription>
                 </CardHeader>
               </Card>
 
-              <Card className="hover-elevate cursor-pointer" onClick={() => navigate(`/events/${event.id}/vendors`)}>
+              <Card className="hover-elevate cursor-pointer" data-testid="card-book-vendors">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="w-5 h-5 text-primary" />
                     Book Vendors
                   </CardTitle>
                   <CardDescription>
-                    Find and book services
+                    Find and book services (Coming soon)
                   </CardDescription>
                 </CardHeader>
               </Card>

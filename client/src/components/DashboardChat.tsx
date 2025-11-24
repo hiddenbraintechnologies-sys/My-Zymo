@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, MessageSquare } from "lucide-react";
 import type { Event } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
@@ -107,28 +107,23 @@ export default function DashboardChat() {
     }
   }, [selectedEvent?.messages]);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await apiRequest(`/api/events/${selectedEventId}/messages`, "POST", { content });
-      return await res.json();
-    },
-    onSuccess: () => {
+  const handleSendMessage = () => {
+    if (!messageInput.trim() || !selectedEventId || !wsRef.current) return;
+    
+    try {
+      wsRef.current.send(JSON.stringify({
+        type: 'message',
+        content: messageInput
+      }));
       setMessageInput("");
-      // Invalidate the event query to refresh messages
-      queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId] });
-    },
-    onError: () => {
+    } catch (error) {
+      console.error('[WebSocket] Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleSendMessage = () => {
-    if (!messageInput.trim() || !selectedEventId) return;
-    sendMessageMutation.mutate(messageInput);
+    }
   };
 
   // Use messages from selectedEvent query - WebSocket just triggers refetch
@@ -262,12 +257,11 @@ export default function DashboardChat() {
                         handleSendMessage();
                       }
                     }}
-                    disabled={sendMessageMutation.isPending}
                     data-testid="input-chat-message"
                   />
                   <Button
                     onClick={handleSendMessage}
-                    disabled={!messageInput.trim() || sendMessageMutation.isPending}
+                    disabled={!messageInput.trim()}
                     data-testid="button-send-chat-message"
                   >
                     <Send className="w-4 h-4" />

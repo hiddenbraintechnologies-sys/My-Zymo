@@ -35,6 +35,8 @@ export interface IStorage {
   addEventParticipant(participant: InsertEventParticipant): Promise<EventParticipant>;
   removeEventParticipant(eventId: string, userId: string): Promise<void>;
   getUserEvents(userId: string): Promise<(EventParticipant & { event: Event })[]>;
+  getUserAccessibleEvents(userId: string): Promise<Event[]>;
+  canUserAccessEvent(userId: string, eventId: string): Promise<boolean>;
   
   // Message methods
   getEventMessages(eventId: string): Promise<(Message & { sender: User })[]>;
@@ -182,6 +184,51 @@ export class DatabaseStorage implements IStorage {
       ...r.event_participants,
       event: r.events!,
     }));
+  }
+
+  async getUserAccessibleEvents(userId: string): Promise<Event[]> {
+    const createdEvents = await db
+      .select()
+      .from(events)
+      .where(eq(events.creatorId, userId));
+    
+    const participantEvents = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        date: events.date,
+        location: events.location,
+        imageUrl: events.imageUrl,
+        creatorId: events.creatorId,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+      })
+      .from(eventParticipants)
+      .where(eq(eventParticipants.userId, userId))
+      .leftJoin(events, eq(eventParticipants.eventId, events.id));
+    
+    const eventMap = new Map<string, Event>();
+    createdEvents.forEach(e => eventMap.set(e.id, e));
+    participantEvents.forEach(e => {
+      if (e.id) eventMap.set(e.id, e as Event);
+    });
+    
+    return Array.from(eventMap.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+
+  async canUserAccessEvent(userId: string, eventId: string): Promise<boolean> {
+    const event = await this.getEvent(eventId);
+    if (!event) return false;
+    
+    if (event.creatorId === userId) return true;
+    
+    const [participant] = await db
+      .select()
+      .from(eventParticipants)
+      .where(and(eq(eventParticipants.eventId, eventId), eq(eventParticipants.userId, userId)));
+    
+    return !!participant;
   }
 
   // Message methods

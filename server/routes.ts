@@ -78,27 +78,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Event Management APIs ===
   
-  // Get all events (for discovery)
+  // Get events accessible to the user (created by them or invited to)
   app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
-      // Return all events so users can discover and join them
-      const allEvents = await storage.getAllEvents();
-      res.json(allEvents);
+      const userId = req.user.claims.sub;
+      const userEvents = await storage.getUserAccessibleEvents(userId);
+      res.json(userEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
       res.status(500).json({ message: "Failed to fetch events" });
     }
   });
 
-  // Get single event with details
+  // Get single event with details (only accessible by creator or participants)
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const event = await storage.getEvent(req.params.id);
+      
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      // Anyone can view event details (for discovery)
+      // Check if user has access to this event
+      const hasAccess = await storage.canUserAccessEvent(userId, req.params.id);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+      
       // Get participants, messages, expenses, and bookings
       const [participants, messages, expenses, bookings] = await Promise.all([
         storage.getEventParticipants(req.params.id),
@@ -750,17 +757,16 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
         const message = JSON.parse(data.toString());
 
         if (message.type === 'join' && message.eventId) {
-          // Verify event exists and authenticated user is a participant
+          // Verify event exists and authenticated user has access (creator or participant)
           const event = await storage.getEvent(message.eventId);
           if (!event) {
             ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
             return;
           }
           
-          const participants = await storage.getEventParticipants(message.eventId);
-          const participantUserIds = participants.map(p => p.userId);
-          if (!participantUserIds.includes(authenticatedUserId)) {
-            ws.send(JSON.stringify({ type: 'error', message: 'Not a participant of this event' }));
+          const hasAccess = await storage.canUserAccessEvent(authenticatedUserId, message.eventId);
+          if (!hasAccess) {
+            ws.send(JSON.stringify({ type: 'error', message: 'You do not have access to this event' }));
             return;
           }
           
@@ -774,11 +780,10 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
           
           ws.send(JSON.stringify({ type: 'joined', eventId: currentEventId }));
         } else if (message.type === 'message' && currentEventId) {
-          // Verify authenticated user is still a participant (in case they were removed)
-          const participants = await storage.getEventParticipants(currentEventId);
-          const participantUserIds = participants.map(p => p.userId);
-          if (!participantUserIds.includes(authenticatedUserId)) {
-            ws.send(JSON.stringify({ type: 'error', message: 'No longer a participant of this event' }));
+          // Verify authenticated user still has access (in case they were removed)
+          const hasAccess = await storage.canUserAccessEvent(authenticatedUserId, currentEventId);
+          if (!hasAccess) {
+            ws.send(JSON.stringify({ type: 'error', message: 'You no longer have access to this event' }));
             return;
           }
           
