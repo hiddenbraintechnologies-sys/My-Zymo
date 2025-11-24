@@ -14,9 +14,20 @@ import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Full event detail for authenticated users
 type EventDetail = Event & {
   participants: (EventParticipant & { user: User })[];
   hasJoined?: boolean;
+};
+
+// Public preview for unauthenticated visitors (matches actual backend response)
+type PublicEventPreview = Pick<Event, 'id' | 'title' | 'description' | 'date' | 'location' | 'imageUrl' | 'isPublic' | 'creatorId'> & {
+  participants: []; // Empty array in public preview
+  messages: [];
+  expenses: [];
+  bookings: [];
+  hasJoined: false;
+  requiresAuth?: boolean;
 };
 
 export default function EventDetail() {
@@ -25,13 +36,38 @@ export default function EventDetail() {
   const [, params] = useRoute("/events/:id");
   const { toast } = useToast();
   
-  const { data: event, isLoading } = useQuery<EventDetail>({
+  // Authenticated query - full event details or participant preview
+  const { data: authenticatedEvent, isLoading: authenticatedLoading } = useQuery<EventDetail>({
     queryKey: ["/api/events", params?.id],
     enabled: !!user && !!params?.id,
   });
+  
+  // Public preview query - for unauthenticated users viewing public events
+  const { data: publicEvent, isLoading: publicLoading } = useQuery<PublicEventPreview>({
+    queryKey: ["/api/public-events", params?.id],
+    enabled: !authLoading && !user && !!params?.id,
+  });
+  
+  // Use the appropriate event data based on authentication status
+  const event: EventDetail | PublicEventPreview | undefined = user ? authenticatedEvent : publicEvent;
+  const isLoading = authLoading || (user ? authenticatedLoading : publicLoading);
+  
+  // Type guard to check if we have full event details with participants
+  // Public previews always have hasJoined: false and empty arrays, so check requiresAuth flag and user
+  const hasFullAccess = (evt: EventDetail | PublicEventPreview | undefined): evt is EventDetail => {
+    if (!evt || !user) return false;
+    // Public previews have requiresAuth flag set, so check for its absence
+    if ('requiresAuth' in evt && evt.requiresAuth === true) return false;
+    // Check if hasJoined is not explicitly false (meaning user has joined or is the creator)
+    return 'hasJoined' in evt && evt.hasJoined !== false;
+  };
 
+  // Only create join mutation for authenticated users
   const joinMutation = useMutation({
     mutationFn: async () => {
+      if (!user) {
+        throw new Error("Must be logged in to join event");
+      }
       await apiRequest(`/api/events/${params?.id}/join`, "POST", { status: "going" });
     },
     onSuccess: async () => {
@@ -55,7 +91,14 @@ export default function EventDetail() {
   };
 
   const handleWhatsAppShare = () => {
-    if (!event) return;
+    if (!event) {
+      toast({
+        title: "Error",
+        description: "Event data not available",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const eventUrl = window.location.href;
     const message = `🎉 You're invited to ${event.title}!\n\n📅 ${format(new Date(event.date), 'PPP')}\n📍 ${event.location}\n\nJoin us on Myzymo: ${eventUrl}`;
@@ -70,6 +113,15 @@ export default function EventDetail() {
   };
 
   const handleCopyLink = () => {
+    if (!event) {
+      toast({
+        title: "Error",
+        description: "Event data not available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const eventUrl = window.location.href;
     navigator.clipboard.writeText(eventUrl);
     
@@ -87,11 +139,6 @@ export default function EventDetail() {
     );
   }
 
-  if (!user) {
-    window.location.href = "/api/login";
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
@@ -103,39 +150,53 @@ export default function EventDetail() {
             </div>
           </Link>
           
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" data-testid="link-dashboard">
-              <Button variant="ghost">Dashboard</Button>
-            </Link>
-            <Link href="/events" data-testid="link-events">
-              <Button variant="ghost">Events</Button>
-            </Link>
-            <Link href="/messages" data-testid="link-messages">
-              <Button variant="ghost">Messages</Button>
-            </Link>
-            <Link href="/vendors" data-testid="link-vendors">
-              <Button variant="ghost">Vendors</Button>
-            </Link>
-            <Link href="/ai-assistant" data-testid="link-ai-assistant">
-              <Button variant="ghost">AI Assistant</Button>
-            </Link>
-            <Link href="/profile" data-testid="link-profile">
-              <Button variant="ghost">Profile</Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <span className="text-sm" data-testid="text-user-name">
-                {user.firstName} {user.lastName}
-              </span>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard" data-testid="link-dashboard">
+                <Button variant="ghost">Dashboard</Button>
+              </Link>
+              <Link href="/events" data-testid="link-events">
+                <Button variant="ghost">Events</Button>
+              </Link>
+              <Link href="/messages" data-testid="link-messages">
+                <Button variant="ghost">Messages</Button>
+              </Link>
+              <Link href="/vendors" data-testid="link-vendors">
+                <Button variant="ghost">Vendors</Button>
+              </Link>
+              <Link href="/ai-assistant" data-testid="link-ai-assistant">
+                <Button variant="ghost">AI Assistant</Button>
+              </Link>
+              <Link href="/profile" data-testid="link-profile">
+                <Button variant="ghost">Profile</Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <span className="text-sm" data-testid="text-user-name">
+                  {user.firstName} {user.lastName}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleLogout}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <Link href="/get-quote" data-testid="link-get-quote">
+                <Button variant="ghost">Get Quote</Button>
+              </Link>
               <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleLogout}
-                data-testid="button-logout"
+                onClick={() => window.location.href = "/api/login"}
+                data-testid="button-login"
               >
-                <LogOut className="w-4 h-4" />
+                Log In
               </Button>
             </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -186,19 +247,24 @@ export default function EventDetail() {
               </div>
             </div>
 
-            {event.hasJoined === false && (
+            {/* Show join/login CTA for non-participants or unauthenticated users */}
+            {(!user || (user && event?.hasJoined === false)) && (
               <Alert className="border-primary bg-primary/5" data-testid="alert-join-event">
                 <UserPlus className="h-4 w-4" />
                 <AlertDescription className="flex items-center justify-between">
                   <span>
-                    You've been invited to this event! Join to see all details and participate in chats.
+                    {user 
+                      ? "You've been invited to this event! Join to see all details and participate in chats."
+                      : "Log in to join this event and access all features including chats, expenses, and vendor bookings."}
                   </span>
                   <Button 
-                    onClick={() => joinMutation.mutate()}
-                    disabled={joinMutation.isPending}
+                    onClick={() => user ? joinMutation.mutate() : window.location.href = "/api/login"}
+                    disabled={user && joinMutation.isPending}
                     data-testid="button-join-event"
                   >
-                    {joinMutation.isPending ? "Joining..." : "Join Event"}
+                    {user 
+                      ? (joinMutation.isPending ? "Joining..." : "Join Event")
+                      : "Log In to Join"}
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -226,7 +292,7 @@ export default function EventDetail() {
                       {event.location}
                     </p>
                   </div>
-                  {event.hasJoined !== false && (
+                  {hasFullAccess(event) && event.hasJoined !== false && (
                     <div>
                       <p className="text-sm text-muted-foreground">Participants</p>
                       <p className="font-medium flex items-center gap-1" data-testid="text-participant-count">
@@ -238,7 +304,7 @@ export default function EventDetail() {
                 </CardContent>
               </Card>
 
-              {event.hasJoined !== false && (
+              {hasFullAccess(event) && event.hasJoined !== false && (
                 <Card className="md:col-span-2">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -288,7 +354,7 @@ export default function EventDetail() {
               )}
             </div>
 
-            {event.hasJoined !== false && (
+            {hasFullAccess(event) && event.hasJoined !== false && (
               <>
                 <Separator />
 
