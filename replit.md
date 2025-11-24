@@ -24,6 +24,7 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 
 ### Feature Specifications
 
+*   **Video and Audio Calling:** Peer-to-peer video and audio calling between users in direct messages using WebRTC. Features include call initiation buttons (phone/video), incoming call modal with accept/reject, active call dialog with mute/video toggle, and proper cleanup on termination. Uses WebSocket signaling and public STUN servers.
 *   **AI-Assisted Reply Suggestions:** AI (OpenAI GPT-5) generates contextual reply suggestions for direct messages, displayed as clickable badges.
 *   **Event Privacy System:** Events are private by default, accessible only by the creator and invited participants. Access control checks are implemented across API endpoints and WebSockets.
 *   **Dashboard:** A personalized dashboard shows user-created or explicitly joined private events, featuring a LinkedIn-style chat interface for selected events.
