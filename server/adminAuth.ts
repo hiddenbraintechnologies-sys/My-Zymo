@@ -4,6 +4,7 @@ import { storage } from "./storage";
 // Role hierarchy for permission checking
 export const ROLES = {
   USER: 'user',
+  VENDOR: 'vendor',
   MASTER_USER: 'master_user',
   ADMIN: 'admin',
   SUPER_ADMIN: 'super_admin',
@@ -12,6 +13,7 @@ export const ROLES = {
 // Role levels for comparison (higher number = more permissions)
 const ROLE_LEVELS = {
   [ROLES.USER]: 0,
+  [ROLES.VENDOR]: 0,
   [ROLES.MASTER_USER]: 1,
   [ROLES.ADMIN]: 2,
   [ROLES.SUPER_ADMIN]: 3,
@@ -106,6 +108,34 @@ export const requireMasterUser: RequestHandler = async (req: any, res, next) => 
     next();
   } catch (error) {
     console.error("Master user auth error:", error);
+    res.status(500).json({ message: "Authentication error" });
+  }
+};
+
+/**
+ * Middleware to require vendor access
+ */
+export const requireVendor: RequestHandler = async (req: any, res, next) => {
+  const userId = (req.session as any).userId;
+  
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (user.role !== ROLES.VENDOR) {
+      return res.status(403).json({ message: "Forbidden: Vendor access required" });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Vendor auth error:", error);
     res.status(500).json({ message: "Authentication error" });
   }
 };

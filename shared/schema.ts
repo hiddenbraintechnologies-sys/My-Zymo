@@ -185,6 +185,7 @@ export const expenseSplitsRelations = relations(expenseSplits, ({ one }) => ({
 // Vendors table
 export const vendors = pgTable("vendors", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id), // Link to vendor user account
   name: text("name").notNull(),
   category: text("category").notNull(), // venue, catering, photography, decoration
   description: text("description"),
@@ -197,7 +198,11 @@ export const vendors = pgTable("vendors", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const vendorsRelations = relations(vendors, ({ many }) => ({
+export const vendorsRelations = relations(vendors, ({ one, many }) => ({
+  user: one(users, {
+    fields: [vendors.userId],
+    references: [users.id],
+  }),
   bookings: many(bookings),
 }));
 
