@@ -25,6 +25,7 @@ const SUGGESTED_ACTIONS = [
 
 export default function FloatingAIGuide() {
   const [isOpen, setIsOpen] = useState(true);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -34,6 +35,7 @@ export default function FloatingAIGuide() {
   const [inputMessage, setInputMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chatWindowRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -50,6 +52,23 @@ export default function FloatingAIGuide() {
       }
     }
   }, [messages]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && !hasInteracted && chatWindowRef.current && !chatWindowRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, hasInteracted]);
+
+  const handleAIGuideInteraction = () => {
+    setHasInteracted(true);
+  };
 
   const createConversationMutation = useMutation({
     mutationFn: async () => {
@@ -98,6 +117,7 @@ export default function FloatingAIGuide() {
 
   const handleOpen = () => {
     setIsOpen(true);
+    setHasInteracted(false);
     if (user && !conversationId) {
       createConversationMutation.mutate();
     }
@@ -155,7 +175,11 @@ export default function FloatingAIGuide() {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[380px] h-[500px] bg-background border rounded-lg shadow-2xl flex flex-col z-50">
+        <div 
+          ref={chatWindowRef}
+          onClick={handleAIGuideInteraction}
+          className="fixed bottom-6 right-6 w-[380px] h-[500px] bg-background border rounded-lg shadow-2xl flex flex-col z-50"
+        >
           <div className="flex items-center justify-between gap-3 p-4 border-b bg-gradient-to-r from-primary/10 to-primary/5">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
