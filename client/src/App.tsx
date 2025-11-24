@@ -7,6 +7,7 @@ import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
 import CreateEvent from "@/pages/CreateEvent";
+import EditEvent from "@/pages/EditEvent";
 import EventDetail from "@/pages/EventDetail";
 import Vendors from "@/pages/Vendors";
 import Profile from "@/pages/Profile";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/events" component={Events} />
       <Route path="/events/create" component={CreateEvent} />
+      <Route path="/events/:id/edit" component={EditEvent} />
       <Route path="/events/:id" component={EventDetail} />
       <Route path="/vendors" component={Vendors} />
       <Route path="/ai-assistant" component={AIAssistant} />
