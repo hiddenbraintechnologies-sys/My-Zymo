@@ -23,7 +23,6 @@ import VendorLogin from "@/pages/VendorLogin";
 import VendorSignup from "@/pages/VendorSignup";
 import VendorDashboard from "@/pages/VendorDashboard";
 import NotFound from "@/pages/not-found";
-import FloatingAIGuide from "@/components/FloatingAIGuide";
 
 function Router() {
   return (
@@ -59,7 +58,6 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
-        <FloatingAIGuide />
       </TooltipProvider>
     </QueryClientProvider>
   );

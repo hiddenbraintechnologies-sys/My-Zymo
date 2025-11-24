@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Send, MessageSquare, Smile, Users, Circle, X, Maximize2, Minimize2 } from "lucide-react";
+import { Send, MessageSquare, Smile, Users, Circle } from "lucide-react";
 import type { Event } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,8 +39,6 @@ export default function DashboardChat() {
   const [messageInput, setMessageInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activeUserIds, setActiveUserIds] = useState<string[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -153,60 +151,13 @@ export default function DashboardChat() {
   };
 
   return (
-    <>
-      {/* Floating Chat Button */}
-      {!isOpen && (
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-lg z-50"
-          size="icon"
-          data-testid="button-open-chat"
-        >
-          <MessageSquare className="w-6 h-6" />
-        </Button>
-      )}
-
-      {/* Floating Chat Window */}
-      {isOpen && (
-        <Card 
-          className={`flex flex-col shadow-2xl border-2 z-50 ${
-            isMaximized 
-              ? 'fixed inset-4' 
-              : 'fixed bottom-6 right-6 w-[800px] h-[600px]'
-          }`}
-          data-testid="card-floating-chat"
-        >
-          <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              Event Chats
-            </CardTitle>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMaximized(!isMaximized)}
-                data-testid="button-toggle-maximize"
-              >
-                {isMaximized ? (
-                  <Minimize2 className="w-4 h-4" />
-                ) : (
-                  <Maximize2 className="w-4 h-4" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsMaximized(false);
-                }}
-                data-testid="button-close-chat"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardHeader>
+    <Card className="flex flex-col h-[600px] shadow-lg border-2" data-testid="card-chat">
+      <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <MessageSquare className="w-5 h-5 text-primary" />
+          Event Chats
+        </CardTitle>
+      </CardHeader>
           <div className="flex-1 flex overflow-hidden">
         {/* Events List */}
         <div className="w-64 border-r">
@@ -431,7 +382,5 @@ export default function DashboardChat() {
         </div>
       </div>
     </Card>
-      )}
-    </>
   );
 }

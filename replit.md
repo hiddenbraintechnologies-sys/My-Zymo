@@ -18,20 +18,22 @@ The frontend employs a vibrant, celebration-themed design with an orange/coral c
 *   **Primary Color Palette:** Warm celebration theme with orange/amber/coral gradients as the primary color scheme throughout the application
 *   **Color Gradients:** Sophisticated use of CSS gradients for depth and energy, featuring warm tones (orange/amber/yellow) with softer saturation for a refined look
 *   **Dashboard Welcome Banner:** Full-width gradient hero section with orange-amber gradient, pattern overlay, Sparkles icon, and event statistics cards with glass-morphism effects
+*   **Dashboard Chat Section:** Always-visible chat with warm orange-amber gradient headers matching the overall celebration theme
 *   **Events Page Hero:** Matching orange-amber gradient (`from-orange-500 via-amber-500 to-orange-600`) for visual consistency
 *   **Color-Coded Quick Actions:** Three distinct gradient cards (orange for Create Event, blue for My Events, purple for Find Vendors) with themed icons and badges
 *   **Rotating Event Cards:** Five warm gradient color schemes using orange/amber/yellow variations that rotate by index for visual variety while maintaining thematic coherence
 *   **Gradient Typography:** Section headers use warm gradient text (bg-clip-text technique) with orange-amber tones for visual hierarchy
-*   **Festive Empty States:** Warm, celebration-themed designs with orange/amber gradients, blur effects, and themed call-to-action buttons
+*   **Festive Empty States:** Warm, celebration-themed designs with orange/amber gradients, blur effects, and themed call-to-action buttons (updated to use orange/amber theme consistently)
 *   **Glass-Morphism Effects:** Backdrop blur and semi-transparent backgrounds for modern aesthetics
 *   **Shadow System:** Consistent use of shadow-lg and shadow-xl for elevation and depth
 *   **Smooth Transitions:** Hover effects and animations throughout for interactive feedback
 
 **Navigation Features:**
-*   Prominent AI Guide in the navbar with popover interface
+*   Prominent AI Guide in the navbar with popover interface (no floating guide component)
 *   Smart logo navigation that links to dashboard when authenticated, home page when logged out
 *   Persistent dashboard navigation across all authenticated pages
 *   Dark mode support with proper contrast ratios across all gradients and colors
+*   Always-visible chat section on dashboard with warm orange/amber themed headers
 
 ### Technical Implementations
 
@@ -59,8 +61,8 @@ Myzymo includes a comprehensive set of features:
 *   **Vibrant Dashboard:** A personalized, celebration-themed dashboard with gradient designs, quick action cards, rotating event card gradients, and festive empty states.
 *   **Event Management:** Event creators can edit and delete their events, with backend authorization ensuring security.
 *   **Event Member Export:** Creators can download complete member details as JSON files for their events.
-*   **Chat System:** Real-time WebSocket-based chat with emoji support and message persistence.
-*   **AI Guide:** Provides application walkthroughs and feature suggestions in the navbar.
+*   **Chat System:** Real-time WebSocket-based chat with emoji support and message persistence, always visible on the dashboard with warm celebration-themed styling.
+*   **AI Guide:** Provides application walkthroughs and feature suggestions in the navbar via popover interface (floating guide component removed per user preference).
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
 *   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields.
 *   **Admin Dashboard:** Full-featured panel with role-based access control (super_admin, admin, master_user, user) for managing users, events, and vendors.

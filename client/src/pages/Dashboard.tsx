@@ -478,7 +478,7 @@ export default function Dashboard() {
                       </>
                     ) : (
                       <>
-                        <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
                           No followed events yet
                         </h3>
                         <p className="text-muted-foreground mb-4">
@@ -487,7 +487,7 @@ export default function Dashboard() {
                         <Button 
                           onClick={() => setLocation("/events")} 
                           data-testid="button-browse-events"
-                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg"
+                          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
                         >
                           <Calendar className="w-4 h-4 mr-2" />
                           Browse Events
@@ -503,8 +503,8 @@ export default function Dashboard() {
           {/* Chat Section */}
           <div>
             <div className="mb-6">
-              <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
-                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent flex items-center gap-2">
+                <Users className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 Chat with Participants
               </h2>
             </div>
