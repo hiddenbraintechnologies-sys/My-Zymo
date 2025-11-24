@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { SiGoogle, SiFacebook } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
+import { Eye, EyeOff } from "lucide-react";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 export default function Signup() {
@@ -22,6 +23,7 @@ export default function Signup() {
     firstName: "",
     lastName: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const signupMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -167,16 +169,34 @@ export default function Signup() {
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  data-testid="input-password"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    data-testid="input-password"
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    data-testid="button-toggle-password"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <Button

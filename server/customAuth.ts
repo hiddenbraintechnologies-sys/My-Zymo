@@ -122,15 +122,28 @@ export async function setupCustomAuth(app: Express) {
     try {
       const validatedData = loginSchema.parse(req.body);
       
-      // Find user by username
-      const user = await storage.getUserByUsername(validatedData.username);
-      if (!user || !user.password) {
-        return res.status(401).json({ message: "Invalid username or password" });
+      // Find user by username OR email
+      // Try username first
+      let user = await storage.getUserByUsername(validatedData.username);
+      let passwordMatch = false;
+      
+      if (user && user.password) {
+        passwordMatch = await bcrypt.compare(validatedData.password, user.password);
       }
       
-      // Verify password
-      const passwordMatch = await bcrypt.compare(validatedData.password, user.password);
-      if (!passwordMatch) {
+      // If username authentication failed and input contains @, try email lookup
+      if (!passwordMatch && validatedData.username.includes('@')) {
+        const emailUser = await storage.getUserByEmail(validatedData.username);
+        if (emailUser && emailUser.password) {
+          passwordMatch = await bcrypt.compare(validatedData.password, emailUser.password);
+          if (passwordMatch) {
+            user = emailUser;
+          }
+        }
+      }
+      
+      // Final authentication check
+      if (!user || !user.password || !passwordMatch) {
         return res.status(401).json({ message: "Invalid username or password" });
       }
       
