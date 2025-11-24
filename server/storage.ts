@@ -24,7 +24,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
-  createUserWithPassword(user: { username: string; password: string; email: string; firstName: string; lastName: string }): Promise<User>;
+  createUserWithPassword(user: { username: string; password: string; email: string; firstName: string; lastName: string; role?: string }): Promise<User>;
   createUserWithRole(user: { username: string; password: string; email: string; firstName: string; lastName: string; role: string }): Promise<User>;
   updateUserProfile(userId: string, profileData: Partial<User>): Promise<User>;
   updateUserRole(userId: string, role: string): Promise<User | undefined>;
@@ -112,7 +112,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createUserWithPassword(userData: { username: string; password: string; email: string; firstName: string; lastName: string }): Promise<User> {
+  async createUserWithPassword(userData: { username: string; password: string; email: string; firstName: string; lastName: string; role?: string }): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
@@ -121,6 +121,7 @@ export class DatabaseStorage implements IStorage {
         email: userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
+        role: userData.role || 'user',
       })
       .returning();
 

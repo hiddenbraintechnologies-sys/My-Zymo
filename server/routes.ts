@@ -10,6 +10,7 @@ import { setupSocialAuth } from "./socialAuth";
 import { setupAuth as setupReplitAuth } from "./replitAuth";
 import { setupWebAuthn } from "./webauthn";
 import { setupAdminRoutes } from "./adminRoutes";
+import { setupVendorAuth } from "./vendorAuth";
 import { sanitizeUser } from "@shared/sanitize";
 
 // Extend express-session types to include passport data
@@ -47,6 +48,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup WebAuthn biometric authentication
   setupWebAuthn(app);
+  
+  // Setup vendor authentication
+  await setupVendorAuth(app);
   
   // Setup admin routes
   setupAdminRoutes(app);
