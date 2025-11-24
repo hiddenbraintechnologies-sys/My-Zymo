@@ -195,6 +195,7 @@ export const vendors = pgTable("vendors", {
   rating: decimal("rating", { precision: 2, scale: 1 }).notNull().default("0"),
   reviewCount: integer("review_count").notNull().default(0),
   responseTime: text("response_time").notNull().default("24 hours"),
+  approvalStatus: text("approval_status").notNull().default("pending"), // pending, approved, rejected
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
