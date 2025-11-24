@@ -229,25 +229,37 @@ export async function setupAuth(app: Express) {
         
         try {
           const userEmail = user.claims.email;
-          const userId = user.claims.sub;
+          const oidcUserId = user.claims.sub;
           const isVendorSignup = (req.session as any)?.vendorSignup;
           if (req.session) {
             delete (req.session as any).vendorSignup;
           }
 
-          // IMPORTANT: Set session userId for downstream routes
-          (req.session as any).userId = userId;
-
           // Check if user exists
           let dbUser = await storage.getUserByEmail(userEmail);
           
+          if (!dbUser) {
+            // User should exist from verify() callback, but handle gracefully
+            return res.redirect("/vendor/signup");
+          }
+
+          // IMPORTANT: Set session userId to DATABASE user ID for downstream routes
+          (req.session as any).userId = dbUser.id;
+          
+          // Save session before proceeding
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) {
+                console.error("Session save error during vendor callback:", err);
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
+          
           // If this is a vendor signup flow and user doesn't have vendor role, create vendor
           if (isVendorSignup) {
-            if (!dbUser) {
-              // User doesn't exist at all, this shouldn't happen as upsertUser was called in verify
-              // but handle it gracefully
-              return res.redirect("/vendor/signup");
-            }
             
             // Check if user is already a vendor
             const existingVendor = await storage.getVendorByUserId(dbUser.id);

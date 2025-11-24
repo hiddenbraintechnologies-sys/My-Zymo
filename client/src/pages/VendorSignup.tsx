@@ -222,10 +222,10 @@ export default function VendorSignup() {
                   </button>
                 </div>
               </div>
-              </div>
-
-              <Separator />
+            </div>
             )}
+
+            {!isAuthenticatedUser && <Separator />}
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Business Information</h3>
