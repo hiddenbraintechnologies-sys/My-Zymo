@@ -418,7 +418,7 @@ export default function Dashboard() {
                             data-testid={`button-copy-link-${event.id}`}
                           >
                             <LinkIcon className="w-4 h-4 mr-2" />
-                            Copy Link
+                            Invite Link
                           </Button>
                           {event.creatorId === user?.id && (
                             <>

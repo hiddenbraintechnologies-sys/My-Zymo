@@ -234,7 +234,7 @@ export default function EventDetail() {
                   data-testid="button-copy-link"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Copy Link
+                  Invite Link
                 </Button>
                 <Button
                   onClick={handleWhatsAppShare}
@@ -242,7 +242,7 @@ export default function EventDetail() {
                   data-testid="button-whatsapp-share"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Share on WhatsApp
+                  Invite on WhatsApp
                 </Button>
               </div>
             </div>
