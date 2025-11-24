@@ -448,6 +448,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === Direct Message APIs ===
+  
+  // Get list of conversations with other users
+  app.get('/api/direct-messages/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversations = await storage.getUserConversationsList(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+  
+  // Get messages with a specific user
+  app.get('/api/direct-messages/:otherUserId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { otherUserId } = req.params;
+      
+      // Verify the other user exists
+      const otherUser = await storage.getUser(otherUserId);
+      if (!otherUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const messages = await storage.getDirectMessagesWithUser(userId, otherUserId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching direct messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+  
+  // Mark messages from a user as read
+  app.post('/api/direct-messages/:otherUserId/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { otherUserId } = req.params;
+      
+      await storage.markDirectMessagesAsRead(userId, otherUserId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ message: "Failed to mark messages as read" });
+    }
+  });
+
   // === AI Assistant APIs ===
   
   // Get user's conversations
@@ -749,6 +797,8 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
   const eventConnections = new Map<string, Set<WebSocket>>();
   // Track active users per event: Map<eventId, Map<userId, WebSocket>>
   const eventActiveUsers = new Map<string, Map<string, WebSocket>>();
+  // Track user connections for direct messages: Map<userId, WebSocket>
+  const userConnections = new Map<string, WebSocket>();
 
   // Helper to broadcast presence updates
   const broadcastPresence = async (eventId: string) => {
@@ -775,6 +825,9 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
     let currentEventId: string | null = null;
     // Get authenticated userId from session verification
     const authenticatedUserId = (req as any).authenticatedUserId as string;
+    
+    // Register user connection for direct messages
+    userConnections.set(authenticatedUserId, ws);
 
     ws.on('message', async (data) => {
       try {
@@ -850,6 +903,47 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
               }
             });
           }
+        } else if (message.type === 'direct-message' && message.recipientId && message.content) {
+          // Handle private direct messages
+          const recipientId = message.recipientId;
+          
+          // Verify recipient exists
+          const recipient = await storage.getUser(recipientId);
+          if (!recipient) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Recipient not found' }));
+            return;
+          }
+          
+          // Save direct message to database
+          const savedMessage = await storage.createDirectMessage({
+            senderId: authenticatedUserId,
+            recipientId,
+            content: message.content,
+          });
+          
+          // Get sender info
+          const sender = await storage.getUser(authenticatedUserId);
+          
+          // Prepare message data
+          const messageData = JSON.stringify({
+            type: 'direct-message',
+            message: {
+              ...savedMessage,
+              sender,
+              recipient,
+            },
+          });
+          
+          // Send to sender (for confirmation)
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(messageData);
+          }
+          
+          // Send to recipient if they're online
+          const recipientWs = userConnections.get(recipientId);
+          if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
+            recipientWs.send(messageData);
+          }
         }
       } catch (error: any) {
         console.error('WebSocket error:', error);
@@ -861,6 +955,9 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
     });
 
     ws.on('close', async () => {
+      // Remove user connection for direct messages
+      userConnections.delete(authenticatedUserId);
+      
       // Remove connection from all rooms
       if (currentEventId) {
         const connections = eventConnections.get(currentEventId);
