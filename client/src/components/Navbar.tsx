@@ -64,25 +64,21 @@ export default function Navbar() {
           </Button>
           
           <div className="hidden md:flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              data-testid="button-login"
-              onClick={() => {
-                console.log("Login button clicked");
-                window.location.href = '/api/login';
-              }}
-            >
-              Log In
-            </Button>
-            <Button 
-              data-testid="button-signup"
-              onClick={() => {
-                console.log("Signup button clicked");
-                window.location.href = '/api/login';
-              }}
-            >
-              Sign Up
-            </Button>
+            <Link href="/login">
+              <Button 
+                variant="ghost" 
+                data-testid="button-login"
+              >
+                Log In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button 
+                data-testid="button-signup"
+              >
+                Sign Up
+              </Button>
+            </Link>
           </div>
           
           <Sheet>
@@ -103,25 +99,21 @@ export default function Navbar() {
                   </a>
                 ))}
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => {
-                      console.log("Mobile Login button clicked");
-                      window.location.href = '/api/login';
-                    }}
-                  >
-                    Log In
-                  </Button>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      console.log("Mobile Signup button clicked");
-                      window.location.href = '/api/login';
-                    }}
-                  >
-                    Sign Up
-                  </Button>
+                  <Link href="/login">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button 
+                      className="w-full"
+                    >
+                      Sign Up
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </SheetContent>

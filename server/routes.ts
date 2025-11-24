@@ -5,7 +5,7 @@ import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupCustomAuth, isAuthenticated } from "./customAuth";
+import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
 
 // Extend express-session types to include passport data
 declare module 'express-session' {
@@ -868,15 +868,15 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
         return;
       }
       
-      // Verify session exists
-      sessionStore.get(sessionId, (err, session) => {
-        if (err || !session || !session.passport?.user?.claims?.sub) {
+      // Verify session exists (custom auth stores userId directly in session)
+      sessionStore.get(sessionId, (err: any, session: any) => {
+        if (err || !session || !session.userId) {
           callback(false, 401, 'Unauthorized');
           return;
         }
         
         // Attach authenticated userId to request for later use
-        (info.req as any).authenticatedUserId = session.passport.user.claims.sub;
+        (info.req as any).authenticatedUserId = session.userId;
         callback(true);
       });
     }
