@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MessageSquare } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Send, MessageSquare, Smile } from "lucide-react";
 import type { Event } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 interface Message {
   id: string;
@@ -35,6 +37,7 @@ export default function DashboardChat() {
   const { toast } = useToast();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -116,6 +119,7 @@ export default function DashboardChat() {
         content: messageInput
       }));
       setMessageInput("");
+      setShowEmojiPicker(false);
     } catch (error) {
       console.error('[WebSocket] Error sending message:', error);
       toast({
@@ -124,6 +128,10 @@ export default function DashboardChat() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setMessageInput(prev => prev + emojiData.emoji);
   };
 
   // Use messages from selectedEvent query - WebSocket just triggers refetch
@@ -247,6 +255,25 @@ export default function DashboardChat() {
               {/* Message Input */}
               <div className="border-t p-4">
                 <div className="flex gap-2">
+                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        data-testid="button-emoji-picker"
+                      >
+                        <Smile className="w-5 h-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 border-0" align="start">
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiClick}
+                        width={350}
+                        height={400}
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <Input
                     placeholder="Type your message..."
                     value={messageInput}
