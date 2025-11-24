@@ -164,14 +164,14 @@ export default function FloatingAIGuide() {
   return (
     <>
       {!isOpen && (
-        <Button
+        <button
           onClick={handleOpen}
-          size="icon"
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 z-50"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 z-50 flex items-center justify-center border-0 cursor-pointer"
           data-testid="button-floating-ai-guide"
+          aria-label="Open AI Guide"
         >
-          <Sparkles className="w-6 h-6" />
-        </Button>
+          <Sparkles className="w-6 h-6 text-white" />
+        </button>
       )}
 
       {isOpen && (
