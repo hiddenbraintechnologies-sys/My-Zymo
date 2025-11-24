@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2, Sparkles } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import type { DirectMessage, User } from "@shared/schema";
+import { useWebRTC } from "@/hooks/useWebRTC";
+import { IncomingCallModal } from "@/components/IncomingCallModal";
+import { ActiveCallDialog } from "@/components/ActiveCallDialog";
 
 type ConversationListItem = {
   userId: string;
@@ -35,6 +38,23 @@ export default function Messages() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+
+  // WebRTC for video/audio calls
+  const {
+    callState,
+    callType,
+    incomingCall,
+    localStream,
+    remoteStream,
+    startCall,
+    answerCall,
+    rejectCall,
+    endCall,
+  } = useWebRTC({
+    ws: wsRef.current,
+    currentUserId: currentUser?.id,
+    recipientId: selectedUserId,
+  });
 
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<ConversationListItem[]>({
     queryKey: ["/api/direct-messages/conversations"],
@@ -262,7 +282,7 @@ export default function Messages() {
                         {selectedConversation?.user.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold" data-testid="text-chat-recipient-name">
                         {selectedConversation?.user.firstName} {selectedConversation?.user.lastName}
                       </h3>
@@ -271,6 +291,28 @@ export default function Messages() {
                           {selectedConversation.user.profession}
                         </p>
                       )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => startCall("audio")}
+                        variant="ghost"
+                        size="icon"
+                        disabled={callState !== "idle"}
+                        title="Audio call"
+                        data-testid="button-audio-call"
+                      >
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        onClick={() => startCall("video")}
+                        variant="ghost"
+                        size="icon"
+                        disabled={callState !== "idle"}
+                        title="Video call"
+                        data-testid="button-video-call"
+                      >
+                        <Video className="h-5 w-5" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -378,6 +420,30 @@ export default function Messages() {
           </Card>
         </div>
       </div>
+
+      {/* Incoming Call Modal */}
+      {incomingCall && (
+        <IncomingCallModal
+          open={callState === "ringing"}
+          caller={incomingCall.caller}
+          callType={incomingCall.callType}
+          onAccept={answerCall}
+          onReject={rejectCall}
+        />
+      )}
+
+      {/* Active Call Dialog */}
+      {(callState === "calling" || callState === "active") && selectedConversation && (
+        <ActiveCallDialog
+          open={true}
+          callState={callState}
+          callType={callType}
+          localStream={localStream}
+          remoteStream={remoteStream}
+          remoteName={`${selectedConversation.user.firstName} ${selectedConversation.user.lastName}`}
+          onEndCall={endCall}
+        />
+      )}
     </div>
   );
 }
