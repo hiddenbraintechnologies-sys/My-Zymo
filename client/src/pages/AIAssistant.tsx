@@ -124,6 +124,9 @@ export default function AIAssistant() {
           </Link>
           
           <div className="flex items-center gap-4">
+            <Link href="/dashboard" data-testid="link-dashboard">
+              <Button variant="ghost">Dashboard</Button>
+            </Link>
             <Link href="/events" data-testid="link-events">
               <Button variant="ghost">Events</Button>
             </Link>
