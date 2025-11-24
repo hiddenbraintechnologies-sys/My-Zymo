@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Eye, EyeOff, Store } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 export default function VendorLogin() {
@@ -52,6 +54,10 @@ export default function VendorLogin() {
     }));
   };
 
+  const handleSocialLogin = () => {
+    window.location.href = "/api/vendor/auth/login";
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
       <Card className="w-full max-w-md">
@@ -71,6 +77,31 @@ export default function VendorLogin() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleSocialLogin}
+                data-testid="button-social-login"
+              >
+                <SiGoogle className="mr-2 h-4 w-4" />
+                Continue with Social Login
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Google • GitHub • X (Twitter) • Apple • Email
+              </p>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username or Email</Label>
@@ -127,8 +158,8 @@ export default function VendorLogin() {
             <div className="text-center text-sm">
               Don't have a vendor account?{" "}
               <Button
-                variant="link"
-                className="p-0"
+                variant="ghost"
+                className="p-0 h-auto"
                 onClick={() => navigate("/vendor/signup")}
                 data-testid="link-signup"
               >

@@ -10,12 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, Store } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 export default function VendorSignup() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -31,15 +34,30 @@ export default function VendorSignup() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  // Check if user is already authenticated (from social login)
+  const isAuthenticatedUser = !!user;
+
   const signupMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      await apiRequest("/api/vendor/signup", "POST", data);
+      // If already authenticated, use profile completion endpoint
+      if (isAuthenticatedUser) {
+        await apiRequest("/api/vendor/complete-profile", "POST", {
+          businessName: data.businessName,
+          category: data.category,
+          description: data.description,
+          location: data.location,
+          priceRange: data.priceRange,
+          imageUrl: data.imageUrl,
+        });
+      } else {
+        await apiRequest("/api/vendor/signup", "POST", data);
+      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Vendor account created!",
-        description: "Welcome to Myzymo Vendor Dashboard!",
+        description: "Your account is pending admin approval. You'll be able to access your dashboard once approved.",
       });
       navigate("/vendor/dashboard");
     },
@@ -72,6 +90,10 @@ export default function VendorSignup() {
     setFormData(prev => ({ ...prev, priceRange: value }));
   };
 
+  const handleSocialLogin = () => {
+    window.location.href = "/api/vendor/auth/login";
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4 py-12">
       <Card className="w-full max-w-2xl">
@@ -90,9 +112,38 @@ export default function VendorSignup() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {!isAuthenticatedUser && (
+            <div className="space-y-4 mb-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleSocialLogin}
+                data-testid="button-social-login"
+              >
+                <SiGoogle className="mr-2 h-4 w-4" />
+                Sign up with Social Login
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Google • GitHub • X (Twitter) • Apple • Email
+              </p>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or sign up with details</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Personal Information</h3>
+            {/* Only show personal info if not authenticated */}
+            {!isAuthenticatedUser && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Personal Information</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
@@ -171,9 +222,10 @@ export default function VendorSignup() {
                   </button>
                 </div>
               </div>
-            </div>
+              </div>
 
-            <Separator />
+              <Separator />
+            )}
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Business Information</h3>

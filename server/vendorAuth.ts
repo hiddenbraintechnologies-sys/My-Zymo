@@ -170,6 +170,71 @@ export async function setupVendorAuth(app: Express) {
     }
   });
 
+  // Vendor profile completion (for social login users)
+  const vendorProfileSchema = z.object({
+    businessName: z.string().min(1),
+    category: z.string().min(1),
+    description: z.string().optional(),
+    location: z.string().min(1),
+    priceRange: z.string().min(1),
+    imageUrl: z.string().optional(),
+  });
+
+  app.post('/api/vendor/complete-profile', async (req, res) => {
+    try {
+      // Check if user is authenticated
+      const userId = (req.session as any)?.userId || (req as any).user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Validate profile data
+      const validatedData = vendorProfileSchema.parse(req.body);
+
+      // Check if vendor already exists
+      const existingVendor = await storage.getVendorByUserId(userId);
+      if (existingVendor) {
+        return res.status(400).json({ message: "Vendor profile already exists" });
+      }
+
+      // Update user role to vendor if not already
+      if (user.role !== ROLES.VENDOR) {
+        await storage.updateUserRole(userId, ROLES.VENDOR);
+      }
+
+      // Create vendor profile with pending approval
+      const vendor = await storage.createVendor({
+        userId: userId,
+        name: validatedData.businessName,
+        category: validatedData.category,
+        description: validatedData.description || "",
+        location: validatedData.location,
+        priceRange: validatedData.priceRange,
+        imageUrl: validatedData.imageUrl || null,
+        rating: 5.0,
+        reviewCount: 0,
+        approvalStatus: 'pending',
+      });
+
+      res.json({
+        message: "Vendor profile created successfully",
+        vendorId: vendor.id
+      });
+    } catch (error: any) {
+      console.error("Vendor profile completion error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid profile data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create vendor profile" });
+    }
+  });
+
   // Vendor login route
   app.post('/api/vendor/login', async (req, res) => {
     try {

@@ -183,6 +183,108 @@ export async function setupAuth(app: Express) {
       );
     });
   });
+
+  // Vendor-specific Replit Auth endpoints with separate strategy
+  const ensureVendorStrategy = (domain: string) => {
+    const strategyName = `replitauth-vendor:${domain}`;
+    if (!registeredStrategies.has(strategyName)) {
+      const strategy = new Strategy(
+        {
+          name: strategyName,
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: `https://${domain}/api/vendor/auth/callback`,
+        },
+        verify,
+      );
+      passport.use(strategy);
+      registeredStrategies.add(strategyName);
+    }
+  };
+
+  app.get("/api/vendor/auth/login", (req, res, next) => {
+    ensureVendorStrategy(req.hostname);
+    // Store vendor context in session to handle vendor registration in callback
+    (req.session as any).vendorSignup = true;
+    passport.authenticate(`replitauth-vendor:${req.hostname}`, {
+      scope: ["openid", "email", "profile", "offline_access"],
+    })(req, res, next);
+  });
+
+  app.get("/api/vendor/auth/callback", async (req, res, next) => {
+    ensureVendorStrategy(req.hostname);
+    passport.authenticate(`replitauth-vendor:${req.hostname}`, async (err: any, user: any) => {
+      if (err) {
+        return res.redirect("/vendor/login");
+      }
+      if (!user) {
+        return res.redirect("/vendor/login");
+      }
+      
+      // Log the user in
+      req.login(user, async (loginErr) => {
+        if (loginErr) {
+          return res.redirect("/vendor/login");
+        }
+        
+        try {
+          const userEmail = user.claims.email;
+          const userId = user.claims.sub;
+          const isVendorSignup = (req.session as any)?.vendorSignup;
+          if (req.session) {
+            delete (req.session as any).vendorSignup;
+          }
+
+          // IMPORTANT: Set session userId for downstream routes
+          (req.session as any).userId = userId;
+
+          // Check if user exists
+          let dbUser = await storage.getUserByEmail(userEmail);
+          
+          // If this is a vendor signup flow and user doesn't have vendor role, create vendor
+          if (isVendorSignup) {
+            if (!dbUser) {
+              // User doesn't exist at all, this shouldn't happen as upsertUser was called in verify
+              // but handle it gracefully
+              return res.redirect("/vendor/signup");
+            }
+            
+            // Check if user is already a vendor
+            const existingVendor = await storage.getVendorByUserId(dbUser.id);
+            if (!existingVendor) {
+              // User exists but is not a vendor yet, update role to vendor
+              await storage.updateUserRole(dbUser.id, 'vendor');
+              dbUser = await storage.getUser(dbUser.id);
+            }
+          }
+          
+          // Check if user is a vendor
+          if (dbUser && dbUser.role === 'vendor') {
+            const vendor = await storage.getVendorByUserId(dbUser.id);
+            if (!vendor) {
+              // Vendor role but no vendor profile, redirect to complete signup
+              return res.redirect("/vendor/signup");
+            }
+            // Check approval status
+            if (vendor.approvalStatus === 'pending') {
+              return res.redirect("/vendor/dashboard"); // Dashboard will show pending message
+            }
+            if (vendor.approvalStatus === 'rejected') {
+              return res.redirect("/vendor/dashboard"); // Dashboard will show rejected message
+            }
+            // Approved vendor, go to dashboard
+            return res.redirect("/vendor/dashboard");
+          }
+          
+          // Not a vendor, redirect to vendor signup
+          return res.redirect("/vendor/signup");
+        } catch (error) {
+          console.error("Error in vendor auth callback:", error);
+          return res.redirect("/vendor/signup");
+        }
+      });
+    })(req, res, next);
+  });
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
