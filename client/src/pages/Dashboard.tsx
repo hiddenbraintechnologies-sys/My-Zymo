@@ -29,6 +29,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [downloadingEventId, setDownloadingEventId] = useState<string | null>(null);
   
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
@@ -97,13 +98,16 @@ export default function Dashboard() {
 
   const handleDownloadMembers = async (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
+    setDownloadingEventId(event.id);
+    
     try {
       const response = await fetch(`/api/events/${event.id}/export-members`, {
         credentials: 'include',
       });
       
       if (!response.ok) {
-        throw new Error('Failed to download member details');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to download member details' }));
+        throw new Error(errorData.message || 'Failed to download member details');
       }
       
       const blob = await response.blob();
@@ -126,6 +130,8 @@ export default function Dashboard() {
         description: error.message || "Failed to download member details.",
         variant: "destructive",
       });
+    } finally {
+      setDownloadingEventId(null);
     }
   };
 
@@ -290,15 +296,18 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2 flex-wrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => handleDownloadMembers(event, e)}
-                            data-testid={`button-download-members-${event.id}`}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download Members
-                          </Button>
+                          {event.creatorId === user?.id && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => handleDownloadMembers(event, e)}
+                              disabled={downloadingEventId === event.id}
+                              data-testid={`button-download-members-${event.id}`}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              {downloadingEventId === event.id ? "Downloading..." : "Download Members"}
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"

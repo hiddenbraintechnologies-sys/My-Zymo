@@ -105,22 +105,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Export event members with all details and photos
+  // Export event members with all details and photos (creator/organizer only)
   app.get('/api/events/:id/export-members', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = req.params.id;
       const userId = req.user.id;
 
-      // Check if user has access to this event
-      const canAccess = await storage.canUserAccessEvent(userId, eventId);
-      if (!canAccess) {
-        return res.status(403).json({ message: "You don't have access to this event" });
-      }
-
       // Get event details
       const event = await storage.getEvent(eventId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
+      }
+
+      // SECURITY: Only event creator can export member details
+      if (event.creatorId !== userId) {
+        return res.status(403).json({ message: "Only the event creator can export member details" });
       }
 
       // Get all participants with full user details
