@@ -168,13 +168,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-background to-amber-50 dark:from-background dark:via-background dark:to-background">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/dashboard" data-testid="link-home">
             <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
               <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
-              <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Myzymo</span>
+              <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Myzymo</span>
             </div>
           </Link>
           
@@ -216,7 +216,7 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome Banner with Gradient */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 p-8 text-white shadow-xl">
+        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-300 via-amber-300 to-orange-400 p-8 text-white shadow-xl">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -242,18 +242,18 @@ export default function Dashboard() {
         {/* Quick Action Cards - Vibrant and Colorful */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-900 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/events/create")} 
             data-testid="card-quick-action-create"
           >
             <CardHeader>
               <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl shadow-md">
+                <div className="p-3 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
                   <Plus className="w-6 h-6 text-white" />
                 </div>
-                <Badge className="bg-orange-500 text-white">New</Badge>
+                <Badge className="bg-orange-400 text-white">New</Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-orange-900 dark:text-orange-100">
+              <CardTitle className="text-xl font-bold text-orange-700 dark:text-orange-100">
                 Create Event
               </CardTitle>
               <CardDescription className="text-orange-700 dark:text-orange-300">
@@ -263,45 +263,45 @@ export default function Dashboard() {
           </Card>
 
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-100 via-orange-50 to-amber-200 dark:from-amber-950/20 dark:to-orange-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/events")} 
             data-testid="card-quick-action-events"
           >
             <CardHeader>
               <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-md">
+                <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl shadow-md">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
-                <Badge className="bg-blue-500 text-white">{privateEvents?.length || 0}</Badge>
+                <Badge className="bg-amber-400 text-amber-800">{privateEvents?.length || 0}</Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">
+              <CardTitle className="text-xl font-bold text-amber-700 dark:text-amber-100">
                 My Events
               </CardTitle>
-              <CardDescription className="text-blue-700 dark:text-blue-300">
+              <CardDescription className="text-amber-600 dark:text-amber-300">
                 View and manage all your events
               </CardDescription>
             </CardHeader>
           </Card>
 
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-900 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-100 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/vendors")} 
             data-testid="card-quick-action-vendors"
           >
             <CardHeader>
               <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md">
+                <div className="p-3 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
-                <Badge className="bg-purple-500 text-white">
+                <Badge className="bg-orange-300 text-amber-800">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   Explore
                 </Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-purple-900 dark:text-purple-100">
+              <CardTitle className="text-xl font-bold text-orange-700 dark:text-orange-100">
                 Find Vendors
               </CardTitle>
-              <CardDescription className="text-purple-700 dark:text-purple-300">
+              <CardDescription className="text-orange-600 dark:text-orange-300">
                 Discover venues, caterers, and more
               </CardDescription>
             </CardHeader>
@@ -313,16 +313,16 @@ export default function Dashboard() {
           <div>
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                   Your Events
                 </h2>
               </div>
               <Tabs value={eventFilter} onValueChange={(value) => setEventFilter(value as EventFilter)} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-950/40 dark:to-amber-950/40" data-testid="tabs-event-filter">
-                  <TabsTrigger value="private" data-testid="tab-private-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
+                <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40" data-testid="tabs-event-filter">
+                  <TabsTrigger value="private" data-testid="tab-private-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-300 data-[state=active]:to-amber-300 data-[state=active]:text-white">
                     My Events
                   </TabsTrigger>
-                  <TabsTrigger value="public" data-testid="tab-public-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
+                  <TabsTrigger value="public" data-testid="tab-public-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-300 data-[state=active]:to-amber-300 data-[state=active]:text-white">
                     Followed Public Events
                   </TabsTrigger>
                 </TabsList>
@@ -339,11 +339,11 @@ export default function Dashboard() {
               <div className="space-y-4">
                 {events.map((event, index) => {
                   const gradientColors = [
-                    'from-rose-100 to-pink-100 dark:from-rose-950/30 dark:to-pink-950/30 border-rose-200 dark:border-rose-800',
-                    'from-blue-100 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800',
-                    'from-green-100 to-emerald-100 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800',
-                    'from-purple-100 to-violet-100 dark:from-purple-950/30 dark:to-violet-950/30 border-purple-200 dark:border-purple-800',
-                    'from-amber-100 to-yellow-100 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800',
+                    'from-orange-100 to-amber-100 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-800',
+                    'from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800',
+                    'from-orange-50 to-amber-200 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-800',
+                    'from-amber-50 to-orange-200 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800',
+                    'from-orange-100 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-800',
                   ];
                   const gradientClass = gradientColors[index % gradientColors.length];
                   
@@ -373,7 +373,7 @@ export default function Dashboard() {
                               {event.title}
                             </CardTitle>
                             {event.isPublic && (
-                              <Badge className="ml-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white">Public</Badge>
+                              <Badge className="ml-2 bg-gradient-to-r from-orange-300 to-amber-300 text-white">Public</Badge>
                             )}
                           </div>
                           <CardDescription className="line-clamp-2 mb-3">
@@ -381,11 +381,11 @@ export default function Dashboard() {
                           </CardDescription>
                           <div className="space-y-1 mb-3">
                             <div className="flex items-center text-sm font-medium">
-                              <Calendar className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                              <Calendar className="w-4 h-4 mr-2 text-orange-400 dark:text-orange-300" />
                               <span className="text-foreground">{format(new Date(event.date), 'PPP')}</span>
                             </div>
                             <div className="flex items-center text-sm font-medium">
-                              <MapPin className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                              <MapPin className="w-4 h-4 mr-2 text-orange-400 dark:text-orange-300" />
                               <span className="text-foreground">{event.location}</span>
                             </div>
                           </div>
@@ -456,12 +456,12 @@ export default function Dashboard() {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-24 h-24 bg-gradient-to-br from-orange-200 to-amber-200 dark:from-orange-900/40 dark:to-amber-900/40 rounded-full blur-xl"></div>
                     </div>
-                    <Calendar className="w-16 h-16 mx-auto text-orange-500 relative z-10" />
+                    <Calendar className="w-16 h-16 mx-auto text-orange-400 relative z-10" />
                   </div>
                   <div>
                     {eventFilter === "private" ? (
                       <>
-                        <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                        <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                           No events yet
                         </h3>
                         <p className="text-muted-foreground mb-4">
@@ -470,7 +470,7 @@ export default function Dashboard() {
                         <Button 
                           onClick={() => setLocation("/events/create")} 
                           data-testid="button-create-first-event"
-                          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
+                          className="bg-gradient-to-r from-orange-300 to-amber-300 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Create Your First Event
@@ -478,7 +478,7 @@ export default function Dashboard() {
                       </>
                     ) : (
                       <>
-                        <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                        <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                           No followed events yet
                         </h3>
                         <p className="text-muted-foreground mb-4">
@@ -487,7 +487,7 @@ export default function Dashboard() {
                         <Button 
                           onClick={() => setLocation("/events")} 
                           data-testid="button-browse-events"
-                          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
+                          className="bg-gradient-to-r from-orange-300 to-amber-300 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg"
                         >
                           <Calendar className="w-4 h-4 mr-2" />
                           Browse Events
@@ -503,8 +503,8 @@ export default function Dashboard() {
           {/* Chat Section */}
           <div>
             <div className="mb-6">
-              <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent flex items-center gap-2">
-                <Users className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                <Users className="w-6 h-6 text-orange-400 dark:text-orange-300" />
                 Chat with Participants
               </h2>
             </div>
