@@ -8,9 +8,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -27,10 +29,13 @@ export default function Navbar() {
     { label: "Vendors", href: "/vendor/login" },
   ];
 
+  // If user is authenticated, logo should link to dashboard, otherwise to home
+  const logoHref = user ? "/dashboard" : "/";
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" data-testid="link-home">
+        <Link href={logoHref} data-testid="link-home">
           <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
             <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
             <span className="font-heading font-bold text-xl">Myzymo</span>

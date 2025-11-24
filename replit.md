@@ -63,6 +63,7 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 *   Mobile-native layout with touch-optimized components.
 *   Integration of popular UX patterns from Instagram, WhatsApp, and Airbnb.
 *   Prominent AI Guide in the navbar with a popover interface for enhanced visibility and user assistance.
+*   **Smart Logo Navigation:** Logo link is context-aware - links to dashboard when user is authenticated, links to home page only when logged out. This keeps authenticated users on the dashboard when clicking the logo.
 
 ## External Dependencies
 
