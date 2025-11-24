@@ -32,6 +32,7 @@ import {
   insertExpenseSchema,
   insertBookingSchema,
   updateProfileSchema,
+  insertQuoteSchema,
 } from "@shared/schema";
 import { db } from "./db";
 import type { IncomingMessage } from "http";
@@ -929,6 +930,154 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
       res.status(statusCode).json({ 
         message: error.message || "Failed to process AI chat" 
       });
+    }
+  });
+
+  // Quote endpoints
+  
+  // POST /api/quotes/estimate - Public endpoint for AI-powered cost estimation
+  app.post('/api/quotes/estimate', async (req, res) => {
+    try {
+      const validatedData = insertQuoteSchema.parse(req.body);
+      
+      // Generate AI cost estimation using OpenAI
+      const { chatWithAI } = await import('./openai');
+      
+      const systemPrompt = `You are an expert event cost estimator for the Indian market. Analyze the event details and provide a comprehensive cost breakdown.
+
+Event Types: Wedding, Birthday Party, College Reunion, Corporate Event, Engagement, Anniversary, Baby Shower, Housewarming, Festival Celebration, etc.
+
+Indian Market Context:
+- Tier 1 cities (Mumbai, Delhi, Bangalore, Hyderabad, Chennai, Kolkata): 20-30% higher costs
+- Tier 2 cities (Pune, Ahmedabad, Jaipur, Lucknow, Kochi): 10-20% higher costs
+- Tier 3+ cities: Baseline costs
+
+Seasonal Factors:
+- Wedding season (Oct-Feb): 15-25% price surge
+- Festival season (Diwali, Holi, etc.): 10-20% surge
+- Off-season (monsoon months): 10-15% discounts available
+
+Cost Categories (in INR):
+1. Venue: Based on guest count and city tier
+2. Catering: Per-plate costs (₹300-1500 range depending on cuisine and service level)
+3. Decoration: Based on event type and scale
+4. Photography/Videography: Professional packages
+5. Entertainment: DJ, band, or performers
+6. Miscellaneous: Invitations, return gifts, etc.
+
+Provide JSON output with this structure:
+{
+  "totalEstimate": <number in INR>,
+  "breakdown": {
+    "venue": <number>,
+    "catering": <number>,
+    "decoration": <number>,
+    "photography": <number>,
+    "entertainment": <number>,
+    "miscellaneous": <number>
+  },
+  "perGuestCost": <number>,
+  "cityTier": "Tier 1" | "Tier 2" | "Tier 3+",
+  "seasonalFactor": "Peak Season" | "Off Season" | "Regular",
+  "recommendations": [
+    "string of budget-saving tips or enhancement suggestions"
+  ],
+  "notes": "Any important considerations or assumptions"
+}`;
+
+      const userPrompt = `Event Details:
+- Type: ${validatedData.eventType}
+- Date: ${new Date(validatedData.eventDateTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+- Location: ${validatedData.locationCity}${validatedData.locationState ? ', ' + validatedData.locationState : ''}
+- Guest Count: ${validatedData.guestCount || 'Not specified (assume 50-100)'}
+- Contact: ${validatedData.guestName} (${validatedData.email})
+
+Provide a detailed cost estimation in JSON format.`;
+
+      const aiResponse = await chatWithAI([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]);
+      
+      // Parse AI response (extract JSON from markdown code blocks if present)
+      let estimateJson;
+      try {
+        const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        const jsonStr = jsonMatch ? jsonMatch[1] : aiResponse;
+        estimateJson = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        estimateJson = {
+          totalEstimate: 150000,
+          breakdown: {
+            venue: 40000,
+            catering: 50000,
+            decoration: 25000,
+            photography: 20000,
+            entertainment: 10000,
+            miscellaneous: 5000,
+          },
+          perGuestCost: 1500,
+          cityTier: "Tier 2",
+          seasonalFactor: "Regular",
+          recommendations: ["Consider booking vendors 2-3 months in advance for better rates"],
+          notes: "Estimate based on typical event requirements"
+        };
+      }
+      
+      // Save the quote to database as draft (with null userId for guest)
+      const savedQuote = await storage.createQuote({
+        ...validatedData,
+        userId: null,
+        estimateJson,
+        status: 'draft',
+      });
+      
+      res.json({
+        quoteId: savedQuote.id,
+        estimate: estimateJson,
+      });
+    } catch (error: any) {
+      console.error("Error generating quote estimate:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ message: "Invalid quote data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: error.message || "Failed to generate estimate" });
+      }
+    }
+  });
+  
+  // POST /api/quotes - Save a quote (authenticated users only)
+  app.post('/api/quotes', isAuthenticated, async (req: any, res) => {
+    try {
+      const { quoteId } = req.body;
+      
+      if (!quoteId) {
+        return res.status(400).json({ message: "Quote ID is required" });
+      }
+      
+      // Update the quote to associate it with the authenticated user
+      const updatedQuote = await storage.updateQuoteOwner(quoteId, req.user.id);
+      
+      if (!updatedQuote) {
+        return res.status(404).json({ message: "Quote not found" });
+      }
+      
+      res.json(updatedQuote);
+    } catch (error: any) {
+      console.error("Error saving quote:", error);
+      res.status(500).json({ message: error.message || "Failed to save quote" });
+    }
+  });
+  
+  // GET /api/quotes - Get user's saved quotes
+  app.get('/api/quotes', isAuthenticated, async (req: any, res) => {
+    try {
+      const quotes = await storage.getQuotesByUser(req.user.id);
+      res.json(quotes);
+    } catch (error: any) {
+      console.error("Error fetching quotes:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch quotes" });
     }
   });
 
