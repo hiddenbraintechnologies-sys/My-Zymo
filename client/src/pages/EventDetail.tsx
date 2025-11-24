@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Share2, LogOut, MessageCircle, DollarSign, Package } from "lucide-react";
+import { Calendar, MapPin, Users, Share2, LogOut, MessageCircle, DollarSign, Package, UserPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -11,9 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import type { Event, User, EventParticipant } from "@shared/schema";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type EventDetail = Event & {
   participants: (EventParticipant & { user: User })[];
+  hasJoined?: boolean;
 };
 
 export default function EventDetail() {
@@ -25,6 +28,26 @@ export default function EventDetail() {
   const { data: event, isLoading } = useQuery<EventDetail>({
     queryKey: ["/api/events", params?.id],
     enabled: !!user && !!params?.id,
+  });
+
+  const joinMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest(`/api/events/${params?.id}/join`, "POST", { status: "going" });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/events", params?.id] });
+      toast({
+        title: "Joined event!",
+        description: "You're now a participant in this event.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to join event. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleLogout = () => {
@@ -159,6 +182,24 @@ export default function EventDetail() {
                 </Button>
               </div>
             </div>
+
+            {event.hasJoined === false && (
+              <Alert className="border-primary bg-primary/5" data-testid="alert-join-event">
+                <UserPlus className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>
+                    You've been invited to this event! Join to see all details and participate in chats.
+                  </span>
+                  <Button 
+                    onClick={() => joinMutation.mutate()}
+                    disabled={joinMutation.isPending}
+                    data-testid="button-join-event"
+                  >
+                    {joinMutation.isPending ? "Joining..." : "Join Event"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div className="grid md:grid-cols-3 gap-6">
               <Card>

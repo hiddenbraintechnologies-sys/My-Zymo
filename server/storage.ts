@@ -268,8 +268,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllEventsForUser(userId: string): Promise<Event[]> {
-    // Get events created by user AND sample events user is enrolled in
-    // This is used for Events page and DashboardChat for discovery
+    // Get events created by user AND all events user has joined
+    // This is used for Events page and DashboardChat
     const createdEvents = await db.select().from(events).where(eq(events.creatorId, userId));
     
     const participantEvents = await db
@@ -297,10 +297,10 @@ export class DatabaseStorage implements IStorage {
       }
     });
     
-    // Add ONLY sample events (system-created) from participant events for discovery
-    // Private events from other users should NOT appear here
+    // Add ALL events where user is a participant (including sample events and invited events)
+    // This allows users to see events they've joined via invite links
     participantEvents.forEach(e => {
-      if (e.id && e.creatorId === 'system-myzymo-user') {
+      if (e.id) {
         eventMap.set(e.id, e as Event);
       }
     });

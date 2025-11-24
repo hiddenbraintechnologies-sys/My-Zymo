@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single event with details (only accessible by creator or participants)
+  // Get single event with details (returns preview for non-participants, full data for participants)
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -103,11 +103,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if user has access to this event
       const hasAccess = await storage.canUserAccessEvent(userId, req.params.id);
+      
       if (!hasAccess) {
-        return res.status(403).json({ message: "You don't have access to this event" });
+        // Return preview data for invite links (basic info without sensitive details)
+        const participants = await storage.getEventParticipants(req.params.id);
+        return res.json({
+          ...event,
+          participants,
+          messages: [],
+          expenses: [],
+          bookings: [],
+          hasJoined: false, // Flag to indicate user needs to join
+        });
       }
       
-      // Get participants, messages, expenses, and bookings
+      // Full access - return all data
       const [participants, messages, expenses, bookings] = await Promise.all([
         storage.getEventParticipants(req.params.id),
         storage.getEventMessages(req.params.id),
@@ -115,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getEventBookings(req.params.id),
       ]);
       
-      res.json({ ...event, participants, messages, expenses, bookings });
+      res.json({ ...event, participants, messages, expenses, bookings, hasJoined: true });
     } catch (error) {
       console.error("Error fetching event:", error);
       res.status(500).json({ message: "Failed to fetch event" });
