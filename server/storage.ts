@@ -261,12 +261,32 @@ export class DatabaseStorage implements IStorage {
     
     if (event.creatorId === userId) return true;
     
+    // Check if user is already a participant
     const [participant] = await db
       .select()
       .from(eventParticipants)
       .where(and(eq(eventParticipants.eventId, eventId), eq(eventParticipants.userId, userId)));
     
-    return !!participant;
+    if (participant) return true;
+    
+    // Auto-enroll user to sample events (system-created events)
+    if (event.creatorId === 'system-myzymo-user') {
+      try {
+        await db.insert(eventParticipants).values({
+          eventId,
+          userId,
+          status: 'going',
+        }).onConflictDoNothing();
+        console.log('[Storage] Auto-enrolled user', userId, 'to sample event:', eventId);
+        return true;
+      } catch (error) {
+        console.error('[Storage] Error auto-enrolling user to sample event:', error);
+        // Even if enrollment fails, allow access to sample events
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   // Message methods
