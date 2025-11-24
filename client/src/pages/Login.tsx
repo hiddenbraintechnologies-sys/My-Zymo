@@ -60,7 +60,8 @@ export default function Login() {
   const biometricLoginMutation = useMutation({
     mutationFn: async (email: string) => {
       // Get authentication options
-      const options = await apiRequest<any>("/api/webauthn/auth/options", "POST", { email });
+      const optionsResponse = await apiRequest("/api/webauthn/auth/options", "POST", { email });
+      const options = await optionsResponse.json();
       
       // Start biometric authentication
       const authResponse = await startAuthentication(options);
