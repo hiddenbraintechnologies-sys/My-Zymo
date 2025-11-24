@@ -17,10 +17,12 @@ import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods (required for Replit Auth)
+  // User methods (required for Replit Auth and custom auth)
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  createUserWithPassword(user: { username: string; password: string; email: string; firstName: string; lastName: string }): Promise<User>;
   updateUserProfile(userId: string, profileData: Partial<User>): Promise<User>;
   
   // Event methods
@@ -89,6 +91,45 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUserWithPassword(userData: { username: string; password: string; email: string; firstName: string; lastName: string }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        username: userData.username,
+        password: userData.password,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+      })
+      .returning();
+
+    // Add new user to sample events
+    try {
+      const systemUser = await db.select().from(users).where(eq(users.email, 'system@myzymo.com')).limit(1);
+      if (systemUser.length > 0) {
+        const sampleEvents = await db.select().from(events).where(eq(events.creatorId, systemUser[0].id));
+        
+        for (const event of sampleEvents) {
+          await db.insert(eventParticipants).values({
+            eventId: event.id,
+            userId: user.id,
+            status: 'going',
+          }).onConflictDoNothing();
+        }
+        console.log('[Storage] Added new user to', sampleEvents.length, 'sample events');
+      }
+    } catch (error) {
+      console.error('[Storage] Error adding new user to sample events:', error);
+    }
+    
+    return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {

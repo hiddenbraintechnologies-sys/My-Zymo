@@ -5,7 +5,7 @@ import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, sessionStore } from "./replitAuth";
+import { setupCustomAuth, isAuthenticated } from "./customAuth";
 
 // Extend express-session types to include passport data
 declare module 'express-session' {
@@ -31,14 +31,14 @@ import { db } from "./db";
 import type { IncomingMessage } from "http";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication - blueprint: javascript_log_in_with_replit
-  await setupAuth(app);
+  // Setup custom authentication with username/password
+  await setupCustomAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      // With custom auth, user is already attached to req by middleware
+      const user = req.user;
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const validatedData = updateProfileSchema.parse(req.body);
       
       console.log('[Profile Update] User ID:', userId);
@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get events accessible to the user (created by them or invited to, including sample events)
   app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       // Use getAllEventsForUser to include sample events for discovery
       const userEvents = await storage.getAllEventsForUser(userId);
       res.json(userEvents);
@@ -94,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get single event with details (returns preview for non-participants, full data for participants)
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const event = await storage.getEvent(req.params.id);
       
       if (!event) {
@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/events', isAuthenticated, async (req: any, res) => {
     try {
       console.log("[POST /api/events] Request body:", req.body);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       console.log("[POST /api/events] User ID:", userId);
       
       // Validate request body - accept ISO strings for date field
@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update event
   app.patch('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Verify event exists and user is the creator
       const event = await storage.getEvent(req.params.id);
@@ -207,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete event
   app.delete('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Verify event exists and user is the creator
       const event = await storage.getEvent(req.params.id);
@@ -231,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Join event
   app.post('/api/events/:id/join', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Verify event exists
       const event = await storage.getEvent(req.params.id);
@@ -260,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Leave event
   app.delete('/api/events/:id/leave', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.removeEventParticipant(req.params.id, userId);
       res.status(204).send();
     } catch (error) {
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create expense
   app.post('/api/events/:id/expenses', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { description, amount, participantIds } = req.body;
       
       // Validate inputs
@@ -346,7 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark expense split as paid
   app.patch('/api/expense-splits/:id/pay', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Get split with related expense
       const split = await storage.getExpenseSplit(req.params.id);
@@ -417,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create booking
   app.post('/api/bookings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Validate booking data
       const validatedData = insertBookingSchema.parse({
@@ -464,7 +464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get list of conversations with other users
   app.get('/api/direct-messages/conversations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const conversations = await storage.getUserConversationsList(userId);
       res.json(conversations);
     } catch (error) {
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get messages with a specific user
   app.get('/api/direct-messages/:otherUserId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { otherUserId } = req.params;
       
       // Verify the other user exists
@@ -496,7 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark messages from a user as read
   app.post('/api/direct-messages/:otherUserId/read', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { otherUserId } = req.params;
       
       await storage.markDirectMessagesAsRead(userId, otherUserId);
@@ -510,7 +510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get AI-suggested replies for a conversation
   app.post('/api/direct-messages/:otherUserId/suggestions', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { otherUserId } = req.params;
       
       // Verify the other user exists
@@ -590,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's conversations
   app.get('/api/ai/conversations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -602,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get single conversation with messages
   app.get('/api/ai/conversations/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const conversation = await storage.getConversation(req.params.id);
       
       if (!conversation) {
@@ -625,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new conversation
   app.post('/api/ai/conversations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const conversation = await storage.createConversation({
         userId,
         title: req.body.title || "New Chat",
@@ -640,7 +640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update conversation title
   app.patch('/api/ai/conversations/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const conversation = await storage.getConversation(req.params.id);
       
       if (!conversation) {
@@ -662,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete conversation
   app.delete('/api/ai/conversations/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const conversation = await storage.getConversation(req.params.id);
       
       if (!conversation) {
@@ -684,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start or get onboarding conversation
   app.post('/api/ai/onboarding/start', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Check if user already has an onboarding conversation
       const existingConversations = await storage.getUserConversations(userId);
@@ -723,7 +723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send message to AI
   app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { conversationId, message } = req.body;
       
       if (!conversationId || !message) {

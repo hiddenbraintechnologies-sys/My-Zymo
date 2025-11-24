@@ -1,0 +1,155 @@
+import bcrypt from "bcrypt";
+import type { Express, RequestHandler } from "express";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { storage } from "./storage";
+import { z } from "zod";
+
+const SALT_ROUNDS = 10;
+
+export function getSession() {
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+  
+  return session({
+    secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      maxAge: sessionTtl,
+    },
+  });
+}
+
+// Signup schema
+const signupSchema = z.object({
+  username: z.string().min(3).max(30),
+  password: z.string().min(6),
+  email: z.string().email(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+});
+
+// Login schema
+const loginSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
+export async function setupCustomAuth(app: Express) {
+  app.set("trust proxy", 1);
+  app.use(getSession());
+
+  // Signup route
+  app.post('/api/auth/signup', async (req, res) => {
+    try {
+      const validatedData = signupSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      // Check if email already exists
+      const existingEmail = await storage.getUserByEmail(validatedData.email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      
+      // Hash password
+      const hashedPassword = await bcrypt.hash(validatedData.password, SALT_ROUNDS);
+      
+      // Create user
+      const user = await storage.createUserWithPassword({
+        username: validatedData.username,
+        password: hashedPassword,
+        email: validatedData.email,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+      });
+      
+      // Set session
+      (req.session as any).userId = user.id;
+      
+      res.json({ message: "Signup successful", userId: user.id });
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid signup data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Signup failed" });
+    }
+  });
+
+  // Login route
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      
+      // Find user by username
+      const user = await storage.getUserByUsername(validatedData.username);
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+      
+      // Verify password
+      const passwordMatch = await bcrypt.compare(validatedData.password, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+      
+      // Set session
+      (req.session as any).userId = user.id;
+      
+      res.json({ message: "Login successful", userId: user.id });
+    } catch (error: any) {
+      console.error("Login error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid login data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  // Logout route
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logout successful" });
+    });
+  });
+}
+
+// Middleware to check if user is authenticated
+export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
+  const userId = (req.session as any).userId;
+  
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  // Attach user to request for convenience
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    res.status(401).json({ message: "Unauthorized" });
+  }
+};
