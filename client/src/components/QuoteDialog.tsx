@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, Save, Sparkles, IndianRupee, Calendar, MapPin, Users, AlertCircle } from "lucide-react";
+import { Loader2, Download, Save, Sparkles, IndianRupee, Calendar, MapPin, Users, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -53,12 +53,71 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
   const { toast } = useToast();
   const [estimate, setEstimate] = useState<QuoteEstimate | null>(null);
   const [quoteId, setQuoteId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],
     enabled: open,
+    retry: false,
+    queryFn: async () => {
+      const res = await fetch("/api/auth/user", { credentials: "include" });
+      if (res.status === 401) {
+        return null;
+      }
+      if (!res.ok) {
+        throw new Error("Failed to fetch user");
+      }
+      return await res.json();
+    },
   });
+
+  useEffect(() => {
+    if (!open) {
+      setCurrentStep(1);
+      setEstimate(null);
+      setQuoteId(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!user && open) {
+      const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (
+          e.key === "PrintScreen" ||
+          (e.ctrlKey && (e.key === "s" || e.key === "p" || e.key === "S" || e.key === "P")) ||
+          (e.metaKey && (e.key === "s" || e.key === "p" || e.key === "S" || e.key === "P"))
+        ) {
+          e.preventDefault();
+          toast({
+            title: "Screenshot Disabled",
+            description: "Please log in to save or download your quote.",
+            variant: "destructive",
+          });
+        }
+      };
+      const handleCopy = (e: ClipboardEvent) => {
+        if (estimate) {
+          e.preventDefault();
+          toast({
+            title: "Copy Disabled",
+            description: "Please log in to save or download your quote.",
+            variant: "destructive",
+          });
+        }
+      };
+
+      document.addEventListener("contextmenu", handleContextMenu);
+      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("copy", handleCopy);
+
+      return () => {
+        document.removeEventListener("contextmenu", handleContextMenu);
+        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("copy", handleCopy);
+      };
+    }
+  }, [user, open, estimate, toast]);
 
   const form = useForm<QuoteFormData>({
     resolver: zodResolver(quoteFormSchema),
@@ -118,6 +177,30 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
     },
   });
 
+  const handleNextStep = async () => {
+    const fieldsToValidate: (keyof QuoteFormData)[] = 
+      currentStep === 1 
+        ? ["guestName", "email", "phone"]
+        : currentStep === 2
+        ? ["eventType", "eventDateTime"]
+        : ["locationCity"];
+
+    const isValid = await form.trigger(fieldsToValidate);
+    if (isValid) {
+      if (currentStep < 3) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        handleSubmit(form.getValues());
+      }
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleSubmit = (data: QuoteFormData) => {
     generateEstimateMutation.mutate(data);
   };
@@ -171,6 +254,7 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
   const handleReset = () => {
     setEstimate(null);
     setQuoteId(null);
+    setCurrentStep(1);
     form.reset();
   };
 
@@ -197,159 +281,221 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
 
         {!estimate ? (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="guestName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Your Name</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-guest-name" placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-email" type="email" placeholder="john@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-phone" placeholder="+91 98765 43210" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="eventType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-event-type">
-                            <SelectValue placeholder="Select event type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Wedding">Wedding</SelectItem>
-                          <SelectItem value="Birthday Party">Birthday Party</SelectItem>
-                          <SelectItem value="College Reunion">College Reunion</SelectItem>
-                          <SelectItem value="Corporate Event">Corporate Event</SelectItem>
-                          <SelectItem value="Engagement">Engagement</SelectItem>
-                          <SelectItem value="Anniversary">Anniversary</SelectItem>
-                          <SelectItem value="Baby Shower">Baby Shower</SelectItem>
-                          <SelectItem value="Housewarming">Housewarming</SelectItem>
-                          <SelectItem value="Festival Celebration">Festival Celebration</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="eventDateTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Date & Time</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-event-datetime" type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="locationCity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-location-city" placeholder="Mumbai" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="locationState"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State (Optional)</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-location-state" placeholder="Maharashtra" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="guestCount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expected Guest Count (Optional)</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-guest-count" type="number" placeholder="100" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }} className="space-y-6">
+              <div className="mb-4 flex items-center justify-center gap-2">
+                {[1, 2, 3].map((step) => (
+                  <div
+                    key={step}
+                    className={`h-2 w-16 rounded-full transition-colors ${
+                      step <= currentStep ? "bg-primary" : "bg-muted"
+                    }`}
+                  />
+                ))}
               </div>
 
-              <Button
-                data-testid="button-generate-estimate"
-                type="submit"
-                className="w-full"
-                disabled={generateEstimateMutation.isPending}
-              >
-                {generateEstimateMutation.isPending ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentStep === 1 && (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Estimate...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate AI Estimate
+                    <FormField
+                      control={form.control}
+                      name="guestName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Your Name</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-guest-name" placeholder="John Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-email" type="email" placeholder="john@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-phone" placeholder="+91 98765 43210" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </>
                 )}
-              </Button>
+
+                {currentStep === 2 && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="eventType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-event-type">
+                                <SelectValue placeholder="Select event type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Wedding">Wedding</SelectItem>
+                              <SelectItem value="Birthday Party">Birthday Party</SelectItem>
+                              <SelectItem value="College Reunion">College Reunion</SelectItem>
+                              <SelectItem value="Corporate Event">Corporate Event</SelectItem>
+                              <SelectItem value="Engagement">Engagement</SelectItem>
+                              <SelectItem value="Anniversary">Anniversary</SelectItem>
+                              <SelectItem value="Baby Shower">Baby Shower</SelectItem>
+                              <SelectItem value="Housewarming">Housewarming</SelectItem>
+                              <SelectItem value="Festival Celebration">Festival Celebration</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="eventDateTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Date & Time</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-event-datetime" type="datetime-local" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {currentStep === 3 && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="locationCity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-location-city" placeholder="Mumbai" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="locationState"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State (Optional)</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-location-state" placeholder="Maharashtra" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="guestCount"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Expected Guest Count (Optional)</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-guest-count" type="number" placeholder="100" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                {currentStep > 1 && (
+                  <Button
+                    data-testid="button-prev-step"
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevStep}
+                    className="flex-1"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Previous
+                  </Button>
+                )}
+                <Button
+                  data-testid={currentStep === 3 ? "button-generate-estimate" : "button-next-step"}
+                  type="submit"
+                  className="flex-1"
+                  disabled={generateEstimateMutation.isPending}
+                >
+                  {generateEstimateMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Estimate...
+                    </>
+                  ) : currentStep === 3 ? (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate AI Estimate
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         ) : (
-          <div className="space-y-6" data-testid="quote-estimate-display">
-            <Card className="border-primary/20">
+          <div className="space-y-6 relative" data-testid="quote-estimate-display">
+            {!user && (
+              <>
+                <div className="absolute inset-0 z-10 backdrop-blur-[2px] pointer-events-none" />
+                <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                  <div className="text-4xl md:text-6xl lg:text-8xl font-bold text-foreground/20 rotate-[-30deg] select-none whitespace-nowrap">
+                    LOGIN TO SAVE
+                  </div>
+                </div>
+                <div className="absolute bottom-10 left-10 z-20 pointer-events-none opacity-30">
+                  <div className="text-2xl font-bold text-foreground/30 rotate-[-15deg] select-none">
+                    WATERMARK
+                  </div>
+                </div>
+                <div className="absolute top-10 right-10 z-20 pointer-events-none opacity-30">
+                  <div className="text-2xl font-bold text-foreground/30 rotate-[15deg] select-none">
+                    WATERMARK
+                  </div>
+                </div>
+              </>
+            )}
+            <Card className="border-primary/20 relative select-none" style={{ userSelect: !user ? 'none' : 'auto' }}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
