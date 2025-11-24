@@ -259,4 +259,40 @@ export function setupAdminRoutes(app: Express) {
       res.status(500).json({ message: "Failed to delete vendor" });
     }
   });
+  
+  // Approve vendor (Admin+)
+  app.post('/api/admin/vendors/:vendorId/approve', requireAdmin, async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      await storage.updateVendorApprovalStatus(vendorId, 'approved');
+      res.json({ message: "Vendor approved successfully" });
+    } catch (error) {
+      console.error("Error approving vendor:", error);
+      res.status(500).json({ message: "Failed to approve vendor" });
+    }
+  });
+  
+  // Reject vendor (Admin+)
+  app.post('/api/admin/vendors/:vendorId/reject', requireAdmin, async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      await storage.updateVendorApprovalStatus(vendorId, 'rejected');
+      res.json({ message: "Vendor rejected successfully" });
+    } catch (error) {
+      console.error("Error rejecting vendor:", error);
+      res.status(500).json({ message: "Failed to reject vendor" });
+    }
+  });
 }

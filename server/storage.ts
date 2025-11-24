@@ -74,6 +74,7 @@ export interface IStorage {
   getVendor(id: string): Promise<Vendor | undefined>;
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   updateVendor(id: string, vendor: Partial<InsertVendor>): Promise<Vendor | undefined>;
+  updateVendorApprovalStatus(id: string, status: string): Promise<void>;
   deleteVendor(id: string): Promise<void>;
   
   // Booking methods
@@ -697,6 +698,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(vendors.id, id))
       .returning();
     return result || undefined;
+  }
+
+  async updateVendorApprovalStatus(id: string, status: string): Promise<void> {
+    await db
+      .update(vendors)
+      .set({ approvalStatus: status })
+      .where(eq(vendors.id, id));
   }
 
   async deleteVendor(id: string): Promise<void> {
