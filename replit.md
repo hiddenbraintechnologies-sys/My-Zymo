@@ -27,12 +27,12 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 *   **Video and Audio Calling:** Peer-to-peer video and audio calling between users in direct messages using WebRTC. Features include call initiation buttons (phone/video), incoming call modal with accept/reject, active call dialog with mute/video toggle, and proper cleanup on termination. Uses WebSocket signaling and public STUN servers.
 *   **AI-Assisted Reply Suggestions:** AI (OpenAI GPT-5) generates contextual reply suggestions for direct messages, displayed as clickable badges.
 *   **Event Privacy System:** Events are private by default, accessible only by the creator and invited participants. Access control checks are implemented across API endpoints and WebSockets.
+*   **Invite Link Flow with Privacy Protection:** Users can share event invite links via WhatsApp or copy link. Recipients see a privacy-protected preview (title, description, date, location only) and must explicitly click "Join Event" to become participants. Participant data, chat, expenses, and vendor bookings are hidden until user joins. After joining, the event appears in the user's dashboard and they gain full access to all event features.
 *   **Dashboard:** A personalized dashboard shows user-created or explicitly joined private events, featuring a LinkedIn-style chat interface for selected events.
 *   **Event Management:** Event creators can edit and delete their events from the dashboard. Edit and Delete buttons appear on event cards only for the creator. Editing opens a pre-populated form that updates the event details. Deletion requires confirmation via an AlertDialog. Backend authorization ensures only creators can modify their events.
 *   **Chat System:** Real-time chat via WebSockets with emoji picker, proper sender attribution, and message persistence.
 *   **AI Guide:** A prominent AI Guide in the navbar provides application walkthroughs and feature suggestions, supporting onboarding and general queries.
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
-*   **Event Sharing:** Events can be shared via WhatsApp and invitation link copying.
 *   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields, validated using Zod schemas.
 *   **Sample Events:** Default celebration-themed events are created on first startup for discovery purposes.
 
