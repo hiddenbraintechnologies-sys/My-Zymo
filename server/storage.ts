@@ -30,6 +30,10 @@ export interface IStorage {
   updateUserRole(userId: string, role: string): Promise<User | undefined>;
   deleteUser(userId: string): Promise<void>;
   
+  // Social auth methods
+  findUserByProviderId(provider: string, providerId: string): Promise<User | undefined>;
+  createSocialUser(userData: { provider: string; providerId: string; email: string; firstName: string; lastName: string; profileImageUrl?: string }): Promise<User>;
+  
   // Event methods
   getEvent(id: string): Promise<Event | undefined>;
   getAllEvents(): Promise<Event[]>;
@@ -222,6 +226,49 @@ export class DatabaseStorage implements IStorage {
         role: userData.role,
       })
       .returning();
+    
+    return sanitizeUser(user);
+  }
+
+  // Social auth methods
+  async findUserByProviderId(provider: string, providerId: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.provider, provider), eq(users.providerId, providerId)));
+    
+    return user ? sanitizeUser(user) : undefined;
+  }
+
+  async createSocialUser(userData: { provider: string; providerId: string; email: string; firstName: string; lastName: string; profileImageUrl?: string }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        provider: userData.provider,
+        providerId: userData.providerId,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl,
+      })
+      .returning();
+    
+    // Add new social user to sample events
+    try {
+      const systemUser = await db.select().from(users).where(eq(users.email, 'system@myzymo.com')).limit(1);
+      if (systemUser.length > 0) {
+        const sampleEvents = await db.select().from(events).where(eq(events.creatorId, systemUser[0].id));
+        for (const event of sampleEvents) {
+          await db.insert(eventParticipants).values({
+            eventId: event.id,
+            userId: user.id,
+            status: 'going',
+          }).onConflictDoNothing();
+        }
+      }
+    } catch (error) {
+      console.error('[Storage] Error adding social user to sample events:', error);
+    }
     
     return sanitizeUser(user);
   }

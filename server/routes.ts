@@ -6,6 +6,8 @@ import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
 import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
+import { setupSocialAuth } from "./socialAuth";
+import { setupWebAuthn } from "./webauthn";
 import { setupAdminRoutes } from "./adminRoutes";
 import { sanitizeUser } from "@shared/sanitize";
 
@@ -35,6 +37,12 @@ import type { IncomingMessage } from "http";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup custom authentication with username/password
   await setupCustomAuth(app);
+  
+  // Setup social authentication (Google, Facebook, Twitter)
+  setupSocialAuth(app);
+  
+  // Setup WebAuthn biometric authentication
+  setupWebAuthn(app);
   
   // Setup admin routes
   setupAdminRoutes(app);
