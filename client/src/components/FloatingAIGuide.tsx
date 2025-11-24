@@ -24,7 +24,7 @@ const SUGGESTED_ACTIONS = [
 ];
 
 export default function FloatingAIGuide() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -35,6 +35,12 @@ export default function FloatingAIGuide() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && !conversationId && isOpen) {
+      createConversationMutation.mutate();
+    }
+  }, [user, isOpen]);
 
   useEffect(() => {
     if (scrollRef.current) {
