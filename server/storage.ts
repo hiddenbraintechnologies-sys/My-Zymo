@@ -22,13 +22,18 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
   createUserWithPassword(user: { username: string; password: string; email: string; firstName: string; lastName: string }): Promise<User>;
+  createUserWithRole(user: { username: string; password: string; email: string; firstName: string; lastName: string; role: string }): Promise<User>;
   updateUserProfile(userId: string, profileData: Partial<User>): Promise<User>;
+  updateUserRole(userId: string, role: string): Promise<User | undefined>;
+  deleteUser(userId: string): Promise<void>;
   
   // Event methods
   getEvent(id: string): Promise<Event | undefined>;
   getAllEvents(): Promise<Event[]>;
+  getAllEventsForAdmin(): Promise<Event[]>;
   getEventsByUser(userId: string): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
@@ -64,6 +69,8 @@ export interface IStorage {
   getVendorsByCategory(category: string): Promise<Vendor[]>;
   getVendor(id: string): Promise<Vendor | undefined>;
   createVendor(vendor: InsertVendor): Promise<Vendor>;
+  updateVendor(id: string, vendor: Partial<InsertVendor>): Promise<Vendor | undefined>;
+  deleteVendor(id: string): Promise<void>;
   
   // Booking methods
   getEventBookings(eventId: string): Promise<(Booking & { vendor: Vendor })[]>;
@@ -197,6 +204,41 @@ export class DatabaseStorage implements IStorage {
     return sanitizeUser(user);
   }
 
+  async getAllUsers(): Promise<User[]> {
+    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+    // SECURITY: Sanitize all user objects
+    return allUsers.map(u => sanitizeUser(u));
+  }
+
+  async createUserWithRole(userData: { username: string; password: string; email: string; firstName: string; lastName: string; role: string }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        username: userData.username,
+        password: userData.password,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+      })
+      .returning();
+    
+    return sanitizeUser(user);
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user ? sanitizeUser(user) : undefined;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, userId));
+  }
+
   // Event methods
   async getEvent(id: string): Promise<Event | undefined> {
     const [event] = await db.select().from(events).where(eq(events.id, id));
@@ -205,6 +247,11 @@ export class DatabaseStorage implements IStorage {
 
   async getAllEvents(): Promise<Event[]> {
     return await db.select().from(events).orderBy(desc(events.date));
+  }
+
+  async getAllEventsForAdmin(): Promise<Event[]> {
+    // For admin dashboard, return all events with creator info
+    return await db.select().from(events).orderBy(desc(events.createdAt));
   }
 
   async getEventsByUser(userId: string): Promise<Event[]> {
@@ -592,6 +639,19 @@ export class DatabaseStorage implements IStorage {
   async createVendor(vendor: InsertVendor): Promise<Vendor> {
     const [result] = await db.insert(vendors).values(vendor).returning();
     return result;
+  }
+
+  async updateVendor(id: string, vendor: Partial<InsertVendor>): Promise<Vendor | undefined> {
+    const [result] = await db
+      .update(vendors)
+      .set(vendor)
+      .where(eq(vendors.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteVendor(id: string): Promise<void> {
+    await db.delete(vendors).where(eq(vendors.id, id));
   }
 
   // Booking methods

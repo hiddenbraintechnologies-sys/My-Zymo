@@ -6,6 +6,7 @@ import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
 import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
+import { setupAdminRoutes } from "./adminRoutes";
 import { sanitizeUser } from "@shared/sanitize";
 
 // Extend express-session types to include passport data
@@ -34,6 +35,9 @@ import type { IncomingMessage } from "http";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup custom authentication with username/password
   await setupCustomAuth(app);
+  
+  // Setup admin routes
+  setupAdminRoutes(app);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
