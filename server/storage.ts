@@ -36,6 +36,7 @@ export interface IStorage {
   removeEventParticipant(eventId: string, userId: string): Promise<void>;
   getUserEvents(userId: string): Promise<(EventParticipant & { event: Event })[]>;
   getUserAccessibleEvents(userId: string): Promise<Event[]>;
+  getAllEventsForUser(userId: string): Promise<Event[]>;
   canUserAccessEvent(userId: string, eventId: string): Promise<boolean>;
   
   // Message methods
@@ -242,12 +243,55 @@ export class DatabaseStorage implements IStorage {
     
     const eventMap = new Map<string, Event>();
     
-    // Add user's created events
-    createdEvents.forEach(e => eventMap.set(e.id, e));
+    // Add user's created events (excluding system-created events)
+    createdEvents.forEach(e => {
+      if (e.creatorId !== 'system-myzymo-user') {
+        eventMap.set(e.id, e);
+      }
+    });
     
-    // Add events where user is participant, but EXCLUDE sample events (system-created)
+    // Add events where user is participant (excluding system-created events)
     participantEvents.forEach(e => {
       if (e.id && e.creatorId !== 'system-myzymo-user') {
+        eventMap.set(e.id, e as Event);
+      }
+    });
+    
+    return Array.from(eventMap.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+
+  async getAllEventsForUser(userId: string): Promise<Event[]> {
+    // Get all events where user is creator OR participant (including sample events)
+    const createdEvents = await db.select().from(events).where(eq(events.creatorId, userId));
+    
+    const participantEvents = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        date: events.date,
+        location: events.location,
+        imageUrl: events.imageUrl,
+        creatorId: events.creatorId,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+      })
+      .from(eventParticipants)
+      .where(eq(eventParticipants.userId, userId))
+      .leftJoin(events, eq(eventParticipants.eventId, events.id));
+    
+    const eventMap = new Map<string, Event>();
+    
+    // Add ALL user's created events (excluding system-created to avoid duplication)
+    createdEvents.forEach(e => {
+      if (e.creatorId !== 'system-myzymo-user') {
+        eventMap.set(e.id, e);
+      }
+    });
+    
+    // Add ALL events where user is participant (INCLUDING sample events for discovery)
+    participantEvents.forEach(e => {
+      if (e.id) {
         eventMap.set(e.id, e as Event);
       }
     });

@@ -78,11 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Event Management APIs ===
   
-  // Get events accessible to the user (created by them or invited to)
+  // Get events accessible to the user (created by them or invited to, including sample events)
   app.get('/api/events', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const userEvents = await storage.getUserAccessibleEvents(userId);
+      // Use getAllEventsForUser to include sample events for discovery
+      const userEvents = await storage.getAllEventsForUser(userId);
       res.json(userEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
