@@ -66,7 +66,7 @@ export default function Navbar() {
                 variant="ghost" 
                 data-testid="button-login"
               >
-                Existing User
+                Log In
               </Button>
             </Link>
           </div>
@@ -94,7 +94,7 @@ export default function Navbar() {
                       variant="outline" 
                       className="w-full"
                     >
-                      Existing User
+                      Log In
                     </Button>
                   </Link>
                 </div>
