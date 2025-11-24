@@ -178,26 +178,26 @@ export default function Dashboard() {
             </div>
           </Link>
           
-          <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
             <Link href="/dashboard" data-testid="link-dashboard">
-              <Button variant="ghost">Dashboard</Button>
+              <Button variant="ghost" size="sm">Dashboard</Button>
             </Link>
             <Link href="/events" data-testid="link-events">
-              <Button variant="ghost">Events</Button>
+              <Button variant="ghost" size="sm">Events</Button>
             </Link>
             <Link href="/messages" data-testid="link-messages">
-              <Button variant="ghost">Messages</Button>
+              <Button variant="ghost" size="sm">Messages</Button>
             </Link>
             <Link href="/vendors" data-testid="link-vendors">
-              <Button variant="ghost">Vendors</Button>
+              <Button variant="ghost" size="sm">Vendors</Button>
             </Link>
             <Link href="/ai-assistant" data-testid="link-ai-assistant">
-              <Button variant="ghost">AI Assistant</Button>
+              <Button variant="ghost" size="sm">AI Assistant</Button>
             </Link>
             <Link href="/profile" data-testid="link-profile">
-              <Button variant="ghost">Profile</Button>
+              <Button variant="ghost" size="sm">Profile</Button>
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l">
               <span className="text-sm font-medium" data-testid="text-user-name">
                 {user.firstName} {user.lastName}
               </span>
