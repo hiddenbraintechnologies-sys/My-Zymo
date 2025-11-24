@@ -57,6 +57,7 @@ export default function FloatingChat() {
   const [unreadCount, setUnreadCount] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const callInitiatingRef = useRef(false);
 
   // WebRTC for calling participants
   const {
@@ -80,10 +81,32 @@ export default function FloatingChat() {
     enabled: !!user,
   });
 
-  const { data: selectedEvent } = useQuery<EventWithMessages>({
+  const { data: selectedEvent, isLoading: isLoadingEvent, error: eventError } = useQuery<EventWithMessages>({
     queryKey: ["/api/events", selectedEventId],
     enabled: !!selectedEventId,
   });
+
+  // Show toast when event fetch fails
+  useEffect(() => {
+    if (eventError && selectedEventId) {
+      toast({
+        title: "Failed to Load Event",
+        description: "Unable to load event data. Please check your connection and try again.",
+        variant: "destructive",
+      });
+    }
+  }, [eventError, selectedEventId, toast]);
+
+  // Reset selectedParticipantId and call initiating flag when call ends
+  useEffect(() => {
+    if (callState === 'idle') {
+      setSelectedParticipantId(null);
+      callInitiatingRef.current = false;
+    } else if (callState === 'calling' || callState === 'active' || callState === 'ringing') {
+      // Ensure flag is set when call is active
+      callInitiatingRef.current = true;
+    }
+  }, [callState]);
 
   // WebSocket connection
   useEffect(() => {
@@ -190,10 +213,44 @@ export default function FloatingChat() {
   };
 
   const handleCallParticipant = (participantId: string, type: 'audio' | 'video') => {
+    // Guard: prevent race conditions with ref check before state check
+    if (callInitiatingRef.current || callState !== 'idle') {
+      toast({
+        title: "Call in Progress",
+        description: "Please end the current call first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      toast({
+        title: "Connection Error",
+        description: "Chat connection not ready. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Find participant to ensure it exists
+    const participant = participants.find(p => p.userId === participantId);
+    if (!participant) {
+      toast({
+        title: "Error",
+        description: "Participant not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set flag immediately to prevent race conditions
+    callInitiatingRef.current = true;
+    
+    // Set state for UI components
     setSelectedParticipantId(participantId);
-    setTimeout(() => {
-      startCall(type);
-    }, 100);
+    
+    // Pass participantId directly to startCall to avoid async state issues
+    startCall(type, participantId);
   };
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
@@ -205,11 +262,11 @@ export default function FloatingChat() {
   const allMessages = selectedEvent?.messages || [];
   const participants = selectedEvent?.participants || [];
 
-  // Filter out current user from participants list
-  const otherParticipants = participants.filter(p => p.userId !== user?.id);
+  // Filter out current user from participants list with defensive checks
+  const otherParticipants = (participants || []).filter(p => p?.userId !== user?.id);
 
-  // Find selected participant for call dialog
-  const selectedParticipant = participants.find(p => p.userId === selectedParticipantId);
+  // Find selected participant for call dialog with fallback
+  const selectedParticipant = (participants || []).find(p => p?.userId === selectedParticipantId);
 
   if (!user) return null;
 
@@ -436,7 +493,21 @@ export default function FloatingChat() {
 
                 <TabsContent value="participants" className="flex-1 mt-0 overflow-hidden">
                   <ScrollArea className="h-full p-3">
-                    {otherParticipants.length > 0 ? (
+                    {isLoadingEvent ? (
+                      <div className="space-y-2">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                      </div>
+                    ) : eventError ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
+                          <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Failed to load participants</p>
+                          <p className="text-xs">Please try again later</p>
+                        </div>
+                      </div>
+                    ) : otherParticipants.length > 0 ? (
                       <div className="space-y-2">
                         {otherParticipants.map((participant) => (
                           <div
@@ -537,7 +608,7 @@ export default function FloatingChat() {
           callType={callType}
           localStream={localStream}
           remoteStream={remoteStream}
-          remoteName={`${selectedParticipant.user.firstName} ${selectedParticipant.user.lastName}`}
+          remoteName={`${selectedParticipant.user?.firstName || ''} ${selectedParticipant.user?.lastName || ''}`.trim() || 'Participant'}
           onEndCall={endCall}
         />
       )}

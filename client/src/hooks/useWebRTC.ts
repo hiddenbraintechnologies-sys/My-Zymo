@@ -133,14 +133,17 @@ export function useWebRTC({ ws, currentUserId, recipientId }: UseWebRTCProps) {
 
   // Start a call
   const startCall = useCallback(
-    async (type: CallType) => {
-      if (!ws || !recipientId || !currentUserId) return;
+    async (type: CallType, targetRecipientId?: string) => {
+      // Use targetRecipientId if provided, otherwise fall back to recipientId from props
+      const effectiveRecipientId = targetRecipientId || recipientId;
+      
+      if (!ws || !effectiveRecipientId || !currentUserId) return;
 
       try {
         setCallType(type);
         setCallState("calling");
-        setRemoteUserId(recipientId);
-        remoteUserIdRef.current = recipientId;
+        setRemoteUserId(effectiveRecipientId);
+        remoteUserIdRef.current = effectiveRecipientId;
         callActiveRef.current = true;
 
         const stream = await getUserMedia(type);
@@ -157,7 +160,7 @@ export function useWebRTC({ ws, currentUserId, recipientId }: UseWebRTCProps) {
         ws.send(
           JSON.stringify({
             type: "call-offer",
-            recipientId,
+            recipientId: effectiveRecipientId,
             offer: offer,
             callType: type,
           })
