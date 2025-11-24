@@ -15,6 +15,10 @@ import Vendors from "@/pages/Vendors";
 import Profile from "@/pages/Profile";
 import AIAssistant from "@/pages/AIAssistant";
 import Messages from "@/pages/Messages";
+import AdminDashboard from "@/pages/AdminDashboard";
+import UserManagement from "@/pages/UserManagement";
+import EventManagement from "@/pages/EventManagement";
+import VendorManagement from "@/pages/VendorManagement";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -33,6 +37,10 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/messages/:userId" component={Messages} />
       <Route path="/messages" component={Messages} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/users" component={UserManagement} />
+      <Route path="/admin/events" component={EventManagement} />
+      <Route path="/admin/vendors" component={VendorManagement} />
       <Route component={NotFound} />
     </Switch>
   );

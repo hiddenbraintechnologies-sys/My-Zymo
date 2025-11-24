@@ -8,7 +8,7 @@ import express, {
 } from "express";
 
 import { registerRoutes } from "./routes";
-import { seedDefaultEvents } from "./seedEvents";
+import { seedDefaultEvents, ensureSuperAdmin } from "./seedEvents";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -70,6 +70,9 @@ export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
   const server = await registerRoutes(app);
+  
+  // Ensure super admin exists (only runs once)
+  await ensureSuperAdmin();
   
   // Seed default events on startup (only runs once)
   await seedDefaultEvents();

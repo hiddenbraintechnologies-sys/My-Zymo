@@ -1,6 +1,50 @@
 import { db } from "./db";
 import { events, eventParticipants, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcrypt";
+
+const SALT_ROUNDS = 10;
+
+export async function ensureSuperAdmin() {
+  try {
+    console.log('[Seed] Checking for super admin user...');
+    
+    // Check if we already have a super admin
+    const superAdmins = await db.select().from(users).where(eq(users.role, 'super_admin')).limit(1);
+    if (superAdmins.length > 0) {
+      console.log('[Seed] Super admin already exists:', superAdmins[0].email);
+      return;
+    }
+
+    // Create initial super admin user
+    // Require SUPER_ADMIN_PASSWORD environment variable for security
+    const password = process.env.SUPER_ADMIN_PASSWORD;
+    if (!password) {
+      console.error('[Seed] ERROR: SUPER_ADMIN_PASSWORD environment variable is required!');
+      console.error('[Seed] Please set SUPER_ADMIN_PASSWORD to create the super admin account.');
+      return;
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    
+    const [superAdmin] = await db.insert(users).values({
+      username: 'admin',
+      email: 'admin@myzymo.com',
+      firstName: 'Super',
+      lastName: 'Admin',
+      password: hashedPassword,
+      role: 'super_admin',
+    }).returning();
+
+    console.log('[Seed] Created super admin user:');
+    console.log('  Username: admin');
+    console.log('  Email: admin@myzymo.com');
+    console.log('  ✓ Password set from SUPER_ADMIN_PASSWORD environment variable');
+    
+  } catch (error) {
+    console.error('[Seed] Error creating super admin:', error);
+  }
+}
 
 export async function seedDefaultEvents() {
   try {
