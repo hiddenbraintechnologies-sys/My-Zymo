@@ -44,6 +44,9 @@ export default function Messages() {
   useEffect(() => {
     if (params?.userId) {
       setSelectedUserId(params.userId);
+      // Clear AI suggestions when switching conversations
+      setShowSuggestions(false);
+      setAiSuggestions([]);
     }
   }, [params?.userId]);
 
