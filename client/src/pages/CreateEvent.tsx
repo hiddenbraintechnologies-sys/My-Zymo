@@ -3,10 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Calendar, ArrowLeft, Globe, Lock } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertEventSchema, type InsertEvent } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -33,11 +34,12 @@ export default function CreateEvent() {
       date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
       location: "",
       imageUrl: "",
+      isPublic: false,
     },
   });
 
   const createEventMutation = useMutation({
-    mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; date: string }) => {
+    mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; date: string; isPublic?: boolean }) => {
       console.log("[CreateEvent] Mutation starting with data:", data);
       try {
         const response = await apiRequest("/api/events", "POST", data);
@@ -80,6 +82,7 @@ export default function CreateEvent() {
       location: data.location,
       imageUrl: data.imageUrl?.trim() ? data.imageUrl : null,
       date: new Date(data.date).toISOString(), // Backend expects ISO string
+      isPublic: data.isPublic || false,
     };
     
     console.log("Payload to send:", payload);
@@ -194,6 +197,42 @@ export default function CreateEvent() {
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isPublic"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base flex items-center gap-2">
+                      {field.value ? (
+                        <>
+                          <Globe className="w-4 h-4" />
+                          Public Event
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4" />
+                          Private Event
+                        </>
+                      )}
+                    </FormLabel>
+                    <FormDescription>
+                      {field.value 
+                        ? "This event will be visible to all visitors on the home page" 
+                        : "This event is private and invite-only"}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-event-visibility"
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />

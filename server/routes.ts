@@ -172,6 +172,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoint for viewing public events (no authentication required)
+  // This is for site visitors on the home page
+  app.get('/api/public-events', async (req, res) => {
+    try {
+      const publicEvents = await storage.getPublicEvents();
+      res.json(publicEvents);
+    } catch (error) {
+      console.error("Error fetching public events:", error);
+      res.status(500).json({ message: "Failed to fetch public events" });
+    }
+  });
+
   app.get('/api/events/followed', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -296,7 +308,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public event preview endpoint - for landing page visitors (no authentication required)
+  app.get('/api/public-events/:id', async (req, res) => {
+    try {
+      const event = await storage.getEvent(req.params.id);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Only allow viewing public events
+      if (!event.isPublic) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Return preview data for public events (basic info WITHOUT sensitive participant details)
+      return res.json({
+        ...event,
+        participants: [], // No participant data for non-members
+        messages: [],
+        expenses: [],
+        bookings: [],
+        hasJoined: false, // Flag to indicate user needs to join
+        requiresAuth: true, // Flag to indicate user should login to join
+      });
+    } catch (error) {
+      console.error("Error fetching public event preview:", error);
+      res.status(500).json({ message: "Failed to fetch event" });
+    }
+  });
+
   // Get single event with details (returns preview for non-participants, full data for participants)
+  // Requires authentication - use /api/public-events/:id for public previews
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
