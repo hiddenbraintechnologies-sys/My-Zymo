@@ -19,6 +19,9 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import UserManagement from "@/pages/UserManagement";
 import EventManagement from "@/pages/EventManagement";
 import VendorManagement from "@/pages/VendorManagement";
+import VendorLogin from "@/pages/VendorLogin";
+import VendorSignup from "@/pages/VendorSignup";
+import VendorDashboard from "@/pages/VendorDashboard";
 import NotFound from "@/pages/not-found";
 import FloatingAIGuide from "@/components/FloatingAIGuide";
 
@@ -42,6 +45,9 @@ function Router() {
       <Route path="/admin/users" component={UserManagement} />
       <Route path="/admin/events" component={EventManagement} />
       <Route path="/admin/vendors" component={VendorManagement} />
+      <Route path="/vendor/login" component={VendorLogin} />
+      <Route path="/vendor/signup" component={VendorSignup} />
+      <Route path="/vendor/dashboard" component={VendorDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
