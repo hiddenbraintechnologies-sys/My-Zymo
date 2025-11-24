@@ -4,15 +4,9 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { z } from "zod";
+import { sanitizeUser } from "@shared/sanitize";
 
 const SALT_ROUNDS = 10;
-
-// SECURITY: Helper to remove password from user objects
-export function sanitizeUser(user: any) {
-  if (!user) return user;
-  const { password, ...safeUser } = user;
-  return safeUser;
-}
 
 // Export sessionStore for WebSocket verification
 const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week

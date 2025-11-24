@@ -16,7 +16,7 @@ The frontend is built with React 18 and TypeScript, using Vite for development a
 
 ### Backend Architecture
 
-The backend utilizes Node.js with Express.js and TypeScript, employing Drizzle ORM for PostgreSQL database interactions. Real-time messaging is handled by WebSockets (`ws` library). The API is RESTful, secured with session-based authentication via Replit Auth (OpenID Connect) and Passport.js. The server structure supports both development and production environments, with a centralized route registration and a storage abstraction layer. A monolithic architecture with a shared schema between client and server (`/shared` directory) is a core architectural decision.
+The backend utilizes Node.js with Express.js and TypeScript, employing Drizzle ORM for PostgreSQL database interactions. Real-time messaging is handled by WebSockets (`ws` library). The API is RESTful, secured with session-based authentication using custom username/password authentication with bcrypt hashing. Session management uses Express session with PostgreSQL store, implementing proper session regeneration to prevent session fixation attacks. The server structure supports both development and production environments, with a centralized route registration and a storage abstraction layer. A monolithic architecture with a shared schema between client and server (`/shared` directory) is a core architectural decision.
 
 ### Data Storage Solutions
 
@@ -24,6 +24,7 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 
 ### Feature Specifications
 
+*   **Custom Authentication System:** Username/password authentication with bcrypt hashing (10 salt rounds). Includes signup and login flows with proper session regeneration to prevent session fixation attacks. Storage-layer sanitization ensures password hashes never leak in API responses. All user-facing storage methods automatically strip password fields before returning data.
 *   **Video and Audio Calling:** Peer-to-peer video and audio calling between users in direct messages using WebRTC. Features include call initiation buttons (phone/video), incoming call modal with accept/reject, active call dialog with mute/video toggle, and proper cleanup on termination. Uses WebSocket signaling and public STUN servers.
 *   **AI-Assisted Reply Suggestions:** AI (OpenAI GPT-5) generates contextual reply suggestions for direct messages, displayed as clickable badges.
 *   **Event Privacy System:** Events are private by default, accessible only by the creator and invited participants. Access control checks are implemented across API endpoints and WebSockets.
@@ -45,7 +46,7 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 
 ## External Dependencies
 
-*   **Authentication:** Replit Auth (OpenID Connect)
+*   **Authentication:** Custom username/password authentication with bcrypt
 *   **Database:** Neon PostgreSQL (serverless driver)
 *   **Typography:** Google Fonts (Inter, Poppins)
 *   **Real-time Communication:** WebSocket (`ws` library)

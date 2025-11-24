@@ -5,7 +5,8 @@ import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupCustomAuth, isAuthenticated, sessionStore, sanitizeUser } from "./customAuth";
+import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
+import { sanitizeUser } from "@shared/sanitize";
 
 // Extend express-session types to include passport data
 declare module 'express-session' {

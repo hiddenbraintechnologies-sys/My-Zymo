@@ -15,13 +15,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
-
-// SECURITY: Import sanitizeUser to strip password from all user objects at storage layer
-function sanitizeUser(user: any) {
-  if (!user) return user;
-  const { password, ...safeUser } = user;
-  return safeUser;
-}
+import { sanitizeUser } from "@shared/sanitize";
 
 export interface IStorage {
   // User methods (required for Replit Auth and custom auth)
