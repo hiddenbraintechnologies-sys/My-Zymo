@@ -69,13 +69,6 @@ export default function Navbar() {
                 Log In
               </Button>
             </Link>
-            <Link href="/signup">
-              <Button 
-                data-testid="button-signup"
-              >
-                Sign Up
-              </Button>
-            </Link>
           </div>
           
           <Sheet>
@@ -102,13 +95,6 @@ export default function Navbar() {
                       className="w-full"
                     >
                       Log In
-                    </Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button 
-                      className="w-full"
-                    >
-                      Sign Up
                     </Button>
                   </Link>
                 </div>
