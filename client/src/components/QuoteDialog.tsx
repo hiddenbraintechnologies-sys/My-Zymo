@@ -358,12 +358,14 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
                               <SelectItem value="Wedding">Wedding</SelectItem>
                               <SelectItem value="Birthday Party">Birthday Party</SelectItem>
                               <SelectItem value="College Reunion">College Reunion</SelectItem>
+                              <SelectItem value="School Reunion">School Reunion</SelectItem>
                               <SelectItem value="Corporate Event">Corporate Event</SelectItem>
                               <SelectItem value="Engagement">Engagement</SelectItem>
                               <SelectItem value="Anniversary">Anniversary</SelectItem>
                               <SelectItem value="Baby Shower">Baby Shower</SelectItem>
                               <SelectItem value="Housewarming">Housewarming</SelectItem>
                               <SelectItem value="Festival Celebration">Festival Celebration</SelectItem>
+                              <SelectItem value="Others">Others</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />

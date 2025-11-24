@@ -27,6 +27,7 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 *   **Dual Authentication System:** 
     *   **Custom Authentication:** Username/password authentication with bcrypt hashing (10 salt rounds). Includes signup and login flows with proper session regeneration to prevent session fixation attacks. Storage-layer sanitization ensures password hashes never leak in API responses. All user-facing storage methods automatically strip password fields before returning data. Supports login with either username or email address. Password fields include visibility toggle (eye icon) for better user experience.
     *   **Replit Auth (Social Login):** OIDC-based authentication providing Google, GitHub, X (Twitter), Apple, and email/password login options. Integrated via `/api/login` endpoint with automatic user creation/update. Uses email-based user lookup to preserve existing user records and roles across authentication methods.
+    *   **Unified Authentication Middleware:** A unified `isAuthenticated` middleware in `server/routes.ts` supports both custom auth (session.userId) and Replit Auth (Passport req.user), ensuring seamless authentication across both methods without redirect loops.
     *   **Vendor Social Login:** Dedicated vendor authentication flow using Replit Auth with separate strategy and endpoints (`/api/vendor/auth/login`, `/api/vendor/auth/callback`). Vendors can sign up using social platforms (Google, GitHub, X, Apple, email) and complete their vendor profile with business details. Session management properly established in vendor callback to ensure downstream routes work correctly. Profile completion endpoint (`/api/vendor/complete-profile`) allows social login users to submit business information after authentication.
     *   **Admin Redirect:** Admin users (super_admin, admin, master_user) are automatically redirected to the admin dashboard (/admin) upon successful login via either authentication method, while regular users are directed to the dashboard or profile completion page.
 *   **Video and Audio Calling:** Peer-to-peer video and audio calling between users in direct messages using WebRTC. Features include call initiation buttons (phone/video), incoming call modal with accept/reject, active call dialog with mute/video toggle, and proper cleanup on termination. Uses WebSocket signaling and public STUN servers.
@@ -48,6 +49,12 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
     *   **Statistics Dashboard:** Overview of total users, events, and vendors
     *   **Role Hierarchy:** user < master_user < admin < super_admin
     *   **Security:** All admin routes protected with middleware (requireAdmin, requireMasterUser, requireSuperAdmin). Super admin seeding uses SUPER_ADMIN_PASSWORD environment variable for secure credential management.
+*   **AI-Powered Quote Estimation:** Free instant cost estimates for events using OpenAI GPT with Indian market-specific pricing intelligence. Features include:
+    *   **Multi-Step Form:** 3-step wizard collecting guest info, event details (type, date, location), and guest count
+    *   **Event Types:** Wedding, Birthday Party, College Reunion, School Reunion, Corporate Event, Engagement, Anniversary, Baby Shower, Housewarming, Festival Celebration, Others
+    *   **Intelligent Pricing:** AI analyzes city tier (metro/tier-1/tier-2/tier-3), seasonal factors, and event type to generate accurate cost breakdowns (venue, catering, decoration, photography, entertainment, miscellaneous)
+    *   **Guest Privacy:** Non-logged-in users see watermarked previews with screenshot prevention (disabled right-click, print shortcuts, clipboard)
+    *   **User Features:** Logged-in users can save quotes and download as JSON files
 
 ### UI/UX Decisions
 
