@@ -178,7 +178,7 @@ export default function Dashboard() {
             </div>
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <Link href="/dashboard" data-testid="link-dashboard">
               <Button variant="ghost">Dashboard</Button>
             </Link>
