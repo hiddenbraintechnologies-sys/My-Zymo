@@ -105,6 +105,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export event members with all details and photos
+  app.get('/api/events/:id/export-members', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = req.params.id;
+      const userId = req.user.id;
+
+      // Check if user has access to this event
+      const canAccess = await storage.canUserAccessEvent(userId, eventId);
+      if (!canAccess) {
+        return res.status(403).json({ message: "You don't have access to this event" });
+      }
+
+      // Get event details
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Get all participants with full user details
+      const participants = await storage.getEventParticipants(eventId);
+
+      // Format participant data for export
+      const exportData = {
+        event: {
+          title: event.title,
+          description: event.description,
+          date: event.date,
+          location: event.location,
+          budget: event.budget,
+          createdAt: event.createdAt,
+        },
+        members: participants.map(p => ({
+          id: p.user.id,
+          firstName: p.user.firstName,
+          lastName: p.user.lastName,
+          email: p.user.email,
+          username: p.user.username,
+          profileImageUrl: p.user.profileImageUrl,
+          age: p.user.age,
+          dateOfBirth: p.user.dateOfBirth,
+          phone: p.user.phone,
+          bio: p.user.bio,
+          college: p.user.college,
+          graduationYear: p.user.graduationYear,
+          degree: p.user.degree,
+          currentCity: p.user.currentCity,
+          profession: p.user.profession,
+          company: p.user.company,
+          status: p.status,
+          joinedAt: p.createdAt,
+        })),
+        totalMembers: participants.length,
+        exportedAt: new Date().toISOString(),
+        exportedBy: {
+          id: req.user.id,
+          name: `${req.user.firstName} ${req.user.lastName}`,
+          email: req.user.email,
+        },
+      };
+
+      // Set headers for download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="event-${event.title.replace(/[^a-z0-9]/gi, '-')}-members-${Date.now()}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      console.error("Error exporting event members:", error);
+      res.status(500).json({ message: "Failed to export event members" });
+    }
+  });
+
   // Get single event with details (returns preview for non-participants, full data for participants)
   app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {

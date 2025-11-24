@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2 } from "lucide-react";
+import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@shared/schema";
 import { format } from "date-fns";
@@ -93,6 +93,40 @@ export default function Dashboard() {
   const handleEditClick = (eventId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setLocation(`/events/${eventId}/edit`);
+  };
+
+  const handleDownloadMembers = async (event: Event, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(`/api/events/${event.id}/export-members`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download member details');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `event-${event.title.replace(/[^a-z0-9]/gi, '-')}-members-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download complete",
+        description: "Event member details have been downloaded.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Download failed",
+        description: error.message || "Failed to download member details.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (authLoading) {
@@ -256,6 +290,15 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2 flex-wrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => handleDownloadMembers(event, e)}
+                            data-testid={`button-download-members-${event.id}`}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Members
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
