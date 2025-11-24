@@ -408,6 +408,31 @@ export const webauthnCredentialsRelations = relations(webauthnCredentials, ({ on
   }),
 }));
 
+// Quotes table (for event cost estimation)
+export const quotes = pgTable("quotes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }), // Null for guest submissions
+  guestName: varchar("guest_name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone").notNull(),
+  eventType: text("event_type").notNull(),
+  eventDateTime: timestamp("event_date_time").notNull(),
+  locationCity: varchar("location_city").notNull(),
+  locationState: varchar("location_state"),
+  guestCount: integer("guest_count"),
+  estimateJson: jsonb("estimate_json"), // Stores AI-generated estimation details
+  status: text("status").notNull().default("draft"), // draft, saved
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const quotesRelations = relations(quotes, ({ one }) => ({
+  user: one(users, {
+    fields: [quotes.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas for AI tables
 export const insertAiConversationSchema = createInsertSchema(aiConversations).omit({
   id: true,
@@ -436,3 +461,14 @@ export type AiMessage = typeof aiMessages.$inferSelect;
 // Types for WebAuthn
 export type InsertWebAuthnCredential = z.infer<typeof insertWebAuthnCredentialSchema>;
 export type WebAuthnCredential = typeof webauthnCredentials.$inferSelect;
+
+// Insert schema for quotes
+export const insertQuoteSchema = createInsertSchema(quotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for quotes
+export type InsertQuote = z.infer<typeof insertQuoteSchema>;
+export type Quote = typeof quotes.$inferSelect;
