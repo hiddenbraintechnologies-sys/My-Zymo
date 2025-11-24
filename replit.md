@@ -28,6 +28,7 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
 *   **AI-Assisted Reply Suggestions:** AI (OpenAI GPT-5) generates contextual reply suggestions for direct messages, displayed as clickable badges.
 *   **Event Privacy System:** Events are private by default, accessible only by the creator and invited participants. Access control checks are implemented across API endpoints and WebSockets.
 *   **Dashboard:** A personalized dashboard shows user-created or explicitly joined private events, featuring a LinkedIn-style chat interface for selected events.
+*   **Event Management:** Event creators can edit and delete their events from the dashboard. Edit and Delete buttons appear on event cards only for the creator. Editing opens a pre-populated form that updates the event details. Deletion requires confirmation via an AlertDialog. Backend authorization ensures only creators can modify their events.
 *   **Chat System:** Real-time chat via WebSockets with emoji picker, proper sender attribution, and message persistence.
 *   **AI Guide:** A prominent AI Guide in the navbar provides application walkthroughs and feature suggestions, supporting onboarding and general queries.
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
