@@ -25,6 +25,7 @@ function Router() {
       <Route path="/vendors" component={Vendors} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/profile" component={Profile} />
+      <Route path="/messages/:userId" component={Messages} />
       <Route path="/messages" component={Messages} />
       <Route component={NotFound} />
     </Switch>

@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import type { DirectMessage, User } from "@shared/schema";
 
@@ -25,7 +26,9 @@ type DirectMessageWithUser = DirectMessage & {
 
 export default function Messages() {
   const { user: currentUser } = useAuth();
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [, params] = useRoute("/messages/:userId");
+  const [, setLocation] = useLocation();
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(params?.userId || null);
   const [messageContent, setMessageContent] = useState("");
   const [messages, setMessages] = useState<DirectMessageWithUser[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,6 +37,13 @@ export default function Messages() {
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<ConversationListItem[]>({
     queryKey: ["/api/direct-messages/conversations"],
   });
+
+  // Update selectedUserId when URL parameter changes
+  useEffect(() => {
+    if (params?.userId) {
+      setSelectedUserId(params.userId);
+    }
+  }, [params?.userId]);
 
   const { data: selectedMessages = [], isLoading: messagesLoading } = useQuery<DirectMessageWithUser[]>({
     queryKey: ["/api/direct-messages", selectedUserId],
@@ -162,7 +172,10 @@ export default function Messages() {
                 {conversations.map((conv) => (
                   <button
                     key={conv.userId}
-                    onClick={() => setSelectedUserId(conv.userId)}
+                    onClick={() => {
+                      setSelectedUserId(conv.userId);
+                      setLocation(`/messages/${conv.userId}`);
+                    }}
                     className={`w-full p-3 rounded-md text-left transition-colors hover-elevate active-elevate-2 ${
                       selectedUserId === conv.userId
                         ? "bg-accent"
