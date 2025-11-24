@@ -15,9 +15,11 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// Users table - modified for Replit Auth compatibility
+// Users table - supports both custom auth (username/password) and social auth
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
+  id: varchar("id").primaryKey().notNull().default(sql`gen_random_uuid()`),
+  username: varchar("username").unique(), // For custom auth
+  password: varchar("password"), // Hashed password for custom auth (null for social auth users)
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
