@@ -65,6 +65,15 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
     *   **Intelligent Pricing:** AI analyzes city tier (metro/tier-1/tier-2/tier-3), seasonal factors, and event type to generate accurate cost breakdowns (venue, catering, decoration, photography, entertainment, miscellaneous)
     *   **Guest Privacy:** Non-logged-in users see watermarked previews with screenshot prevention (disabled right-click, print shortcuts, clipboard)
     *   **User Features:** Logged-in users can save quotes and download as JSON files
+*   **AI Event Title & Description Suggestions:** Intelligent event creation assistant powered by OpenAI GPT-5 with cultural awareness for Indian celebrations. Features include:
+    *   **Event Type Selector:** Dropdown with 16 common Indian event types (Birthday Party, Wedding, Diwali Celebration, Holi Celebration, College Reunion, etc.)
+    *   **Context-Aware Suggestions:** AI generates culturally appropriate titles and descriptions based on event type, date, location, and guest count
+    *   **Multiple Options:** Provides 4 creative title suggestions and 3 engaging description suggestions per generation
+    *   **Regeneration:** Users can regenerate suggestions for more variety without losing form data
+    *   **One-Click Application:** Clicking a suggestion instantly populates the respective form field
+    *   **Optional Feature:** Completely non-intrusive - users can skip AI and manually enter details
+    *   **API Endpoint:** POST /api/ai/event-suggestions (authenticated) with graceful fallbacks
+    *   **Clean UX:** Clear loading states, error handling with retry, and clickable badge/button suggestions
 
 ### UI/UX Decisions
 
