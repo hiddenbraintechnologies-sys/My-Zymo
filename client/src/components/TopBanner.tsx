@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, X } from "lucide-react";
+import { Sparkles, ArrowRight, X, Bot } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import AIAssistantNavbar from "@/components/AIAssistantNavbar";
 
 export default function TopBanner() {
   const [, setLocation] = useLocation();
@@ -50,20 +51,32 @@ export default function TopBanner() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-4">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-500 text-white font-semibold text-lg px-10 py-7 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
-              data-testid="button-top-banner-signup"
-              onClick={() => setLocation('/signup')}
-            >
-              Create Free Account
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              No credit card required • Free forever
-            </p>
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-center justify-center" data-testid="ai-guide-banner-section">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-orange-600 rounded-lg opacity-70 blur-sm group-hover:opacity-100 transition duration-300" />
+                <div className="relative">
+                  <AIAssistantNavbar />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 font-medium">Get Help Instantly</p>
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-500 text-white font-semibold text-lg px-10 py-7 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+                data-testid="button-top-banner-signup"
+                onClick={() => setLocation('/signup')}
+              >
+                Create Free Account
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                No credit card required • Free forever
+              </p>
+            </div>
           </div>
         </div>
 
