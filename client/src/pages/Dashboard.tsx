@@ -39,8 +39,9 @@ export default function Dashboard() {
     mutationFn: async (eventId: string) => {
       await apiRequest(`/api/events/${eventId}`, "DELETE");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    onSuccess: async () => {
+      // Invalidate and refetch events list
+      await queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Event deleted",
         description: "Your event has been successfully deleted.",

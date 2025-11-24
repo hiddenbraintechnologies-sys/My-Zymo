@@ -178,8 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only the event creator can update the event" });
       }
       
-      // Validate update data using partial schema
-      const updateSchema = insertEventSchema.partial().omit({ creatorId: true });
+      // Validate update data using partial schema with date coercion
+      const updateSchema = insertEventSchema.partial().omit({ creatorId: true }).extend({
+        date: z.coerce.date().optional(),
+      });
       const validatedUpdates = updateSchema.parse(req.body);
       
       const updatedEvent = await storage.updateEvent(req.params.id, validatedUpdates);
