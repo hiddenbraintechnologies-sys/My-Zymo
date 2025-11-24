@@ -134,7 +134,7 @@ export default function Events() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Hero Banner */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-8 text-white shadow-xl">
+        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 p-8 text-white shadow-xl">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
           <div className="relative z-10 flex items-center justify-between">
             <div>
@@ -152,7 +152,7 @@ export default function Events() {
               <Button 
                 onClick={() => setLocation("/events/create")} 
                 data-testid="button-create-event"
-                className="bg-white text-purple-600 hover:bg-white/90"
+                className="bg-white text-orange-600 hover:bg-white/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Event
@@ -165,12 +165,12 @@ export default function Events() {
         <div className="mb-6 space-y-4">
           {user && (
             <Tabs value={eventFilter} onValueChange={(value) => setEventFilter(value as EventFilter)} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/40 dark:to-purple-950/40" data-testid="tabs-event-filter">
-                <TabsTrigger value="public" data-testid="tab-public-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+              <TabsList className="grid w-full max-w-md grid-cols-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-950/40 dark:to-amber-950/40" data-testid="tabs-event-filter">
+                <TabsTrigger value="public" data-testid="tab-public-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
                   <Globe className="w-4 h-4 mr-2" />
                   Public Events
                 </TabsTrigger>
-                <TabsTrigger value="my-events" data-testid="tab-my-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+                <TabsTrigger value="my-events" data-testid="tab-my-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
                   <Lock className="w-4 h-4 mr-2" />
                   My Events
                 </TabsTrigger>
@@ -238,11 +238,11 @@ export default function Events() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedEvents.map((event, index) => {
               const gradientColors = [
-                'from-rose-100 to-pink-100 dark:from-rose-950/30 dark:to-pink-950/30 border-rose-200 dark:border-rose-800',
-                'from-blue-100 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800',
-                'from-green-100 to-emerald-100 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800',
-                'from-purple-100 to-violet-100 dark:from-purple-950/30 dark:to-violet-950/30 border-purple-200 dark:border-purple-800',
-                'from-amber-100 to-yellow-100 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800',
+                'from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-800',
+                'from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800',
+                'from-orange-100 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border-orange-200 dark:border-orange-800',
+                'from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-yellow-200 dark:border-yellow-800',
+                'from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800',
               ];
               const gradientClass = gradientColors[index % gradientColors.length];
               
@@ -268,7 +268,7 @@ export default function Events() {
                         {event.title}
                       </CardTitle>
                       {event.isPublic && (
-                        <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shrink-0">
+                        <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shrink-0">
                           <Globe className="w-3 h-3 mr-1" />
                           Public
                         </Badge>
@@ -293,16 +293,16 @@ export default function Events() {
             })}
           </div>
         ) : !error ? (
-          <Card className="p-12 border-2 border-dashed border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20">
+          <Card className="p-12 border-2 border-dashed border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/20 dark:to-amber-950/20">
             <div className="text-center space-y-4 max-w-md mx-auto">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-900/40 dark:to-pink-900/40 rounded-full blur-xl"></div>
+                  <div className="w-24 h-24 bg-gradient-to-br from-orange-200 to-amber-200 dark:from-orange-900/40 dark:to-amber-900/40 rounded-full blur-xl"></div>
                 </div>
-                <Calendar className="w-16 h-16 mx-auto text-purple-500 relative z-10" />
+                <Calendar className="w-16 h-16 mx-auto text-orange-500 relative z-10" />
               </div>
               <div>
-                <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h3 className="font-semibold text-xl mb-2 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
                   {eventFilter === "public" ? "No public events found" : "No events yet"}
                 </h3>
                 <p className="text-muted-foreground mb-4">
@@ -316,7 +316,7 @@ export default function Events() {
                   <Button 
                     onClick={() => setLocation("/events/create")} 
                     data-testid="button-create-first-event"
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+                    className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Create Your First Event
@@ -326,7 +326,7 @@ export default function Events() {
                   <Button 
                     onClick={() => setLocation("/login")} 
                     data-testid="button-login-to-create"
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+                    className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
                   >
                     Log In to Create Events
                   </Button>

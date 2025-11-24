@@ -15,12 +15,14 @@ Preferred communication style: Simple, everyday language.
 The frontend employs a vibrant, celebration-themed design with an orange/coral color scheme and a custom logo. It features a mobile-native layout with touch-optimized components, integrating popular UX patterns from Instagram, WhatsApp, and Airbnb.
 
 **Vibrant Design System:**
-*   **Color Gradients:** Extensive use of CSS gradients throughout the application for depth and energy (orange/amber, blue/cyan, purple/pink, green/emerald, rose/pink)
-*   **Dashboard Welcome Banner:** Full-width gradient hero section with pattern overlay, Sparkles icon, event statistics cards with glass-morphism effects
+*   **Primary Color Palette:** Warm celebration theme with orange/amber/coral gradients as the primary color scheme throughout the application
+*   **Color Gradients:** Sophisticated use of CSS gradients for depth and energy, featuring warm tones (orange/amber/yellow) with softer saturation for a refined look
+*   **Dashboard Welcome Banner:** Full-width gradient hero section with orange-amber gradient, pattern overlay, Sparkles icon, and event statistics cards with glass-morphism effects
+*   **Events Page Hero:** Matching orange-amber gradient (`from-orange-500 via-amber-500 to-orange-600`) for visual consistency
 *   **Color-Coded Quick Actions:** Three distinct gradient cards (orange for Create Event, blue for My Events, purple for Find Vendors) with themed icons and badges
-*   **Rotating Event Cards:** Five distinct gradient color schemes that rotate by index for visual variety
-*   **Gradient Typography:** Section headers use gradient text (bg-clip-text technique) for visual hierarchy
-*   **Festive Empty States:** Vibrant designs with blur effects and themed call-to-action buttons
+*   **Rotating Event Cards:** Five warm gradient color schemes using orange/amber/yellow variations that rotate by index for visual variety while maintaining thematic coherence
+*   **Gradient Typography:** Section headers use warm gradient text (bg-clip-text technique) with orange-amber tones for visual hierarchy
+*   **Festive Empty States:** Warm, celebration-themed designs with orange/amber gradients, blur effects, and themed call-to-action buttons
 *   **Glass-Morphism Effects:** Backdrop blur and semi-transparent backgrounds for modern aesthetics
 *   **Shadow System:** Consistent use of shadow-lg and shadow-xl for elevation and depth
 *   **Smooth Transitions:** Hover effects and animations throughout for interactive feedback
