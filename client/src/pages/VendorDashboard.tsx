@@ -14,7 +14,7 @@ export default function VendorDashboard() {
   const [, navigate] = useLocation();
 
   // Fetch vendor profile (protected endpoint)
-  const { data: myVendor, isLoading: isLoadingVendor } = useQuery<Vendor>({
+  const { data: myVendor, isLoading: isLoadingVendor, error: vendorError } = useQuery<Vendor, { approvalStatus?: string }>({
     queryKey: ["/api/vendor/profile"],
     enabled: !!user && user.role === "vendor",
   });
@@ -39,6 +39,32 @@ export default function VendorDashboard() {
         <Skeleton className="h-12 w-64" />
         <Skeleton className="h-64" />
         <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  // Handle approval status errors
+  if (vendorError && (vendorError as any).approvalStatus) {
+    const approvalStatus = (vendorError as any).approvalStatus;
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {approvalStatus === 'pending' ? '⏳ Approval Pending' : '❌ Account Rejected'}
+            </CardTitle>
+            <CardDescription>
+              {approvalStatus === 'pending' 
+                ? 'Your vendor account is currently under review. Our admin team will review your application and approve it soon. You will be able to access your dashboard once approved.'
+                : 'Your vendor account has been rejected. Please contact support for more information.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate("/")} variant="outline" data-testid="button-home">
+              Back to Home
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

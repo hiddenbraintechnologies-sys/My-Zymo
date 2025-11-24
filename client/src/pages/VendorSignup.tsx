@@ -275,8 +275,8 @@ export default function VendorSignup() {
             <div className="text-center text-sm">
               Already have a vendor account?{" "}
               <Button
-                variant="link"
-                className="p-0"
+                variant="ghost"
+                className="p-0 h-auto"
                 onClick={() => navigate("/vendor/login")}
                 data-testid="link-login"
               >
