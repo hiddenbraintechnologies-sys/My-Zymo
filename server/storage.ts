@@ -84,6 +84,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    // Check if user exists before insert
+    const existingUser = await this.getUserByEmail(userData.email);
+    const isNewUser = !existingUser;
+    
     const [user] = await db
       .insert(users)
       .values(userData)
@@ -100,6 +104,32 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    
+    // If this is a new user, automatically add them to all sample events
+    if (isNewUser) {
+      console.log('[Storage] New user created, adding to sample events:', user.email);
+      try {
+        // Get all sample events (created by system@myzymo.com user)
+        const systemUser = await db.select().from(users).where(eq(users.email, 'system@myzymo.com')).limit(1);
+        if (systemUser.length > 0) {
+          const sampleEvents = await db.select().from(events).where(eq(events.creatorId, systemUser[0].id));
+          
+          // Add new user as participant to all sample events
+          for (const event of sampleEvents) {
+            await db.insert(eventParticipants).values({
+              eventId: event.id,
+              userId: user.id,
+              status: 'going',
+            }).onConflictDoNothing();
+          }
+          console.log('[Storage] Added new user to', sampleEvents.length, 'sample events');
+        }
+      } catch (error) {
+        console.error('[Storage] Error adding new user to sample events:', error);
+        // Don't fail user creation if adding to sample events fails
+      }
+    }
+    
     return user;
   }
 

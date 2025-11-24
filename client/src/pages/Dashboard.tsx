@@ -161,7 +161,7 @@ export default function Dashboard() {
               </div>
             ) : events && events.length > 0 ? (
               <div className="space-y-4">
-                {events.slice(0, 4).map((event) => (
+                {events.map((event) => (
                   <Card 
                     key={event.id} 
                     className="hover-elevate"

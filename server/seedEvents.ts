@@ -19,6 +19,7 @@ export async function seedDefaultEvents() {
     if (systemUser.length === 0) {
       console.log('[Seed] No users found, creating system user for sample events');
       const [newUser] = await db.insert(users).values({
+        id: 'system-myzymo-user',
         email: 'system@myzymo.com',
         firstName: 'Myzymo',
         lastName: 'Team',

@@ -17,7 +17,7 @@ export const sessions = pgTable(
 
 // Users table - modified for Replit Auth compatibility
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
