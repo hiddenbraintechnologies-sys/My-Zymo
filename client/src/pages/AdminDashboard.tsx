@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, Store, Shield, ChevronRight } from "lucide-react";
+import { Users, Calendar, Store, Shield, ChevronRight, LogOut } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStats {
@@ -24,6 +24,10 @@ export default function AdminDashboard() {
     queryKey: ['/api/admin/stats'],
   });
 
+  const handleLogout = () => {
+    window.location.href = '/api/logout';
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -42,7 +46,18 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-1">Manage users, events, and vendors</p>
         </div>
-        <Shield className="w-10 h-10 text-primary" />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="gap-2"
+            data-testid="button-logout"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
+          <Shield className="w-10 h-10 text-primary" />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
