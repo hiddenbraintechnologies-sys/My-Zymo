@@ -746,6 +746,29 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
 
   // Store active connections by event ID
   const eventConnections = new Map<string, Set<WebSocket>>();
+  // Track active users per event: Map<eventId, Map<userId, WebSocket>>
+  const eventActiveUsers = new Map<string, Map<string, WebSocket>>();
+
+  // Helper to broadcast presence updates
+  const broadcastPresence = async (eventId: string) => {
+    const activeUsers = eventActiveUsers.get(eventId);
+    if (!activeUsers) return;
+    
+    const activeUserIds = Array.from(activeUsers.keys());
+    const presenceData = JSON.stringify({
+      type: 'presence',
+      activeUsers: activeUserIds,
+    });
+    
+    const connections = eventConnections.get(eventId);
+    if (connections) {
+      connections.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(presenceData);
+        }
+      });
+    }
+  };
 
   wss.on('connection', (ws, req: IncomingMessage) => {
     let currentEventId: string | null = null;
@@ -778,7 +801,16 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
           }
           eventConnections.get(currentEventId)!.add(ws);
           
+          // Track active user
+          if (!eventActiveUsers.has(currentEventId)) {
+            eventActiveUsers.set(currentEventId, new Map());
+          }
+          eventActiveUsers.get(currentEventId)!.set(authenticatedUserId, ws);
+          
           ws.send(JSON.stringify({ type: 'joined', eventId: currentEventId }));
+          
+          // Broadcast updated presence to all users in the event
+          await broadcastPresence(currentEventId);
         } else if (message.type === 'message' && currentEventId) {
           // Verify authenticated user still has access (in case they were removed)
           const hasAccess = await storage.canUserAccessEvent(authenticatedUserId, currentEventId);
@@ -827,7 +859,7 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
       }
     });
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
       // Remove connection from all rooms
       if (currentEventId) {
         const connections = eventConnections.get(currentEventId);
@@ -835,6 +867,18 @@ Remember: You're guiding them through onboarding, not interrogating them. Make i
           connections.delete(ws);
           if (connections.size === 0) {
             eventConnections.delete(currentEventId);
+          }
+        }
+        
+        // Remove user from active users
+        const activeUsers = eventActiveUsers.get(currentEventId);
+        if (activeUsers) {
+          activeUsers.delete(authenticatedUserId);
+          if (activeUsers.size === 0) {
+            eventActiveUsers.delete(currentEventId);
+          } else {
+            // Broadcast updated presence to remaining users
+            await broadcastPresence(currentEventId);
           }
         }
       }
