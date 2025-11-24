@@ -11,7 +11,6 @@ import type { Event } from "@shared/schema";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { useToast } from "@/hooks/use-toast";
-import DashboardChat from "@/components/DashboardChat";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   AlertDialog,
@@ -308,9 +307,8 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Events Section */}
-          <div>
+        {/* Events Section */}
+        <div>
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
@@ -499,18 +497,6 @@ export default function Dashboard() {
               </Card>
             )}
           </div>
-
-          {/* Chat Section */}
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-heading font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-                <Users className="w-6 h-6 text-orange-400 dark:text-orange-300" />
-                Chat with Participants
-              </h2>
-            </div>
-            <DashboardChat />
-          </div>
-        </div>
       </main>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
