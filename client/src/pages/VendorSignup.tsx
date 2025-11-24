@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, Store } from "lucide-react";
+import { Eye, EyeOff, Store, Sparkles } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
@@ -92,6 +92,45 @@ export default function VendorSignup() {
 
   const handleSocialLogin = () => {
     window.location.href = "/api/vendor/auth/login";
+  };
+
+  const generateDescriptionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("/api/vendor/generate-description", "POST", {
+        businessName: formData.businessName,
+        category: formData.category,
+        location: formData.location,
+        priceRange: formData.priceRange,
+        existingDescription: formData.description,
+      });
+      return await response.json();
+    },
+    onSuccess: (data: any) => {
+      setFormData(prev => ({ ...prev, description: data.description }));
+      toast({
+        title: "Description Generated!",
+        description: "AI has created a professional description for your business.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Please try again or write your own description.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleGenerateDescription = () => {
+    if (!formData.businessName || !formData.category) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in your business name and category first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    generateDescriptionMutation.mutate();
   };
 
   return (
@@ -289,7 +328,30 @@ export default function VendorSignup() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Business Description</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Business Description</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateDescription}
+                    disabled={generateDescriptionMutation.isPending || !formData.businessName || !formData.category}
+                    data-testid="button-generate-description"
+                    className="h-8"
+                  >
+                    {generateDescriptionMutation.isPending ? (
+                      <>
+                        <Sparkles className="h-3 w-3 mr-1 animate-pulse" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Generate with AI
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   name="description"
@@ -299,6 +361,9 @@ export default function VendorSignup() {
                   placeholder="Describe your services..."
                   rows={4}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Fill in your business name and category, then click "Generate with AI" for a professional description
+                </p>
               </div>
 
               <div className="space-y-2">

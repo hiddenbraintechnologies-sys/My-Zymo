@@ -1118,6 +1118,80 @@ Provide a detailed cost estimation in JSON format.`;
     }
   });
 
+  // POST /api/vendor/generate-description - AI-powered business description generator
+  app.post('/api/vendor/generate-description', async (req, res) => {
+    try {
+      const { businessName, category, location, priceRange, existingDescription } = req.body;
+      
+      if (!businessName || !category) {
+        return res.status(400).json({ message: "Business name and category are required" });
+      }
+      
+      const { chatWithAI } = await import('./openai');
+      
+      const systemPrompt = `You are an expert business copywriter specializing in the Indian event and celebration industry. Your task is to write compelling, professional business descriptions for vendors.
+
+Guidelines:
+- Write in a warm, professional tone that appeals to Indian customers planning celebrations
+- Highlight unique selling points and service quality
+- Keep it concise (50-150 words)
+- Use natural, engaging language without excessive marketing jargon
+- Mention relevant experience, specialties, or certifications if appropriate
+- Make it customer-focused and benefit-oriented
+
+Return ONLY the business description text, without any additional formatting, quotes, or explanations.`;
+
+      const categoryDetails: Record<string, string> = {
+        venue: "event venues and banquet halls",
+        catering: "catering and food services",
+        photography: "photography and videography",
+        decoration: "event decoration and design",
+        entertainment: "entertainment and performances",
+        other: "celebration services"
+      };
+
+      const priceRangeText: Record<string, string> = {
+        "₹": "budget-friendly",
+        "₹₹": "moderately priced",
+        "₹₹₹": "premium",
+        "₹₹₹₹": "luxury"
+      };
+
+      let userPrompt = `Generate a compelling business description for:
+
+Business Name: ${businessName}
+Category: ${categoryDetails[category] || category}
+Location: ${location || 'India'}`;
+
+      if (priceRange) {
+        userPrompt += `\nPrice Range: ${priceRangeText[priceRange] || 'varied pricing'}`;
+      }
+
+      if (existingDescription && existingDescription.trim()) {
+        userPrompt += `\n\nCurrent description (IMPORTANT: Keep ALL existing content and only improve grammar, flow, and professionalism. Do NOT remove or replace any information - only polish and enhance what's already there):\n${existingDescription}`;
+      } else {
+        userPrompt += `\n\nCreate a fresh, engaging description highlighting why customers should choose this business for their celebration needs.`;
+      }
+
+      const aiResponse = await chatWithAI([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]);
+      
+      // Clean up the response (remove quotes if AI wrapped it)
+      let description = aiResponse.trim();
+      if ((description.startsWith('"') && description.endsWith('"')) || 
+          (description.startsWith("'") && description.endsWith("'"))) {
+        description = description.slice(1, -1);
+      }
+      
+      res.json({ description });
+    } catch (error: any) {
+      console.error("Error generating business description:", error);
+      res.status(500).json({ message: error.message || "Failed to generate description" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time chat - blueprint: javascript_websocket
