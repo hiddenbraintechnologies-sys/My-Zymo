@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -7,12 +8,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, ArrowLeft, Globe, Lock } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertEventSchema, type InsertEvent } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { z } from "zod";
+import { EventFieldSuggestions } from "@/components/EventFieldSuggestions";
 
 // Form schema with string date (for datetime-local input)
 // Omit creatorId since backend sets it from session
@@ -22,9 +25,29 @@ const formSchema = insertEventSchema.omit({ creatorId: true }).extend({
 
 type FormData = z.infer<typeof formSchema>;
 
+const EVENT_TYPES = [
+  "Birthday Party",
+  "Wedding",
+  "College Reunion",
+  "School Reunion",
+  "Corporate Event",
+  "Engagement",
+  "Anniversary",
+  "Baby Shower",
+  "Housewarming",
+  "Festival Celebration",
+  "Diwali Celebration",
+  "Holi Celebration",
+  "Eid Celebration",
+  "Christmas Party",
+  "New Year Party",
+  "Other",
+];
+
 export default function CreateEvent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [eventType, setEventType] = useState<string>("");
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -108,6 +131,36 @@ export default function CreateEvent() {
       <main className="max-w-2xl mx-auto px-4 py-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Event Type Selector - for AI suggestions */}
+            <div className="space-y-2">
+              <label htmlFor="event-type" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Event Type (Optional - helps with AI suggestions)
+              </label>
+              <Select value={eventType} onValueChange={setEventType}>
+                <SelectTrigger id="event-type" data-testid="select-event-type">
+                  <SelectValue placeholder="Select event type for AI suggestions" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* AI Suggestions - shown when event type is selected */}
+            {eventType && (
+              <EventFieldSuggestions
+                eventType={eventType}
+                date={form.watch("date")}
+                location={form.watch("location")}
+                onSelectTitle={(title) => form.setValue("title", title)}
+                onSelectDescription={(description) => form.setValue("description", description)}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="title"

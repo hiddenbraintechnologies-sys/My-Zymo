@@ -1311,6 +1311,84 @@ Location: ${location || 'India'}`;
     }
   });
 
+  // AI Event Suggestions - Generate title and description suggestions for event creation
+  app.post('/api/ai/event-suggestions', isAuthenticated, async (req, res) => {
+    try {
+      const { eventType, date, location, guestCount } = req.body;
+      
+      if (!eventType) {
+        return res.status(400).json({ message: "Event type is required" });
+      }
+
+      const { chatWithAI } = await import('./openai');
+      
+      const systemPrompt = `You are an expert event planner specializing in celebrations in India. Generate creative, engaging, and culturally appropriate event titles and descriptions for various celebrations.
+
+Guidelines:
+- Titles should be catchy, memorable, and 3-8 words
+- Descriptions should be warm, inviting, and 30-80 words
+- Consider Indian cultural context and celebration traditions
+- Make it personal and exciting
+- Include relevant details when provided (date, location, guest count)
+- Avoid overly formal or corporate language
+- Focus on the joy and celebration aspect
+
+Return your response as a JSON object with this exact structure:
+{
+  "titles": ["title 1", "title 2", "title 3", "title 4"],
+  "descriptions": ["description 1", "description 2", "description 3"]
+}`;
+
+      let userPrompt = `Generate creative suggestions for a ${eventType}.`;
+      
+      if (date) {
+        userPrompt += `\nDate: ${date}`;
+      }
+      if (location) {
+        userPrompt += `\nLocation: ${location}`;
+      }
+      if (guestCount) {
+        userPrompt += `\nExpected guests: ${guestCount}`;
+      }
+      
+      userPrompt += `\n\nProvide 4 creative title options and 3 engaging description options.`;
+
+      const aiResponse = await chatWithAI([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]);
+      
+      // Parse AI response (extract JSON from markdown code blocks if present)
+      let suggestions;
+      try {
+        const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        const jsonStr = jsonMatch ? jsonMatch[1] : aiResponse;
+        suggestions = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        // Fallback suggestions
+        suggestions = {
+          titles: [
+            `Celebrating Together - ${eventType}`,
+            `A Special ${eventType} Gathering`,
+            `Join Us for ${eventType}`,
+            `Memorable ${eventType} Celebration`
+          ],
+          descriptions: [
+            `Join us for an unforgettable ${eventType} filled with joy, laughter, and wonderful memories. We can't wait to celebrate this special occasion with you!`,
+            `Come together to celebrate and create beautiful memories. This ${eventType} promises to be a day filled with happiness and great company.`,
+            `Mark your calendars for a spectacular ${eventType}! Let's make this celebration one to remember with friends, family, and lots of fun.`
+          ]
+        };
+      }
+      
+      res.json(suggestions);
+    } catch (error: any) {
+      console.error("Error generating event suggestions:", error);
+      res.status(500).json({ message: error.message || "Failed to generate suggestions" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time chat - blueprint: javascript_websocket
