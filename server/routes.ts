@@ -7,6 +7,7 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
 import { setupSocialAuth } from "./socialAuth";
+import { setupAuth as setupReplitAuth } from "./replitAuth";
 import { setupWebAuthn } from "./webauthn";
 import { setupAdminRoutes } from "./adminRoutes";
 import { sanitizeUser } from "@shared/sanitize";
@@ -35,10 +36,13 @@ import { db } from "./db";
 import type { IncomingMessage } from "http";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth (OIDC) for social login (Google, GitHub, X, Apple, email)
+  await setupReplitAuth(app);
+  
   // Setup custom authentication with username/password
   await setupCustomAuth(app);
   
-  // Setup social authentication (Google, Facebook, Twitter)
+  // Setup social authentication (Google, Facebook, Twitter) - Legacy
   setupSocialAuth(app);
   
   // Setup WebAuthn biometric authentication

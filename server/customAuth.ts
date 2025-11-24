@@ -48,8 +48,8 @@ const loginSchema = z.object({
 });
 
 export async function setupCustomAuth(app: Express) {
-  app.set("trust proxy", 1);
-  app.use(getSession());
+  // NOTE: Session is already set up by setupReplitAuth
+  // Don't set up session again to avoid conflicts
 
   // Signup route
   app.post('/api/auth/signup', async (req, res) => {
