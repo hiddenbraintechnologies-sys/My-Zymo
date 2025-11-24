@@ -5,13 +5,14 @@ import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupCustomAuth, isAuthenticated, sessionStore } from "./customAuth";
+import { setupCustomAuth, isAuthenticated as isAuthenticatedCustom, sessionStore } from "./customAuth";
 import { setupSocialAuth } from "./socialAuth";
 import { setupAuth as setupReplitAuth } from "./replitAuth";
 import { setupWebAuthn } from "./webauthn";
 import { setupAdminRoutes } from "./adminRoutes";
 import { setupVendorAuth } from "./vendorAuth";
 import { sanitizeUser } from "@shared/sanitize";
+import type { RequestHandler } from "express";
 
 // Extend express-session types to include passport data
 declare module 'express-session' {
@@ -36,6 +37,42 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import type { IncomingMessage } from "http";
+
+// Unified authentication middleware that supports both custom auth and Replit Auth
+const isAuthenticated: RequestHandler = async (req: any, res, next) => {
+  // Check custom auth (username/password)
+  const customUserId = (req.session as any)?.userId;
+  if (customUserId) {
+    try {
+      const user = await storage.getUser(customUserId);
+      if (user) {
+        req.user = sanitizeUser(user);
+        return next();
+      }
+    } catch (error) {
+      console.error("Error fetching user from custom auth:", error);
+    }
+  }
+  
+  // Check Replit Auth (OIDC/Passport)
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const passportUser = req.user as any;
+    if (passportUser && passportUser.claims && passportUser.claims.sub) {
+      try {
+        // Fetch user from database using the subject ID from OIDC claims
+        const user = await storage.getUserByEmail(passportUser.claims.email);
+        if (user) {
+          req.user = sanitizeUser(user);
+          return next();
+        }
+      } catch (error) {
+        console.error("Error fetching user from Replit auth:", error);
+      }
+    }
+  }
+  
+  return res.status(401).json({ message: "Unauthorized" });
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth (OIDC) for social login (Google, GitHub, X, Apple, email)
