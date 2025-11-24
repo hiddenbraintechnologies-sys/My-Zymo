@@ -25,6 +25,12 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   role: text("role").notNull().default("user"), // user, master_user, admin, super_admin
   profileImageUrl: varchar("profile_image_url"),
+  
+  // OAuth provider fields
+  provider: varchar("provider"), // 'local', 'google', 'facebook', 'twitter'
+  providerId: varchar("provider_id"), // Unique ID from the OAuth provider
+  
+  // User profile fields
   age: integer("age"),
   dateOfBirth: timestamp("date_of_birth"),
   phone: varchar("phone"),
@@ -378,6 +384,24 @@ export const aiMessagesRelations = relations(aiMessages, ({ one }) => ({
   }),
 }));
 
+// WebAuthn Credentials table (for biometric authentication)
+export const webauthnCredentials = pgTable("webauthn_credentials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  credentialId: text("credential_id").notNull().unique(),
+  publicKey: text("public_key").notNull(),
+  counter: integer("counter").notNull().default(0),
+  transports: jsonb("transports"), // USB, NFC, BLE, internal
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const webauthnCredentialsRelations = relations(webauthnCredentials, ({ one }) => ({
+  user: one(users, {
+    fields: [webauthnCredentials.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas for AI tables
 export const insertAiConversationSchema = createInsertSchema(aiConversations).omit({
   id: true,
@@ -390,9 +414,19 @@ export const insertAiMessageSchema = createInsertSchema(aiMessages).omit({
   createdAt: true,
 });
 
+// Insert schema for WebAuthn credentials
+export const insertWebAuthnCredentialSchema = createInsertSchema(webauthnCredentials).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types for AI tables
 export type InsertAiConversation = z.infer<typeof insertAiConversationSchema>;
 export type AiConversation = typeof aiConversations.$inferSelect;
 
 export type InsertAiMessage = z.infer<typeof insertAiMessageSchema>;
 export type AiMessage = typeof aiMessages.$inferSelect;
+
+// Types for WebAuthn
+export type InsertWebAuthnCredential = z.infer<typeof insertWebAuthnCredentialSchema>;
+export type WebAuthnCredential = typeof webauthnCredentials.$inferSelect;
