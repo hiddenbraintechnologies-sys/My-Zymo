@@ -1,6 +1,6 @@
 import { 
   users, events, eventParticipants, messages, directMessages, expenses, expenseSplits, vendors, bookings,
-  aiConversations, aiMessages,
+  aiConversations, aiMessages, quotes,
   type User, type UpsertUser,
   type Event, type InsertEvent,
   type EventParticipant, type InsertEventParticipant,
@@ -12,6 +12,7 @@ import {
   type Booking, type InsertBooking,
   type AiConversation, type InsertAiConversation,
   type AiMessage, type InsertAiMessage,
+  type Quote, type InsertQuote,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -94,6 +95,13 @@ export interface IStorage {
   // AI Message methods
   getConversationMessages(conversationId: string): Promise<AiMessage[]>;
   createAiMessage(message: InsertAiMessage): Promise<AiMessage>;
+  
+  // Quote methods
+  createQuote(quote: InsertQuote): Promise<Quote>;
+  getQuote(id: string): Promise<Quote | undefined>;
+  getQuotesByUser(userId: string): Promise<Quote[]>;
+  updateQuoteOwner(id: string, userId: string): Promise<Quote | undefined>;
+  updateQuoteStatus(id: string, status: string): Promise<Quote | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -797,6 +805,43 @@ export class DatabaseStorage implements IStorage {
       .where(eq(aiConversations.id, message.conversationId));
     
     return result;
+  }
+
+  // Quote methods
+  async createQuote(quote: InsertQuote): Promise<Quote> {
+    const [result] = await db.insert(quotes).values(quote).returning();
+    return result;
+  }
+
+  async getQuote(id: string): Promise<Quote | undefined> {
+    const [quote] = await db.select().from(quotes).where(eq(quotes.id, id));
+    return quote || undefined;
+  }
+
+  async getQuotesByUser(userId: string): Promise<Quote[]> {
+    return await db
+      .select()
+      .from(quotes)
+      .where(eq(quotes.userId, userId))
+      .orderBy(desc(quotes.createdAt));
+  }
+
+  async updateQuoteOwner(id: string, userId: string): Promise<Quote | undefined> {
+    const [result] = await db
+      .update(quotes)
+      .set({ userId, status: 'saved', updatedAt: new Date() })
+      .where(eq(quotes.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async updateQuoteStatus(id: string, status: string): Promise<Quote | undefined> {
+    const [result] = await db
+      .update(quotes)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(quotes.id, id))
+      .returning();
+    return result || undefined;
   }
 }
 
