@@ -47,6 +47,16 @@ PostgreSQL, via Neon serverless driver, is the primary database, managed with Dr
     *   **Statistics Dashboard:** Overview of total users, events, and vendors
     *   **Role Hierarchy:** user < master_user < admin < super_admin
     *   **Security:** All admin routes protected with middleware (requireAdmin, requireMasterUser, requireSuperAdmin). Super admin seeding uses SUPER_ADMIN_PASSWORD environment variable for secure credential management.
+*   **Vendor Dashboard System:** Separate authentication and management interface for vendor businesses:
+    *   **Vendor Registration:** Dedicated signup flow (/vendor/signup) collects both user credentials and business details (business name, category, location, pricing, description) in a single transaction. Creates user account with role='vendor' and linked vendor business entry.
+    *   **Vendor Login:** Separate login page (/vendor/login) authenticates vendors and redirects to vendor dashboard.
+    *   **Vendor Dashboard:** Protected dashboard (/vendor/dashboard) displays:
+        *   Business profile with all vendor details (name, category, location, pricing, description, image)
+        *   Statistics cards showing total bookings and pending requests
+        *   Bookings tab listing all bookings for the vendor
+    *   **Protected Endpoints:** /api/vendor/profile and /api/vendor/bookings use requireVendor middleware for role-based access control
+    *   **Navbar Integration:** "Vendors" link in main navbar points to vendor login page
+    *   **Role System:** Vendor role (0.5) sits between regular users and master_users in the hierarchy
 
 ### UI/UX Decisions
 
