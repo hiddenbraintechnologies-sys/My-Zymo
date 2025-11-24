@@ -496,6 +496,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get AI-suggested replies for a conversation
+  app.post('/api/direct-messages/:otherUserId/suggestions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { otherUserId } = req.params;
+      
+      // Verify the other user exists
+      const otherUser = await storage.getUser(otherUserId);
+      if (!otherUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get recent conversation history (last 10 messages for context)
+      const allMessages = await storage.getDirectMessagesWithUser(userId, otherUserId);
+      const recentMessages = allMessages.slice(-10);
+      
+      if (recentMessages.length === 0) {
+        // No conversation history, provide generic suggestions
+        return res.json({
+          suggestions: [
+            "Hello! How are you?",
+            "Hi! Great to connect with you!",
+            "Hey! Looking forward to chatting!"
+          ]
+        });
+      }
+      
+      // Get current user info
+      const currentUser = await storage.getUser(userId);
+      
+      // Build conversation context for AI
+      const conversationContext = recentMessages.map(msg => ({
+        role: msg.senderId === userId ? "assistant" : "user",
+        content: msg.content
+      }));
+      
+      // Create AI prompt for generating reply suggestions
+      const { chatWithAI } = await import('./openai');
+      const aiMessages = [
+        {
+          role: "system" as const,
+          content: `You are helping a user compose quick reply suggestions for a direct message conversation on Myzymo, a social gatherings platform. Generate 3 short, natural, and contextually appropriate reply options (each 5-15 words max) based on the conversation history. The suggestions should be friendly, professional, and relevant to event planning or celebrations. Return ONLY the 3 suggestions, one per line, without numbers, bullets, or extra formatting.`
+        },
+        ...conversationContext,
+        {
+          role: "user" as const,
+          content: "Generate 3 brief reply suggestions for this conversation:"
+        }
+      ];
+      
+      const aiResponse = await chatWithAI(aiMessages);
+      
+      // Parse AI response into array of suggestions
+      const suggestions = aiResponse
+        .split('\n')
+        .filter(line => line.trim().length > 0)
+        .slice(0, 3)
+        .map(s => s.trim());
+      
+      // Ensure we have at least 2 suggestions
+      if (suggestions.length < 2) {
+        suggestions.push("Thanks for the message!", "Sounds great!");
+      }
+      
+      res.json({ suggestions: suggestions.slice(0, 3) });
+    } catch (error) {
+      console.error("Error generating reply suggestions:", error);
+      // Return fallback suggestions on error
+      res.json({
+        suggestions: [
+          "Thanks for the message!",
+          "Sounds good!",
+          "Let me get back to you on that."
+        ]
+      });
+    }
+  });
+
   // === AI Assistant APIs ===
   
   // Get user's conversations
