@@ -130,9 +130,10 @@ export async function setupAuth(app: Express) {
         }
         
         try {
-          // Get the user from database to check if profile is complete
-          const userId = user.claims.sub;
-          const dbUser = await storage.getUser(userId);
+          // Get the user from database by email to check role and profile status
+          // We use email instead of Replit subject ID because existing users may have different IDs
+          const userEmail = user.claims.email;
+          const dbUser = await storage.getUserByEmail(userEmail);
           
           // Check for admin role and redirect to admin dashboard
           if (dbUser && (dbUser.role === "super_admin" || dbUser.role === "admin" || dbUser.role === "master_user")) {
