@@ -1,10 +1,11 @@
 import { 
-  users, events, eventParticipants, messages, expenses, expenseSplits, vendors, bookings,
+  users, events, eventParticipants, messages, directMessages, expenses, expenseSplits, vendors, bookings,
   aiConversations, aiMessages,
   type User, type UpsertUser,
   type Event, type InsertEvent,
   type EventParticipant, type InsertEventParticipant,
   type Message, type InsertMessage,
+  type DirectMessage, type InsertDirectMessage,
   type Expense, type InsertExpense,
   type ExpenseSplit, type InsertExpenseSplit,
   type Vendor, type InsertVendor,
@@ -42,6 +43,12 @@ export interface IStorage {
   // Message methods
   getEventMessages(eventId: string): Promise<(Message & { sender: User })[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  
+  // Direct Message methods
+  getDirectMessagesWithUser(userId: string, otherUserId: string): Promise<(DirectMessage & { sender: User, recipient: User })[]>;
+  getUserConversationsList(userId: string): Promise<{userId: string, user: User, lastMessage: DirectMessage | null, unreadCount: number}[]>;
+  createDirectMessage(message: InsertDirectMessage): Promise<DirectMessage>;
+  markDirectMessagesAsRead(userId: string, senderId: string): Promise<void>;
   
   // Expense methods
   getEventExpenses(eventId: string): Promise<(Expense & { paidBy: User, splits: (ExpenseSplit & { user: User })[] })[]>;
@@ -261,7 +268,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllEventsForUser(userId: string): Promise<Event[]> {
-    // Get all events where user is creator OR participant (including sample events)
+    // Get events created by user AND sample events user is enrolled in
+    // This is used for Events page and DashboardChat for discovery
     const createdEvents = await db.select().from(events).where(eq(events.creatorId, userId));
     
     const participantEvents = await db
@@ -282,16 +290,17 @@ export class DatabaseStorage implements IStorage {
     
     const eventMap = new Map<string, Event>();
     
-    // Add ALL user's created events (excluding system-created to avoid duplication)
+    // Add user's created events (excluding system-created to avoid duplication)
     createdEvents.forEach(e => {
       if (e.creatorId !== 'system-myzymo-user') {
         eventMap.set(e.id, e);
       }
     });
     
-    // Add ALL events where user is participant (INCLUDING sample events for discovery)
+    // Add ONLY sample events (system-created) from participant events for discovery
+    // Private events from other users should NOT appear here
     participantEvents.forEach(e => {
-      if (e.id) {
+      if (e.id && e.creatorId === 'system-myzymo-user') {
         eventMap.set(e.id, e as Event);
       }
     });
@@ -351,6 +360,110 @@ export class DatabaseStorage implements IStorage {
   async createMessage(message: InsertMessage): Promise<Message> {
     const [result] = await db.insert(messages).values(message).returning();
     return result;
+  }
+
+  // Direct Message methods
+  async getDirectMessagesWithUser(userId: string, otherUserId: string): Promise<(DirectMessage & { sender: User, recipient: User })[]> {
+    const results = await db
+      .select()
+      .from(directMessages)
+      .where(
+        sql`(${directMessages.senderId} = ${userId} AND ${directMessages.recipientId} = ${otherUserId}) OR (${directMessages.senderId} = ${otherUserId} AND ${directMessages.recipientId} = ${userId})`
+      )
+      .leftJoin(users, eq(directMessages.senderId, users.id))
+      .orderBy(directMessages.createdAt);
+    
+    // Also fetch recipient info
+    const messagesWithUsers = await Promise.all(
+      results.map(async (r) => {
+        const recipient = await db.select().from(users).where(eq(users.id, r.direct_messages.recipientId)).limit(1);
+        return {
+          ...r.direct_messages,
+          sender: r.users!,
+          recipient: recipient[0]!,
+        };
+      })
+    );
+    
+    return messagesWithUsers;
+  }
+
+  async getUserConversationsList(userId: string): Promise<{userId: string, user: User, lastMessage: DirectMessage | null, unreadCount: number}[]> {
+    // Get all unique users this user has messaged with
+    const sentMessages = await db
+      .selectDistinct({ userId: directMessages.recipientId })
+      .from(directMessages)
+      .where(eq(directMessages.senderId, userId));
+    
+    const receivedMessages = await db
+      .selectDistinct({ userId: directMessages.senderId })
+      .from(directMessages)
+      .where(eq(directMessages.recipientId, userId));
+    
+    const uniqueUserIds = new Set<string>();
+    sentMessages.forEach(m => uniqueUserIds.add(m.userId));
+    receivedMessages.forEach(m => uniqueUserIds.add(m.userId));
+    
+    // For each unique user, get their info, last message, and unread count
+    const conversations = await Promise.all(
+      Array.from(uniqueUserIds).map(async (otherUserId) => {
+        const [user] = await db.select().from(users).where(eq(users.id, otherUserId));
+        
+        // Get last message between these two users
+        const [lastMessage] = await db
+          .select()
+          .from(directMessages)
+          .where(
+            sql`(${directMessages.senderId} = ${userId} AND ${directMessages.recipientId} = ${otherUserId}) OR (${directMessages.senderId} = ${otherUserId} AND ${directMessages.recipientId} = ${userId})`
+          )
+          .orderBy(desc(directMessages.createdAt))
+          .limit(1);
+        
+        // Get unread count (messages sent to me that I haven't read)
+        const unreadCount = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(directMessages)
+          .where(
+            and(
+              eq(directMessages.recipientId, userId),
+              eq(directMessages.senderId, otherUserId),
+              eq(directMessages.isRead, false)
+            )
+          );
+        
+        return {
+          userId: otherUserId,
+          user: user!,
+          lastMessage: lastMessage || null,
+          unreadCount: Number(unreadCount[0]?.count || 0),
+        };
+      })
+    );
+    
+    // Sort by last message time (most recent first)
+    return conversations.sort((a, b) => {
+      const aTime = a.lastMessage?.createdAt?.getTime() || 0;
+      const bTime = b.lastMessage?.createdAt?.getTime() || 0;
+      return bTime - aTime;
+    });
+  }
+
+  async createDirectMessage(message: InsertDirectMessage): Promise<DirectMessage> {
+    const [result] = await db.insert(directMessages).values(message).returning();
+    return result;
+  }
+
+  async markDirectMessagesAsRead(userId: string, senderId: string): Promise<void> {
+    await db
+      .update(directMessages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(directMessages.recipientId, userId),
+          eq(directMessages.senderId, senderId),
+          eq(directMessages.isRead, false)
+        )
+      );
   }
 
   // Expense methods
