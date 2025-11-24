@@ -6,7 +6,7 @@ import { ROLES } from "./adminAuth";
 
 const SALT_ROUNDS = 10;
 
-// Middleware to require vendor authentication
+// Middleware to require vendor authentication and approval
 export async function requireVendor(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = (req.session as any)?.userId;
@@ -25,8 +25,36 @@ export async function requireVendor(req: Request, res: Response, next: NextFunct
       return res.status(403).json({ message: "Vendor access required" });
     }
     
-    // Attach user to request for use in route handlers
+    // Fetch vendor profile to check approval status
+    const vendors = await storage.getAllVendors();
+    const vendor = vendors.find(v => v.userId === userId);
+    
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor profile not found" });
+    }
+    
+    if (vendor.approvalStatus === 'rejected') {
+      return res.status(403).json({ 
+        message: "Your vendor account has been rejected", 
+        approvalStatus: 'rejected' 
+      });
+    }
+    
+    if (vendor.approvalStatus === 'pending') {
+      return res.status(403).json({ 
+        message: "Your vendor account is pending approval", 
+        approvalStatus: 'pending' 
+      });
+    }
+    
+    // Only allow access if approved
+    if (vendor.approvalStatus !== 'approved') {
+      return res.status(403).json({ message: "Vendor account not approved" });
+    }
+    
+    // Attach user and vendor to request for use in route handlers
     (req as any).user = user;
+    (req as any).vendor = vendor;
     next();
   } catch (error) {
     console.error("Error in requireVendor middleware:", error);
