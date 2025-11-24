@@ -68,10 +68,10 @@ Myzymo is a comprehensive social gatherings platform designed for the Indian mar
   - Server-side validation: profile photos limited to 3.5MB base64 (~2.6MB binary)
   - All AI system messages are emoji-free per project guidelines
   
-- **✅ Completed: Dashboard-First Authentication Flow**
-  - Updated login/signup redirect to send users directly to dashboard (/dashboard)
-  - All users (new and existing) land on dashboard after authentication
-  - Dashboard shows recent events and chat interface immediately
+- **✅ Completed: Smart Authentication Flow**
+  - New users → Profile page (/profile) to complete their profile
+  - Existing users → Dashboard (/dashboard) showing events and chat
+  - Profile completion detected by checking if user has filled: phone, college, profession, currentCity, or bio
   - Deep links and returnTo parameter still honored by Passport authentication
   
 - **✅ Completed: AI Assistant Chat Feature**

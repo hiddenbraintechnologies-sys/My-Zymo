@@ -113,11 +113,57 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/callback", (req, res, next) => {
+  app.get("/api/callback", async (req, res, next) => {
     ensureStrategy(req.hostname);
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/dashboard",
-      failureRedirect: "/api/login",
+    passport.authenticate(`replitauth:${req.hostname}`, async (err: any, user: any) => {
+      if (err) {
+        return res.redirect("/api/login");
+      }
+      if (!user) {
+        return res.redirect("/api/login");
+      }
+      
+      // Log the user in
+      req.login(user, async (loginErr) => {
+        if (loginErr) {
+          return res.redirect("/api/login");
+        }
+        
+        try {
+          // Get the user from database to check if profile is complete
+          const userId = user.claims.sub;
+          const dbUser = await storage.getUser(userId);
+          
+          // Check if user has completed their profile (beyond auth fields)
+          // New users will only have firstName/lastName from auth
+          // Existing users will have additional profile fields
+          const hasCompletedProfile = dbUser && (
+            dbUser.phone || 
+            dbUser.college || 
+            dbUser.profession || 
+            dbUser.currentCity ||
+            dbUser.bio
+          );
+          
+          // Check for returnTo parameter
+          const returnTo = (req.session as any)?.returnTo;
+          if (returnTo) {
+            delete (req.session as any).returnTo;
+            return res.redirect(returnTo);
+          }
+          
+          // Redirect based on profile completion status
+          if (hasCompletedProfile) {
+            return res.redirect("/dashboard");
+          } else {
+            return res.redirect("/profile");
+          }
+        } catch (error) {
+          console.error("Error checking profile status:", error);
+          // Default to profile page if there's an error
+          return res.redirect("/profile");
+        }
+      });
     })(req, res, next);
   });
 
