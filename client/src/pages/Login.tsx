@@ -31,11 +31,22 @@ export default function Login() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Fetch user data to check role
+      const response = await apiRequest("/api/auth/user", "GET");
+      const user = await response.json();
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
-      navigate("/");
+      
+      // Redirect admin users to admin dashboard
+      if (user.role === "super_admin" || user.role === "admin" || user.role === "master_user") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     },
     onError: (error: any) => {
       toast({
@@ -59,11 +70,22 @@ export default function Login() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Fetch user data to check role
+      const response = await apiRequest("/api/auth/user", "GET");
+      const user = await response.json();
+      
       toast({
         title: "Welcome back!",
         description: "Biometric authentication successful.",
       });
-      navigate("/");
+      
+      // Redirect admin users to admin dashboard
+      if (user.role === "super_admin" || user.role === "admin" || user.role === "master_user") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     },
     onError: (error: any) => {
       toast({
