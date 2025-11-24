@@ -272,7 +272,7 @@ export default function QuoteDialog({ open, onOpenChange }: QuoteDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <Sparkles className="h-6 w-6 text-primary" />
-            Get a Free AI-Powered Quote
+            Get a Free Quote
           </DialogTitle>
           <DialogDescription>
             Fill in your event details and get an instant cost estimate powered by AI
