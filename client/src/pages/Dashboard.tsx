@@ -3,14 +3,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, LogOut, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp } from "lucide-react";
+import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import type { Event } from "@shared/schema";
 import { format } from "date-fns";
-import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   AlertDialog,
@@ -72,10 +72,6 @@ export default function Dashboard() {
       });
     },
   });
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
 
   const handleCopyLink = (eventId: string) => {
     const eventUrl = `${window.location.origin}/events/${eventId}`;
@@ -168,50 +164,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/dashboard" data-testid="link-home">
-            <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
-              <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
-              <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Myzymo</span>
-            </div>
-          </Link>
-          
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard" data-testid="link-dashboard">
-              <Button variant="ghost" size="sm">Dashboard</Button>
-            </Link>
-            <Link href="/events" data-testid="link-events">
-              <Button variant="ghost" size="sm">Events</Button>
-            </Link>
-            <Link href="/messages" data-testid="link-messages">
-              <Button variant="ghost" size="sm">Messages</Button>
-            </Link>
-            <Link href="/vendors" data-testid="link-vendors">
-              <Button variant="ghost" size="sm">Vendors</Button>
-            </Link>
-            <Link href="/ai-assistant" data-testid="link-ai-assistant">
-              <Button variant="ghost" size="sm">AI Assistant</Button>
-            </Link>
-            <Link href="/profile" data-testid="link-profile">
-              <Button variant="ghost" size="sm">Profile</Button>
-            </Link>
-            <div className="flex items-center gap-2 ml-2 pl-2 border-l">
-              <span className="text-sm font-medium" data-testid="text-user-name">
-                {user.firstName} {user.lastName}
-              </span>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleLogout}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome Banner with Gradient */}
