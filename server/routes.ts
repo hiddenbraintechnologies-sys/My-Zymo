@@ -1817,7 +1817,7 @@ Return your response as a JSON object with this exact structure:
       }
       
       // Verify session exists - check both custom auth and Replit Auth (OIDC)
-      sessionStore.get(sessionId, (err: any, session: any) => {
+      sessionStore.get(sessionId, async (err: any, session: any) => {
         if (err || !session) {
           callback(false, 401, 'Unauthorized');
           return;
@@ -1827,8 +1827,24 @@ Return your response as a JSON object with this exact structure:
         let userId = session.userId;
         
         // If not found, check for Replit Auth (OIDC) passport session
-        if (!userId && session.passport?.user?.claims?.sub) {
-          userId = session.passport.user.claims.sub;
+        // For OIDC users, we need to look up the actual database user by email
+        if (!userId && session.passport?.user?.claims) {
+          const claims = session.passport.user.claims;
+          if (claims.email) {
+            try {
+              // Look up user by email to get the correct database ID
+              const user = await storage.getUserByEmail(claims.email);
+              if (user) {
+                userId = user.id;
+              }
+            } catch (error) {
+              console.error('[WebSocket] Error looking up user by email:', error);
+            }
+          }
+          // Fallback to sub if email lookup failed
+          if (!userId && claims.sub) {
+            userId = claims.sub;
+          }
         }
         
         if (!userId) {
