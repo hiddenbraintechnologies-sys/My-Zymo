@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2, Sparkles, Phone, Video } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
