@@ -145,6 +145,10 @@ export const directMessages = pgTable("direct_messages", {
   recipientId: varchar("recipient_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   isRead: boolean("is_read").notNull().default(false),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  fileType: text("file_type"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -205,6 +209,10 @@ export const groupMessages = pgTable("group_messages", {
   groupId: varchar("group_id").notNull().references(() => groupChats.id, { onDelete: "cascade" }),
   senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  fileType: text("file_type"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
