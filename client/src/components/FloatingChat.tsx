@@ -48,11 +48,6 @@ export default function FloatingChat() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
-  
-  // Don't show floating chat on Messages page - messages are displayed there directly
-  if (location.startsWith('/messages')) {
-    return null;
-  }
   const [isOpen, setIsOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ChatView>('event-list');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -63,6 +58,9 @@ export default function FloatingChat() {
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const callInitiatingRef = useRef(false);
+  
+  // Check if we're on the Messages page - will be used for early return after all hooks
+  const isMessagesPage = location.startsWith('/messages');
 
   // WebRTC for calling participants
   const {
@@ -273,7 +271,8 @@ export default function FloatingChat() {
   // Find selected participant for call dialog with fallback
   const selectedParticipant = (participants || []).find(p => p?.userId === selectedParticipantId);
 
-  if (!user) return null;
+  // Don't render on Messages page or if no user
+  if (!user || isMessagesPage) return null;
 
   return (
     <div 

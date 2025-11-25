@@ -62,6 +62,7 @@ export const events = pgTable("events", {
   date: timestamp("date").notNull(),
   location: text("location").notNull(),
   imageUrl: text("image_url"),
+  invitationCardUrl: text("invitation_card_url"), // AI-generated or template-based invitation card
   isPublic: boolean("is_public").notNull().default(false), // false = private, true = public
   creatorId: varchar("creator_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
