@@ -1786,6 +1786,568 @@ Return your response as a JSON object with this exact structure:
     }
   });
 
+  // ============================================
+  // GROUP PLANNING API ROUTES
+  // ============================================
+
+  // Create a new event planning group
+  app.post('/api/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const { name, description, eventType, eventDate, eventId, locationPreference, locationCity, budget } = req.body;
+      
+      if (!name || !eventType) {
+        return res.status(400).json({ message: 'Group name and event type are required' });
+      }
+      
+      const group = await storage.createEventGroup({
+        name,
+        description,
+        eventType,
+        eventDate: eventDate ? new Date(eventDate) : undefined,
+        eventId,
+        locationPreference,
+        locationCity,
+        budget,
+        createdById: req.user.id,
+      });
+      
+      res.status(201).json(group);
+    } catch (error: any) {
+      console.error('Error creating group:', error);
+      res.status(500).json({ message: error.message || 'Failed to create group' });
+    }
+  });
+
+  // Get user's planning groups
+  app.get('/api/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const groups = await storage.getUserEventGroups(req.user.id);
+      res.json(groups);
+    } catch (error: any) {
+      console.error('Error fetching groups:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch groups' });
+    }
+  });
+
+  // Get a specific group by ID
+  app.get('/api/groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const members = await storage.getEventGroupMembers(req.params.id);
+      res.json({ ...group, members });
+    } catch (error: any) {
+      console.error('Error fetching group:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch group' });
+    }
+  });
+
+  // Update a group
+  app.patch('/api/groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      if (group.createdById !== req.user.id) {
+        return res.status(403).json({ message: 'Only the group creator can update the group' });
+      }
+      
+      const updatedGroup = await storage.updateEventGroup(req.params.id, req.body);
+      res.json(updatedGroup);
+    } catch (error: any) {
+      console.error('Error updating group:', error);
+      res.status(500).json({ message: error.message || 'Failed to update group' });
+    }
+  });
+
+  // Delete a group
+  app.delete('/api/groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      if (group.createdById !== req.user.id) {
+        return res.status(403).json({ message: 'Only the group creator can delete the group' });
+      }
+      
+      await storage.deleteEventGroup(req.params.id);
+      res.json({ message: 'Group deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting group:', error);
+      res.status(500).json({ message: error.message || 'Failed to delete group' });
+    }
+  });
+
+  // Join a group via invite code
+  app.post('/api/groups/join/:code', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroupByInviteCode(req.params.code);
+      if (!group) {
+        return res.status(404).json({ message: 'Invalid invite code' });
+      }
+      
+      const existingMember = await storage.isUserEventGroupMember(group.id, req.user.id);
+      if (existingMember) {
+        return res.status(400).json({ message: 'Already a member of this group' });
+      }
+      
+      await storage.addEventGroupMember({
+        groupId: group.id,
+        userId: req.user.id,
+        role: 'member',
+        status: 'active',
+      });
+      
+      res.json({ message: 'Joined group successfully', group });
+    } catch (error: any) {
+      console.error('Error joining group:', error);
+      res.status(500).json({ message: error.message || 'Failed to join group' });
+    }
+  });
+
+  // Get group members
+  app.get('/api/groups/:id/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const members = await storage.getEventGroupMembers(req.params.id);
+      res.json(members);
+    } catch (error: any) {
+      console.error('Error fetching members:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch members' });
+    }
+  });
+
+  // Update member role
+  app.patch('/api/groups/:id/members/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroup(req.params.id);
+      if (!group || group.createdById !== req.user.id) {
+        return res.status(403).json({ message: 'Only the group creator can update roles' });
+      }
+      
+      const { role, planningRole } = req.body;
+      await storage.updateEventGroupMemberRole(req.params.id, req.params.userId, role, planningRole);
+      res.json({ message: 'Role updated successfully' });
+    } catch (error: any) {
+      console.error('Error updating member role:', error);
+      res.status(500).json({ message: error.message || 'Failed to update role' });
+    }
+  });
+
+  // Remove member from group
+  app.delete('/api/groups/:id/members/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+      
+      const isRemovingSelf = req.params.userId === req.user.id;
+      const isCreator = group.createdById === req.user.id;
+      
+      if (!isRemovingSelf && !isCreator) {
+        return res.status(403).json({ message: 'Only the group creator can remove members' });
+      }
+      
+      await storage.removeEventGroupMember(req.params.id, req.params.userId);
+      res.json({ message: 'Member removed successfully' });
+    } catch (error: any) {
+      console.error('Error removing member:', error);
+      res.status(500).json({ message: error.message || 'Failed to remove member' });
+    }
+  });
+
+  // ============================================
+  // POLL ROUTES
+  // ============================================
+
+  // Create a poll
+  app.post('/api/groups/:id/polls', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { question, pollType, options, allowMultiple, deadline, category } = req.body;
+      
+      if (!question || !options || !Array.isArray(options) || options.length < 2) {
+        return res.status(400).json({ message: 'Question and at least 2 options are required' });
+      }
+      
+      const poll = await storage.createGroupPoll(
+        {
+          groupId: req.params.id,
+          createdById: req.user.id,
+          question,
+          pollType: pollType || 'single',
+          allowMultiple: allowMultiple || false,
+          endsAt: deadline ? new Date(deadline) : undefined,
+        },
+        options
+      );
+      
+      res.status(201).json(poll);
+    } catch (error: any) {
+      console.error('Error creating poll:', error);
+      res.status(500).json({ message: error.message || 'Failed to create poll' });
+    }
+  });
+
+  // Get group polls
+  app.get('/api/groups/:id/polls', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const polls = await storage.getGroupPolls(req.params.id);
+      res.json(polls);
+    } catch (error: any) {
+      console.error('Error fetching polls:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch polls' });
+    }
+  });
+
+  // Vote on a poll
+  app.post('/api/polls/:pollId/vote', isAuthenticated, async (req: any, res) => {
+    try {
+      const poll = await storage.getPoll(req.params.pollId);
+      if (!poll) {
+        return res.status(404).json({ message: 'Poll not found' });
+      }
+      
+      const isMember = await storage.isUserEventGroupMember(poll.groupId, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { optionId } = req.body;
+      if (!optionId) {
+        return res.status(400).json({ message: 'Option ID is required' });
+      }
+      
+      await storage.voteOnPoll(req.params.pollId, optionId, req.user.id);
+      res.json({ message: 'Vote recorded successfully' });
+    } catch (error: any) {
+      console.error('Error voting:', error);
+      res.status(500).json({ message: error.message || 'Failed to record vote' });
+    }
+  });
+
+  // Close a poll
+  app.post('/api/polls/:pollId/close', isAuthenticated, async (req: any, res) => {
+    try {
+      const poll = await storage.getPoll(req.params.pollId);
+      if (!poll) {
+        return res.status(404).json({ message: 'Poll not found' });
+      }
+      
+      if (poll.createdById !== req.user.id) {
+        return res.status(403).json({ message: 'Only the poll creator can close it' });
+      }
+      
+      const { finalizedOptionId } = req.body;
+      await storage.closePoll(req.params.pollId, finalizedOptionId);
+      res.json({ message: 'Poll closed successfully' });
+    } catch (error: any) {
+      console.error('Error closing poll:', error);
+      res.status(500).json({ message: error.message || 'Failed to close poll' });
+    }
+  });
+
+  // ============================================
+  // ITINERARY ROUTES
+  // ============================================
+
+  // Create itinerary item
+  app.post('/api/groups/:id/itinerary', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { title, description, startTime, endTime, location, assignedToId, sortOrder, status } = req.body;
+      
+      if (!title || !startTime) {
+        return res.status(400).json({ message: 'Title and start time are required' });
+      }
+      
+      const item = await storage.createItineraryItem({
+        groupId: req.params.id,
+        title,
+        description,
+        startTime: new Date(startTime),
+        endTime: endTime ? new Date(endTime) : undefined,
+        location,
+        assignedToId,
+        sortOrder: sortOrder || 0,
+        status: status || 'scheduled',
+      });
+      
+      res.status(201).json(item);
+    } catch (error: any) {
+      console.error('Error creating itinerary item:', error);
+      res.status(500).json({ message: error.message || 'Failed to create itinerary item' });
+    }
+  });
+
+  // Get group itinerary
+  app.get('/api/groups/:id/itinerary', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const itinerary = await storage.getGroupItinerary(req.params.id);
+      res.json(itinerary);
+    } catch (error: any) {
+      console.error('Error fetching itinerary:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch itinerary' });
+    }
+  });
+
+  // Update itinerary item
+  app.patch('/api/itinerary/:itemId', isAuthenticated, async (req: any, res) => {
+    try {
+      const item = await storage.updateItineraryItem(req.params.itemId, req.body);
+      if (!item) {
+        return res.status(404).json({ message: 'Itinerary item not found' });
+      }
+      res.json(item);
+    } catch (error: any) {
+      console.error('Error updating itinerary item:', error);
+      res.status(500).json({ message: error.message || 'Failed to update itinerary item' });
+    }
+  });
+
+  // Delete itinerary item
+  app.delete('/api/itinerary/:itemId', isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteItineraryItem(req.params.itemId);
+      res.json({ message: 'Itinerary item deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting itinerary item:', error);
+      res.status(500).json({ message: error.message || 'Failed to delete itinerary item' });
+    }
+  });
+
+  // ============================================
+  // EXPENSE ROUTES
+  // ============================================
+
+  // Create group expense
+  app.post('/api/groups/:id/expenses', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { description, amount, category, splitType, splits, receiptUrl } = req.body;
+      
+      if (!description || !amount || !splits || !Array.isArray(splits)) {
+        return res.status(400).json({ message: 'Description, amount, and splits are required' });
+      }
+      
+      const expense = await storage.createGroupExpense(
+        {
+          groupId: req.params.id,
+          paidById: req.user.id,
+          description,
+          amount: amount.toString(),
+          category: category || 'general',
+          splitType: splitType || 'equal',
+          receiptUrl,
+        },
+        splits
+      );
+      
+      res.status(201).json(expense);
+    } catch (error: any) {
+      console.error('Error creating expense:', error);
+      res.status(500).json({ message: error.message || 'Failed to create expense' });
+    }
+  });
+
+  // Get group expenses
+  app.get('/api/groups/:id/expenses', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const expenses = await storage.getGroupExpenses(req.params.id);
+      res.json(expenses);
+    } catch (error: any) {
+      console.error('Error fetching expenses:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch expenses' });
+    }
+  });
+
+  // Get expense summary
+  app.get('/api/groups/:id/expenses/summary', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const summary = await storage.getGroupExpenseSummary(req.params.id);
+      res.json(summary);
+    } catch (error: any) {
+      console.error('Error fetching expense summary:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch expense summary' });
+    }
+  });
+
+  // Mark expense split as paid
+  app.post('/api/expenses/splits/:splitId/pay', isAuthenticated, async (req: any, res) => {
+    try {
+      const { paymentMethod, paymentReference } = req.body;
+      await storage.markExpenseSplitPaid(req.params.splitId, paymentMethod || 'cash', paymentReference);
+      res.json({ message: 'Payment recorded successfully' });
+    } catch (error: any) {
+      console.error('Error recording payment:', error);
+      res.status(500).json({ message: error.message || 'Failed to record payment' });
+    }
+  });
+
+  // ============================================
+  // PHOTO GALLERY ROUTES
+  // ============================================
+
+  // Upload event photo
+  app.post('/api/groups/:id/photos', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { imageUrl, caption, photoType, thumbnailUrl } = req.body;
+      
+      if (!imageUrl) {
+        return res.status(400).json({ message: 'Image URL is required' });
+      }
+      
+      const photo = await storage.uploadEventPhoto({
+        groupId: req.params.id,
+        uploadedById: req.user.id,
+        imageUrl,
+        caption,
+        photoType: photoType || 'event',
+        thumbnailUrl,
+      });
+      
+      res.status(201).json(photo);
+    } catch (error: any) {
+      console.error('Error uploading photo:', error);
+      res.status(500).json({ message: error.message || 'Failed to upload photo' });
+    }
+  });
+
+  // Get group photos
+  app.get('/api/groups/:id/photos', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const photos = await storage.getEventPhotos(req.params.id);
+      res.json(photos);
+    } catch (error: any) {
+      console.error('Error fetching photos:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch photos' });
+    }
+  });
+
+  // Delete photo
+  app.delete('/api/photos/:photoId', isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteEventPhoto(req.params.photoId);
+      res.json({ message: 'Photo deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting photo:', error);
+      res.status(500).json({ message: error.message || 'Failed to delete photo' });
+    }
+  });
+
+  // ============================================
+  // FEEDBACK ROUTES
+  // ============================================
+
+  // Submit event feedback
+  app.post('/api/groups/:id/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { overallRating, venueRating, foodRating, organizationRating, comments, highlights, improvements, isAnonymous } = req.body;
+      
+      if (!overallRating || overallRating < 1 || overallRating > 5) {
+        return res.status(400).json({ message: 'Overall rating (1-5) is required' });
+      }
+      
+      const feedback = await storage.submitEventFeedback({
+        groupId: req.params.id,
+        userId: req.user.id,
+        overallRating,
+        venueRating,
+        foodRating,
+        organizationRating,
+        comments,
+        highlights,
+        improvements,
+        isAnonymous: isAnonymous || false,
+      });
+      
+      res.status(201).json(feedback);
+    } catch (error: any) {
+      console.error('Error submitting feedback:', error);
+      res.status(500).json({ message: error.message || 'Failed to submit feedback' });
+    }
+  });
+
+  // Get group feedback
+  app.get('/api/groups/:id/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const group = await storage.getEventGroup(req.params.id);
+      if (!group || group.createdById !== req.user.id) {
+        return res.status(403).json({ message: 'Only the group creator can view feedback' });
+      }
+      
+      const feedback = await storage.getEventFeedback(req.params.id);
+      res.json(feedback);
+    } catch (error: any) {
+      console.error('Error fetching feedback:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch feedback' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time chat - blueprint: javascript_websocket
