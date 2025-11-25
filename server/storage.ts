@@ -1,11 +1,15 @@
 import { 
   users, events, eventParticipants, messages, directMessages, expenses, expenseSplits, vendors, bookings,
   aiConversations, aiMessages, quotes, userFollowedEvents,
+  groupChats, groupChatMembers, groupMessages,
   type User, type UpsertUser,
   type Event, type InsertEvent,
   type EventParticipant, type InsertEventParticipant,
   type Message, type InsertMessage,
   type DirectMessage, type InsertDirectMessage,
+  type GroupChat, type InsertGroupChat,
+  type GroupChatMember, type InsertGroupChatMember,
+  type GroupMessage, type InsertGroupMessage,
   type Expense, type InsertExpense,
   type ExpenseSplit, type InsertExpenseSplit,
   type Vendor, type InsertVendor,
@@ -68,6 +72,24 @@ export interface IStorage {
   getUserConversationsList(userId: string): Promise<{userId: string, user: User, lastMessage: DirectMessage | null, unreadCount: number}[]>;
   createDirectMessage(message: InsertDirectMessage): Promise<DirectMessage>;
   markDirectMessagesAsRead(userId: string, senderId: string): Promise<void>;
+  
+  // Group Chat methods
+  createGroupChat(groupChat: InsertGroupChat): Promise<GroupChat>;
+  getGroupChat(id: string): Promise<GroupChat | undefined>;
+  getUserGroupChats(userId: string): Promise<(GroupChat & { memberCount: number, lastMessage: GroupMessage | null })[]>;
+  updateGroupChat(id: string, data: Partial<InsertGroupChat>): Promise<GroupChat | undefined>;
+  deleteGroupChat(id: string): Promise<void>;
+  
+  // Group Chat Member methods
+  addGroupChatMember(member: InsertGroupChatMember): Promise<GroupChatMember>;
+  removeGroupChatMember(groupId: string, userId: string): Promise<void>;
+  getGroupChatMembers(groupId: string): Promise<(GroupChatMember & { user: User })[]>;
+  isUserGroupMember(groupId: string, userId: string): Promise<boolean>;
+  updateGroupMemberRole(groupId: string, userId: string, role: string): Promise<void>;
+  
+  // Group Message methods
+  getGroupMessages(groupId: string): Promise<(GroupMessage & { sender: User })[]>;
+  createGroupMessage(message: InsertGroupMessage): Promise<GroupMessage>;
   
   // Expense methods
   getEventExpenses(eventId: string): Promise<(Expense & { paidBy: User, splits: (ExpenseSplit & { user: User })[] })[]>;
@@ -694,6 +716,153 @@ export class DatabaseStorage implements IStorage {
           eq(directMessages.isRead, false)
         )
       );
+  }
+
+  // Group Chat methods
+  async createGroupChat(groupChatData: InsertGroupChat): Promise<GroupChat> {
+    const [result] = await db.insert(groupChats).values(groupChatData).returning();
+    
+    // Auto-add creator as admin member
+    await db.insert(groupChatMembers).values({
+      groupId: result.id,
+      userId: groupChatData.createdById,
+      role: 'admin',
+    });
+    
+    return result;
+  }
+
+  async getGroupChat(id: string): Promise<GroupChat | undefined> {
+    const [groupChat] = await db.select().from(groupChats).where(eq(groupChats.id, id));
+    return groupChat || undefined;
+  }
+
+  async getUserGroupChats(userId: string): Promise<(GroupChat & { memberCount: number, lastMessage: GroupMessage | null })[]> {
+    // Get all group IDs where user is a member
+    const memberships = await db
+      .select({ groupId: groupChatMembers.groupId })
+      .from(groupChatMembers)
+      .where(eq(groupChatMembers.userId, userId));
+    
+    const groupIds = memberships.map(m => m.groupId);
+    
+    if (groupIds.length === 0) return [];
+    
+    const results = await Promise.all(
+      groupIds.map(async (groupId) => {
+        const [groupChat] = await db.select().from(groupChats).where(eq(groupChats.id, groupId));
+        
+        if (!groupChat) return null;
+        
+        // Get member count
+        const memberCountResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(groupChatMembers)
+          .where(eq(groupChatMembers.groupId, groupId));
+        
+        // Get last message
+        const [lastMessage] = await db
+          .select()
+          .from(groupMessages)
+          .where(eq(groupMessages.groupId, groupId))
+          .orderBy(desc(groupMessages.createdAt))
+          .limit(1);
+        
+        return {
+          ...groupChat,
+          memberCount: Number(memberCountResult[0]?.count || 0),
+          lastMessage: lastMessage || null,
+        };
+      })
+    );
+    
+    return results.filter((g): g is NonNullable<typeof g> => g !== null)
+      .sort((a, b) => {
+        const aTime = a.lastMessage?.createdAt?.getTime() || a.createdAt.getTime();
+        const bTime = b.lastMessage?.createdAt?.getTime() || b.createdAt.getTime();
+        return bTime - aTime;
+      });
+  }
+
+  async updateGroupChat(id: string, data: Partial<InsertGroupChat>): Promise<GroupChat | undefined> {
+    const [result] = await db
+      .update(groupChats)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(groupChats.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteGroupChat(id: string): Promise<void> {
+    await db.delete(groupChats).where(eq(groupChats.id, id));
+  }
+
+  // Group Chat Member methods
+  async addGroupChatMember(member: InsertGroupChatMember): Promise<GroupChatMember> {
+    const [result] = await db.insert(groupChatMembers).values(member).returning();
+    return result;
+  }
+
+  async removeGroupChatMember(groupId: string, userId: string): Promise<void> {
+    await db
+      .delete(groupChatMembers)
+      .where(and(eq(groupChatMembers.groupId, groupId), eq(groupChatMembers.userId, userId)));
+  }
+
+  async getGroupChatMembers(groupId: string): Promise<(GroupChatMember & { user: User })[]> {
+    const results = await db
+      .select()
+      .from(groupChatMembers)
+      .where(eq(groupChatMembers.groupId, groupId))
+      .leftJoin(users, eq(groupChatMembers.userId, users.id));
+    
+    return results.map(r => ({
+      ...r.group_chat_members,
+      user: sanitizeUser(r.users!),
+    }));
+  }
+
+  async isUserGroupMember(groupId: string, userId: string): Promise<boolean> {
+    const [member] = await db
+      .select()
+      .from(groupChatMembers)
+      .where(and(eq(groupChatMembers.groupId, groupId), eq(groupChatMembers.userId, userId)))
+      .limit(1);
+    return !!member;
+  }
+
+  async updateGroupMemberRole(groupId: string, userId: string, role: string): Promise<void> {
+    await db
+      .update(groupChatMembers)
+      .set({ role })
+      .where(and(eq(groupChatMembers.groupId, groupId), eq(groupChatMembers.userId, userId)));
+  }
+
+  // Group Message methods
+  async getGroupMessages(groupId: string): Promise<(GroupMessage & { sender: User })[]> {
+    const results = await db
+      .select()
+      .from(groupMessages)
+      .where(eq(groupMessages.groupId, groupId))
+      .leftJoin(users, eq(groupMessages.senderId, users.id))
+      .orderBy(groupMessages.createdAt);
+    
+    return results.map(r => ({
+      ...r.group_messages,
+      sender: sanitizeUser(r.users!),
+    }));
+  }
+
+  async createGroupMessage(message: InsertGroupMessage): Promise<GroupMessage> {
+    const [result] = await db.insert(groupMessages).values(message).returning();
+    
+    // Update group's updatedAt timestamp
+    await db
+      .update(groupChats)
+      .set({ updatedAt: new Date() })
+      .where(eq(groupChats.id, message.groupId));
+    
+    return result;
   }
 
   // Expense methods
