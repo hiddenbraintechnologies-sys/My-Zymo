@@ -65,6 +65,11 @@ export const events = pgTable("events", {
   invitationCardUrl: text("invitation_card_url"), // AI-generated or template-based invitation card
   isPublic: boolean("is_public").notNull().default(false), // false = private, true = public
   creatorId: varchar("creator_id").notNull().references(() => users.id),
+  // Expense split settings
+  enableExpenseSplit: boolean("enable_expense_split").notNull().default(false),
+  expenseSplitType: text("expense_split_type").default("equal"), // equal, percentage, custom
+  estimatedBudget: decimal("estimated_budget", { precision: 12, scale: 2 }),
+  expenseCategories: jsonb("expense_categories").$type<string[]>(), // Categories like venue, food, decorations
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
