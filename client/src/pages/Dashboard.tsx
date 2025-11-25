@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp } from "lucide-react";
+import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import QuoteDialog from "@/components/QuoteDialog";
 
 type EventFilter = "private" | "public";
 
@@ -34,6 +35,7 @@ export default function Dashboard() {
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const [downloadingEventId, setDownloadingEventId] = useState<string | null>(null);
   const [eventFilter, setEventFilter] = useState<EventFilter>("private");
+  const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   
   const { data: privateEvents, isLoading: isLoadingPrivate } = useQuery<Event[]>({
     queryKey: ["/api/events/private"],
@@ -192,7 +194,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Action Cards - Vibrant and Colorful */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/events/create")} 
@@ -255,6 +257,30 @@ export default function Dashboard() {
               </CardTitle>
               <CardDescription className="text-orange-600 dark:text-orange-300">
                 Discover venues, caterers, and more
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card 
+            className="hover-elevate cursor-pointer border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 dark:from-emerald-950/20 dark:to-teal-950/20 shadow-lg hover:shadow-xl transition-all" 
+            onClick={() => setQuoteDialogOpen(true)} 
+            data-testid="card-quick-action-quote"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-3 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl shadow-md">
+                  <IndianRupee className="w-6 h-6 text-white" />
+                </div>
+                <Badge className="bg-emerald-400 text-white">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  AI
+                </Badge>
+              </div>
+              <CardTitle className="text-xl font-bold text-emerald-700 dark:text-emerald-100">
+                Get Free Quote
+              </CardTitle>
+              <CardDescription className="text-emerald-600 dark:text-emerald-300">
+                AI-powered instant cost estimate
               </CardDescription>
             </CardHeader>
           </Card>
@@ -473,6 +499,8 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <QuoteDialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen} />
     </div>
   );
 }
