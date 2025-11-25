@@ -159,6 +159,66 @@ export const directMessagesRelations = relations(directMessages, ({ one }) => ({
   }),
 }));
 
+// Group Chats table
+export const groupChats = pgTable("group_chats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  createdById: varchar("created_by_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const groupChatsRelations = relations(groupChats, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [groupChats.createdById],
+    references: [users.id],
+  }),
+  members: many(groupChatMembers),
+  messages: many(groupMessages),
+}));
+
+// Group Chat Members table
+export const groupChatMembers = pgTable("group_chat_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groupChats.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("member"), // admin, member
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+});
+
+export const groupChatMembersRelations = relations(groupChatMembers, ({ one }) => ({
+  group: one(groupChats, {
+    fields: [groupChatMembers.groupId],
+    references: [groupChats.id],
+  }),
+  user: one(users, {
+    fields: [groupChatMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+// Group Messages table
+export const groupMessages = pgTable("group_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groupChats.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const groupMessagesRelations = relations(groupMessages, ({ one }) => ({
+  group: one(groupChats, {
+    fields: [groupMessages.groupId],
+    references: [groupChats.id],
+  }),
+  sender: one(users, {
+    fields: [groupMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
 // Expenses table
 export const expenses = pgTable("expenses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -282,6 +342,22 @@ export const insertDirectMessageSchema = createInsertSchema(directMessages).omit
   isRead: true,
 });
 
+export const insertGroupChatSchema = createInsertSchema(groupChats).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGroupChatMemberSchema = createInsertSchema(groupChatMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertGroupMessageSchema = createInsertSchema(groupMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertExpenseSchema = createInsertSchema(expenses).omit({
   id: true,
   createdAt: true,
@@ -363,6 +439,15 @@ export type Message = typeof messages.$inferSelect;
 
 export type InsertDirectMessage = z.infer<typeof insertDirectMessageSchema>;
 export type DirectMessage = typeof directMessages.$inferSelect;
+
+export type InsertGroupChat = z.infer<typeof insertGroupChatSchema>;
+export type GroupChat = typeof groupChats.$inferSelect;
+
+export type InsertGroupChatMember = z.infer<typeof insertGroupChatMemberSchema>;
+export type GroupChatMember = typeof groupChatMembers.$inferSelect;
+
+export type InsertGroupMessage = z.infer<typeof insertGroupMessageSchema>;
+export type GroupMessage = typeof groupMessages.$inferSelect;
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;
