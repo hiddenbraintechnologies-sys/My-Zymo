@@ -57,12 +57,6 @@ export default function Vendors() {
             </Link>
             {user && (
               <>
-                <Link href="/messages" data-testid="link-messages">
-                  <Button variant="ghost">Messages</Button>
-                </Link>
-                <Link href="/ai-assistant" data-testid="link-ai-assistant">
-                  <Button variant="ghost">AI Assistant</Button>
-                </Link>
                 <Link href="/profile" data-testid="link-profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>
