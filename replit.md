@@ -62,6 +62,14 @@ Myzymo includes a comprehensive set of features:
 *   **Event Management:** Event creators can edit and delete their events, with backend authorization ensuring security.
 *   **Event Member Export:** Creators can download complete member details as JSON files for their events.
 *   **Chat System:** Real-time WebSocket-based chat with emoji support and message persistence, always visible on the dashboard with warm celebration-themed styling.
+*   **Group Chat System:** Full-featured group messaging with:
+    *   Create groups with custom names and descriptions
+    *   Add/remove members from groups
+    *   Real-time message broadcasting to all group members via WebSocket
+    *   Group presence tracking for online member visibility
+    *   Leave group functionality
+    *   Tabbed interface in Messages page switching between Direct Messages and Group Chats
+    *   Database tables: groupChats, groupChatMembers, groupMessages with proper relationships
 *   **AI Guide:** Provides application walkthroughs and feature suggestions in the navbar via popover interface (floating guide component removed per user preference).
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
 *   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields.
