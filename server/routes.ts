@@ -1732,6 +1732,10 @@ Return your response as a JSON object with this exact structure:
   const eventActiveUsers = new Map<string, Map<string, WebSocket>>();
   // Track user connections for direct messages: Map<userId, WebSocket>
   const userConnections = new Map<string, WebSocket>();
+  // Track group chat connections: Map<groupId, Set<WebSocket>>
+  const groupConnections = new Map<string, Set<WebSocket>>();
+  // Track user group memberships for message delivery: Map<groupId, Map<userId, WebSocket>>
+  const groupActiveUsers = new Map<string, Map<string, WebSocket>>();
 
   // Helper to broadcast presence updates
   const broadcastPresence = async (eventId: string) => {
@@ -1939,6 +1943,125 @@ Return your response as a JSON object with this exact structure:
               type: 'call-ended',
               senderId: authenticatedUserId,
             }));
+          }
+        } else if (message.type === 'join-group' && message.groupId) {
+          // Join a group chat room
+          const groupId = message.groupId;
+          
+          // Verify user is a member of the group
+          const isMember = await storage.isUserGroupMember(groupId, authenticatedUserId);
+          if (!isMember) {
+            ws.send(JSON.stringify({ type: 'error', message: 'You are not a member of this group' }));
+            return;
+          }
+          
+          // Add to group connections
+          if (!groupConnections.has(groupId)) {
+            groupConnections.set(groupId, new Set());
+          }
+          groupConnections.get(groupId)!.add(ws);
+          
+          // Track active user in group
+          if (!groupActiveUsers.has(groupId)) {
+            groupActiveUsers.set(groupId, new Map());
+          }
+          groupActiveUsers.get(groupId)!.set(authenticatedUserId, ws);
+          
+          ws.send(JSON.stringify({ type: 'joined-group', groupId }));
+          
+          // Broadcast group presence update
+          const groupUsers = groupActiveUsers.get(groupId);
+          const activeUserIds = groupUsers ? Array.from(groupUsers.keys()) : [];
+          const presenceData = JSON.stringify({
+            type: 'group-presence',
+            groupId,
+            activeUsers: activeUserIds,
+          });
+          
+          const connections = groupConnections.get(groupId);
+          if (connections) {
+            connections.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(presenceData);
+              }
+            });
+          }
+        } else if (message.type === 'leave-group' && message.groupId) {
+          // Leave a group chat room
+          const groupId = message.groupId;
+          
+          const connections = groupConnections.get(groupId);
+          if (connections) {
+            connections.delete(ws);
+            if (connections.size === 0) {
+              groupConnections.delete(groupId);
+            }
+          }
+          
+          const activeUsers = groupActiveUsers.get(groupId);
+          if (activeUsers) {
+            activeUsers.delete(authenticatedUserId);
+            if (activeUsers.size === 0) {
+              groupActiveUsers.delete(groupId);
+            } else {
+              // Broadcast updated presence
+              const activeUserIds = Array.from(activeUsers.keys());
+              const presenceData = JSON.stringify({
+                type: 'group-presence',
+                groupId,
+                activeUsers: activeUserIds,
+              });
+              
+              const remainingConnections = groupConnections.get(groupId);
+              if (remainingConnections) {
+                remainingConnections.forEach((client) => {
+                  if (client.readyState === WebSocket.OPEN) {
+                    client.send(presenceData);
+                  }
+                });
+              }
+            }
+          }
+          
+          ws.send(JSON.stringify({ type: 'left-group', groupId }));
+        } else if (message.type === 'group-message' && message.groupId && message.content) {
+          // Send message to a group chat
+          const groupId = message.groupId;
+          
+          // Verify user is a member
+          const isMember = await storage.isUserGroupMember(groupId, authenticatedUserId);
+          if (!isMember) {
+            ws.send(JSON.stringify({ type: 'error', message: 'You are not a member of this group' }));
+            return;
+          }
+          
+          // Save message to database
+          const savedMessage = await storage.createGroupMessage({
+            groupId,
+            senderId: authenticatedUserId,
+            content: message.content,
+          });
+          
+          // Get sender info
+          const sender = await storage.getUser(authenticatedUserId);
+          
+          // Broadcast to all group members
+          const messageData = JSON.stringify({
+            type: 'group-message',
+            groupId,
+            message: {
+              ...savedMessage,
+              sender,
+            },
+          });
+          
+          // Get all group members and send to those who are online
+          const members = await storage.getGroupChatMembers(groupId);
+          for (const member of members) {
+            const memberWs = userConnections.get(member.userId);
+            if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+              memberWs.send(messageData);
+            }
           }
         }
       } catch (error: any) {
