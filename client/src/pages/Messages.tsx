@@ -71,6 +71,8 @@ export default function Messages() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const selectedUserIdRef = useRef<string | null>(null);
+  const selectedGroupIdRef = useRef<string | null>(null);
   
   // File upload state
   const [isUploading, setIsUploading] = useState(false);
@@ -124,6 +126,15 @@ export default function Messages() {
       setAiSuggestions([]);
     }
   }, [params?.userId]);
+
+  // Keep refs in sync with state for WebSocket handler
+  useEffect(() => {
+    selectedUserIdRef.current = selectedUserId;
+  }, [selectedUserId]);
+
+  useEffect(() => {
+    selectedGroupIdRef.current = selectedGroupId;
+  }, [selectedGroupId]);
 
   const { data: selectedMessages = [], isLoading: messagesLoading } = useQuery<DirectMessageWithUser[]>({
     queryKey: ["/api/direct-messages", selectedUserId],
@@ -215,8 +226,10 @@ export default function Messages() {
     },
   });
 
-  // WebSocket connection
+  // WebSocket connection - only depends on currentUser to prevent reconnections
   useEffect(() => {
+    if (!currentUser?.id) return;
+    
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
@@ -231,23 +244,25 @@ export default function Messages() {
       
       if (data.type === "direct-message") {
         const newMessage = data.message as DirectMessageWithUser;
+        const currentSelectedUserId = selectedUserIdRef.current;
         
         if (
-          selectedUserId &&
-          (newMessage.senderId === selectedUserId || newMessage.recipientId === selectedUserId)
+          currentSelectedUserId &&
+          (newMessage.senderId === currentSelectedUserId || newMessage.recipientId === currentSelectedUserId)
         ) {
           setMessages((prev) => [...prev, newMessage]);
           
-          if (newMessage.recipientId === currentUser?.id) {
-            markAsReadMutation.mutate(selectedUserId);
+          if (newMessage.recipientId === currentUser?.id && currentSelectedUserId) {
+            markAsReadMutation.mutate(currentSelectedUserId);
           }
         }
         
         queryClient.invalidateQueries({ queryKey: ["/api/direct-messages/conversations"] });
       } else if (data.type === "group-message") {
         const newMessage = data.message as GroupMessageWithUser;
+        const currentSelectedGroupId = selectedGroupIdRef.current;
         
-        if (selectedGroupId === data.groupId) {
+        if (currentSelectedGroupId === data.groupId) {
           setGroupMessages((prev) => [...prev, newMessage]);
         }
         
@@ -262,7 +277,7 @@ export default function Messages() {
     return () => {
       ws.close();
     };
-  }, [selectedUserId, selectedGroupId, currentUser]);
+  }, [currentUser?.id]);
 
   const handleSendMessage = () => {
     if (!messageContent.trim() || !wsRef.current) return;

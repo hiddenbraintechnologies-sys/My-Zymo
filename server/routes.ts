@@ -1762,15 +1762,28 @@ Return your response as a JSON object with this exact structure:
         return;
       }
       
-      // Verify session exists (custom auth stores userId directly in session)
+      // Verify session exists - check both custom auth and Replit Auth (OIDC)
       sessionStore.get(sessionId, (err: any, session: any) => {
-        if (err || !session || !session.userId) {
+        if (err || !session) {
+          callback(false, 401, 'Unauthorized');
+          return;
+        }
+        
+        // Check for userId from custom auth
+        let userId = session.userId;
+        
+        // If not found, check for Replit Auth (OIDC) passport session
+        if (!userId && session.passport?.user?.claims?.sub) {
+          userId = session.passport.user.claims.sub;
+        }
+        
+        if (!userId) {
           callback(false, 401, 'Unauthorized');
           return;
         }
         
         // Attach authenticated userId to request for later use
-        (info.req as any).authenticatedUserId = session.userId;
+        (info.req as any).authenticatedUserId = userId;
         callback(true);
       });
     }
