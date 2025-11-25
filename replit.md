@@ -70,6 +70,14 @@ Myzymo includes a comprehensive set of features:
     *   Leave group functionality
     *   Tabbed interface in Messages page switching between Direct Messages and Group Chats
     *   Database tables: groupChats, groupChatMembers, groupMessages with proper relationships
+*   **File Sharing in Chats:** Comprehensive file sharing feature for both direct and group messages:
+    *   ObjectUploader component for seamless file selection and upload
+    *   Signed URL-based uploads to Replit Object Storage for security
+    *   Support for images (with inline previews), documents, and other file types
+    *   File metadata persistence (fileUrl, fileName, fileSize, fileType) in database
+    *   Real-time file sharing via WebSocket with proper broadcast to recipients/group members
+    *   Download links for non-image files with file size and type display
+    *   10MB file size limit with proper error handling
 *   **AI Guide:** Provides application walkthroughs and feature suggestions in the navbar via popover interface (floating guide component removed per user preference).
 *   **Smart Authentication Flow:** Redirects new users to profile completion and existing users to the dashboard.
 *   **Profile Management:** Comprehensive profile page with basic, educational, and professional fields.
