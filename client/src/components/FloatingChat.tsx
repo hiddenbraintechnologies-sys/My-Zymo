@@ -47,7 +47,12 @@ type ChatView = 'event-list' | 'chat';
 export default function FloatingChat() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // Don't show floating chat on Messages page - messages are displayed there directly
+  if (location.startsWith('/messages')) {
+    return null;
+  }
   const [isOpen, setIsOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ChatView>('event-list');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -278,7 +283,7 @@ export default function FloatingChat() {
       {!isOpen ? (
         // Closed State - Small Square Box
         <Card 
-          className="cursor-pointer hover-elevate shadow-2xl p-4 bg-gradient-to-r from-orange-300 to-amber-300 text-white relative transition-all duration-200 hover:scale-105 border-2 border-orange-200 dark:border-orange-800"
+          className="cursor-pointer hover-elevate shadow-2xl p-4 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white relative transition-all duration-200 hover:scale-105 border-2 border-orange-400 dark:border-orange-700"
           onClick={handleToggle}
           data-testid="floating-chat-closed"
           style={{ width: '64px', height: '64px' }}
@@ -299,7 +304,7 @@ export default function FloatingChat() {
           style={{ width: '380px', maxHeight: '600px', height: '500px' }}
           data-testid="floating-chat-open"
         >
-          <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3 bg-gradient-to-r from-orange-300 to-amber-300 text-white">
+          <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white">
             <CardTitle className="flex items-center gap-2 text-base">
               {currentView === 'chat' ? (
                 <Button
@@ -419,7 +424,7 @@ export default function FloatingChat() {
                                   <div
                                     className={`rounded-lg px-3 py-2 ${
                                       isCurrentUser
-                                        ? 'bg-gradient-to-r from-orange-300 to-amber-300 text-white'
+                                        ? 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white'
                                         : 'bg-muted'
                                     }`}
                                   >
@@ -482,7 +487,7 @@ export default function FloatingChat() {
                         onClick={handleSendMessage}
                         disabled={!messageInput.trim()}
                         size="icon"
-                        className="bg-gradient-to-r from-orange-300 to-amber-300 hover:from-orange-400 hover:to-amber-400 text-white h-9 w-9 flex-shrink-0"
+                        className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white h-9 w-9 flex-shrink-0"
                         data-testid="button-send-chat-message"
                       >
                         <Send className="w-4 h-4" />
