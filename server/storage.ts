@@ -2,6 +2,8 @@ import {
   users, events, eventParticipants, messages, directMessages, expenses, expenseSplits, vendors, bookings,
   aiConversations, aiMessages, quotes, userFollowedEvents,
   groupChats, groupChatMembers, groupMessages,
+  eventGroups, eventGroupMembers, groupInvitations, groupPolls, groupPollOptions, groupPollVotes,
+  groupItineraryItems, eventPhotos, vendorShortlist, eventGroupMessages, groupExpenses, groupExpenseSplits, eventFeedback,
   type User, type UpsertUser,
   type Event, type InsertEvent,
   type EventParticipant, type InsertEventParticipant,
@@ -17,6 +19,19 @@ import {
   type AiConversation, type InsertAiConversation,
   type AiMessage, type InsertAiMessage,
   type Quote, type InsertQuote,
+  type EventGroup, type InsertEventGroup,
+  type EventGroupMember, type InsertEventGroupMember,
+  type GroupInvitation, type InsertGroupInvitation,
+  type GroupPoll, type InsertGroupPoll,
+  type GroupPollOption, type InsertGroupPollOption,
+  type GroupPollVote, type InsertGroupPollVote,
+  type GroupItineraryItem, type InsertGroupItineraryItem,
+  type EventPhoto, type InsertEventPhoto,
+  type VendorShortlist, type InsertVendorShortlist,
+  type EventGroupMessage, type InsertEventGroupMessage,
+  type GroupExpense, type InsertGroupExpense,
+  type GroupExpenseSplit, type InsertGroupExpenseSplit,
+  type EventFeedback, type InsertEventFeedback,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -130,6 +145,67 @@ export interface IStorage {
   getQuotesByUser(userId: string): Promise<Quote[]>;
   updateQuoteOwner(id: string, userId: string): Promise<Quote | undefined>;
   updateQuoteStatus(id: string, status: string): Promise<Quote | undefined>;
+  
+  // Event Group (Planning Group) methods
+  createEventGroup(data: InsertEventGroup): Promise<EventGroup>;
+  getEventGroup(id: string): Promise<EventGroup | undefined>;
+  getUserEventGroups(userId: string): Promise<(EventGroup & { memberCount: number })[]>;
+  updateEventGroup(id: string, data: Partial<InsertEventGroup>): Promise<EventGroup | undefined>;
+  deleteEventGroup(id: string): Promise<void>;
+  getEventGroupByInviteCode(code: string): Promise<EventGroup | undefined>;
+  
+  // Event Group Member methods
+  addEventGroupMember(member: InsertEventGroupMember): Promise<EventGroupMember>;
+  removeEventGroupMember(groupId: string, userId: string): Promise<void>;
+  getEventGroupMembers(groupId: string): Promise<(EventGroupMember & { user: User })[]>;
+  isUserEventGroupMember(groupId: string, userId: string): Promise<boolean>;
+  updateEventGroupMemberRole(groupId: string, userId: string, role: string, planningRole?: string): Promise<void>;
+  updateMemberAttendance(groupId: string, userId: string, status: string): Promise<void>;
+  
+  // Group Invitation methods
+  createGroupInvitation(invitation: InsertGroupInvitation): Promise<GroupInvitation>;
+  getGroupInvitations(groupId: string): Promise<GroupInvitation[]>;
+  getInvitationByCode(code: string): Promise<GroupInvitation | undefined>;
+  acceptGroupInvitation(code: string, userId: string): Promise<void>;
+  cancelGroupInvitation(id: string): Promise<void>;
+  
+  // Group Poll methods
+  createGroupPoll(poll: InsertGroupPoll, options: string[]): Promise<GroupPoll>;
+  getGroupPolls(groupId: string): Promise<(GroupPoll & { options: GroupPollOption[], votes: GroupPollVote[] })[]>;
+  getPoll(id: string): Promise<(GroupPoll & { options: GroupPollOption[], votes: GroupPollVote[] }) | undefined>;
+  voteOnPoll(pollId: string, optionId: string, userId: string): Promise<void>;
+  closePoll(pollId: string, finalizedOptionId?: string): Promise<void>;
+  
+  // Group Itinerary methods
+  createItineraryItem(item: InsertGroupItineraryItem): Promise<GroupItineraryItem>;
+  getGroupItinerary(groupId: string): Promise<(GroupItineraryItem & { assignedTo: User | null })[]>;
+  updateItineraryItem(id: string, data: Partial<InsertGroupItineraryItem>): Promise<GroupItineraryItem | undefined>;
+  deleteItineraryItem(id: string): Promise<void>;
+  
+  // Event Photo methods
+  uploadEventPhoto(photo: InsertEventPhoto): Promise<EventPhoto>;
+  getEventPhotos(groupId: string): Promise<(EventPhoto & { uploadedBy: User })[]>;
+  deleteEventPhoto(id: string): Promise<void>;
+  
+  // Vendor Shortlist methods
+  addToVendorShortlist(item: InsertVendorShortlist): Promise<VendorShortlist>;
+  getVendorShortlist(groupId: string): Promise<(VendorShortlist & { vendor: Vendor, addedBy: User })[]>;
+  voteForVendor(shortlistId: string): Promise<void>;
+  removeFromVendorShortlist(id: string): Promise<void>;
+  
+  // Event Group Message methods
+  getEventGroupMessages(groupId: string): Promise<(EventGroupMessage & { sender: User })[]>;
+  createEventGroupMessage(message: InsertEventGroupMessage): Promise<EventGroupMessage>;
+  
+  // Group Expense methods
+  createGroupExpense(expense: InsertGroupExpense, splits: { userId: string; amount: string; percentage?: string }[]): Promise<GroupExpense>;
+  getGroupExpenses(groupId: string): Promise<(GroupExpense & { paidBy: User, splits: (GroupExpenseSplit & { user: User })[] })[]>;
+  markExpenseSplitPaid(splitId: string, paymentMethod: string, paymentReference?: string): Promise<void>;
+  getGroupExpenseSummary(groupId: string): Promise<{ totalExpenses: number; perPersonBalance: Record<string, number> }>;
+  
+  // Event Feedback methods
+  submitEventFeedback(feedback: InsertEventFeedback): Promise<EventFeedback>;
+  getEventFeedback(groupId: string): Promise<(EventFeedback & { user: User })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1087,6 +1163,415 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quotes.id, id))
       .returning();
     return result || undefined;
+  }
+
+  // ============================================
+  // EVENT GROUP (PLANNING GROUP) METHODS
+  // ============================================
+  
+  async createEventGroup(data: InsertEventGroup): Promise<EventGroup> {
+    const inviteCode = this.generateInviteCode();
+    const [result] = await db.insert(eventGroups).values({
+      ...data,
+      inviteCode,
+    }).returning();
+    
+    await db.insert(eventGroupMembers).values({
+      groupId: result.id,
+      userId: data.createdById,
+      role: 'host',
+      status: 'active',
+    });
+    
+    return result;
+  }
+  
+  private generateInviteCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+  
+  async getEventGroup(id: string): Promise<EventGroup | undefined> {
+    const [group] = await db.select().from(eventGroups).where(eq(eventGroups.id, id));
+    return group || undefined;
+  }
+  
+  async getUserEventGroups(userId: string): Promise<(EventGroup & { memberCount: number })[]> {
+    const memberships = await db
+      .select({ groupId: eventGroupMembers.groupId })
+      .from(eventGroupMembers)
+      .where(eq(eventGroupMembers.userId, userId));
+    
+    const groupIds = memberships.map(m => m.groupId);
+    
+    if (groupIds.length === 0) return [];
+    
+    const results = await Promise.all(
+      groupIds.map(async (groupId) => {
+        const [group] = await db.select().from(eventGroups).where(eq(eventGroups.id, groupId));
+        if (!group) return null;
+        
+        const memberCountResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(eventGroupMembers)
+          .where(eq(eventGroupMembers.groupId, groupId));
+        
+        return {
+          ...group,
+          memberCount: Number(memberCountResult[0]?.count || 0),
+        };
+      })
+    );
+    
+    return results.filter((g): g is NonNullable<typeof g> => g !== null)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async updateEventGroup(id: string, data: Partial<InsertEventGroup>): Promise<EventGroup | undefined> {
+    const [result] = await db
+      .update(eventGroups)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(eventGroups.id, id))
+      .returning();
+    return result || undefined;
+  }
+  
+  async deleteEventGroup(id: string): Promise<void> {
+    await db.delete(eventGroups).where(eq(eventGroups.id, id));
+  }
+  
+  async getEventGroupByInviteCode(code: string): Promise<EventGroup | undefined> {
+    const [group] = await db.select().from(eventGroups).where(eq(eventGroups.inviteCode, code));
+    return group || undefined;
+  }
+  
+  // Event Group Member methods
+  async addEventGroupMember(member: InsertEventGroupMember): Promise<EventGroupMember> {
+    const [result] = await db.insert(eventGroupMembers).values(member).returning();
+    return result;
+  }
+  
+  async removeEventGroupMember(groupId: string, userId: string): Promise<void> {
+    await db.delete(eventGroupMembers)
+      .where(and(eq(eventGroupMembers.groupId, groupId), eq(eventGroupMembers.userId, userId)));
+  }
+  
+  async getEventGroupMembers(groupId: string): Promise<(EventGroupMember & { user: User })[]> {
+    const members = await db.select().from(eventGroupMembers).where(eq(eventGroupMembers.groupId, groupId));
+    
+    return Promise.all(
+      members.map(async (member) => {
+        const [user] = await db.select().from(users).where(eq(users.id, member.userId));
+        return { ...member, user: sanitizeUser(user) };
+      })
+    );
+  }
+  
+  async isUserEventGroupMember(groupId: string, userId: string): Promise<boolean> {
+    const [member] = await db.select().from(eventGroupMembers)
+      .where(and(eq(eventGroupMembers.groupId, groupId), eq(eventGroupMembers.userId, userId)));
+    return !!member;
+  }
+  
+  async updateEventGroupMemberRole(groupId: string, userId: string, role: string, planningRole?: string): Promise<void> {
+    await db.update(eventGroupMembers)
+      .set({ role, planningRole })
+      .where(and(eq(eventGroupMembers.groupId, groupId), eq(eventGroupMembers.userId, userId)));
+  }
+  
+  async updateMemberAttendance(groupId: string, userId: string, status: string): Promise<void> {
+    await db.update(eventGroupMembers)
+      .set({ attendanceStatus: status })
+      .where(and(eq(eventGroupMembers.groupId, groupId), eq(eventGroupMembers.userId, userId)));
+  }
+  
+  // Group Invitation methods
+  async createGroupInvitation(invitation: InsertGroupInvitation): Promise<GroupInvitation> {
+    const [result] = await db.insert(groupInvitations).values(invitation).returning();
+    return result;
+  }
+  
+  async getGroupInvitations(groupId: string): Promise<GroupInvitation[]> {
+    return db.select().from(groupInvitations).where(eq(groupInvitations.groupId, groupId));
+  }
+  
+  async getInvitationByCode(code: string): Promise<GroupInvitation | undefined> {
+    const [invitation] = await db.select().from(groupInvitations).where(eq(groupInvitations.inviteCode, code));
+    return invitation || undefined;
+  }
+  
+  async acceptGroupInvitation(code: string, userId: string): Promise<void> {
+    const invitation = await this.getInvitationByCode(code);
+    if (!invitation) throw new Error('Invitation not found');
+    
+    await db.update(groupInvitations)
+      .set({ status: 'accepted', acceptedAt: new Date(), acceptedByUserId: userId })
+      .where(eq(groupInvitations.inviteCode, code));
+    
+    const existingMember = await this.isUserEventGroupMember(invitation.groupId, userId);
+    if (!existingMember) {
+      await this.addEventGroupMember({
+        groupId: invitation.groupId,
+        userId,
+        role: 'member',
+        status: 'active',
+      });
+    }
+  }
+  
+  async cancelGroupInvitation(id: string): Promise<void> {
+    await db.update(groupInvitations)
+      .set({ status: 'cancelled' })
+      .where(eq(groupInvitations.id, id));
+  }
+  
+  // Group Poll methods
+  async createGroupPoll(poll: InsertGroupPoll, options: string[]): Promise<GroupPoll> {
+    const [createdPoll] = await db.insert(groupPolls).values(poll).returning();
+    
+    for (const optionText of options) {
+      await db.insert(groupPollOptions).values({
+        pollId: createdPoll.id,
+        optionText,
+      });
+    }
+    
+    return createdPoll;
+  }
+  
+  async getGroupPolls(groupId: string): Promise<(GroupPoll & { options: GroupPollOption[], votes: GroupPollVote[] })[]> {
+    const polls = await db.select().from(groupPolls)
+      .where(eq(groupPolls.groupId, groupId))
+      .orderBy(desc(groupPolls.createdAt));
+    
+    return Promise.all(
+      polls.map(async (poll) => {
+        const options = await db.select().from(groupPollOptions).where(eq(groupPollOptions.pollId, poll.id));
+        const votes = await db.select().from(groupPollVotes).where(eq(groupPollVotes.pollId, poll.id));
+        return { ...poll, options, votes };
+      })
+    );
+  }
+  
+  async getPoll(id: string): Promise<(GroupPoll & { options: GroupPollOption[], votes: GroupPollVote[] }) | undefined> {
+    const [poll] = await db.select().from(groupPolls).where(eq(groupPolls.id, id));
+    if (!poll) return undefined;
+    
+    const options = await db.select().from(groupPollOptions).where(eq(groupPollOptions.pollId, id));
+    const votes = await db.select().from(groupPollVotes).where(eq(groupPollVotes.pollId, id));
+    
+    return { ...poll, options, votes };
+  }
+  
+  async voteOnPoll(pollId: string, optionId: string, userId: string): Promise<void> {
+    const poll = await this.getPoll(pollId);
+    if (!poll || poll.status !== 'active') throw new Error('Poll not available for voting');
+    
+    if (!poll.allowMultiple) {
+      await db.delete(groupPollVotes)
+        .where(and(eq(groupPollVotes.pollId, pollId), eq(groupPollVotes.userId, userId)));
+    }
+    
+    await db.insert(groupPollVotes).values({ pollId, optionId, userId });
+    
+    await db.update(groupPollOptions)
+      .set({ voteCount: sql`vote_count + 1` })
+      .where(eq(groupPollOptions.id, optionId));
+  }
+  
+  async closePoll(pollId: string, finalizedOptionId?: string): Promise<void> {
+    await db.update(groupPolls)
+      .set({ status: 'closed', closedAt: new Date(), finalizedOptionId })
+      .where(eq(groupPolls.id, pollId));
+  }
+  
+  // Group Itinerary methods
+  async createItineraryItem(item: InsertGroupItineraryItem): Promise<GroupItineraryItem> {
+    const [result] = await db.insert(groupItineraryItems).values(item).returning();
+    return result;
+  }
+  
+  async getGroupItinerary(groupId: string): Promise<(GroupItineraryItem & { assignedTo: User | null })[]> {
+    const items = await db.select().from(groupItineraryItems)
+      .where(eq(groupItineraryItems.groupId, groupId))
+      .orderBy(groupItineraryItems.sortOrder, groupItineraryItems.startTime);
+    
+    return Promise.all(
+      items.map(async (item) => {
+        let assignedTo: User | null = null;
+        if (item.assignedToId) {
+          const [user] = await db.select().from(users).where(eq(users.id, item.assignedToId));
+          assignedTo = user ? sanitizeUser(user) : null;
+        }
+        return { ...item, assignedTo };
+      })
+    );
+  }
+  
+  async updateItineraryItem(id: string, data: Partial<InsertGroupItineraryItem>): Promise<GroupItineraryItem | undefined> {
+    const [result] = await db.update(groupItineraryItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(groupItineraryItems.id, id))
+      .returning();
+    return result || undefined;
+  }
+  
+  async deleteItineraryItem(id: string): Promise<void> {
+    await db.delete(groupItineraryItems).where(eq(groupItineraryItems.id, id));
+  }
+  
+  // Event Photo methods
+  async uploadEventPhoto(photo: InsertEventPhoto): Promise<EventPhoto> {
+    const [result] = await db.insert(eventPhotos).values(photo).returning();
+    return result;
+  }
+  
+  async getEventPhotos(groupId: string): Promise<(EventPhoto & { uploadedBy: User })[]> {
+    const photos = await db.select().from(eventPhotos)
+      .where(eq(eventPhotos.groupId, groupId))
+      .orderBy(desc(eventPhotos.createdAt));
+    
+    return Promise.all(
+      photos.map(async (photo) => {
+        const [user] = await db.select().from(users).where(eq(users.id, photo.uploadedById));
+        return { ...photo, uploadedBy: sanitizeUser(user) };
+      })
+    );
+  }
+  
+  async deleteEventPhoto(id: string): Promise<void> {
+    await db.delete(eventPhotos).where(eq(eventPhotos.id, id));
+  }
+  
+  // Vendor Shortlist methods
+  async addToVendorShortlist(item: InsertVendorShortlist): Promise<VendorShortlist> {
+    const [result] = await db.insert(vendorShortlist).values(item).returning();
+    return result;
+  }
+  
+  async getVendorShortlist(groupId: string): Promise<(VendorShortlist & { vendor: Vendor, addedBy: User })[]> {
+    const items = await db.select().from(vendorShortlist).where(eq(vendorShortlist.groupId, groupId));
+    
+    return Promise.all(
+      items.map(async (item) => {
+        const [vendor] = await db.select().from(vendors).where(eq(vendors.id, item.vendorId));
+        const [addedBy] = await db.select().from(users).where(eq(users.id, item.addedById));
+        return { ...item, vendor, addedBy: sanitizeUser(addedBy) };
+      })
+    );
+  }
+  
+  async voteForVendor(shortlistId: string): Promise<void> {
+    await db.update(vendorShortlist)
+      .set({ voteCount: sql`vote_count + 1` })
+      .where(eq(vendorShortlist.id, shortlistId));
+  }
+  
+  async removeFromVendorShortlist(id: string): Promise<void> {
+    await db.delete(vendorShortlist).where(eq(vendorShortlist.id, id));
+  }
+  
+  // Event Group Message methods
+  async getEventGroupMessages(groupId: string): Promise<(EventGroupMessage & { sender: User })[]> {
+    const msgs = await db.select().from(eventGroupMessages)
+      .where(eq(eventGroupMessages.groupId, groupId))
+      .orderBy(eventGroupMessages.createdAt);
+    
+    return Promise.all(
+      msgs.map(async (msg) => {
+        const [sender] = await db.select().from(users).where(eq(users.id, msg.senderId));
+        return { ...msg, sender: sanitizeUser(sender) };
+      })
+    );
+  }
+  
+  async createEventGroupMessage(message: InsertEventGroupMessage): Promise<EventGroupMessage> {
+    const [result] = await db.insert(eventGroupMessages).values(message).returning();
+    return result;
+  }
+  
+  // Group Expense methods
+  async createGroupExpense(expense: InsertGroupExpense, splits: { userId: string; amount: string; percentage?: string }[]): Promise<GroupExpense> {
+    const [createdExpense] = await db.insert(groupExpenses).values(expense).returning();
+    
+    for (const split of splits) {
+      await db.insert(groupExpenseSplits).values({
+        expenseId: createdExpense.id,
+        userId: split.userId,
+        amount: split.amount,
+        percentage: split.percentage,
+      });
+    }
+    
+    return createdExpense;
+  }
+  
+  async getGroupExpenses(groupId: string): Promise<(GroupExpense & { paidBy: User, splits: (GroupExpenseSplit & { user: User })[] })[]> {
+    const expenseList = await db.select().from(groupExpenses)
+      .where(eq(groupExpenses.groupId, groupId))
+      .orderBy(desc(groupExpenses.createdAt));
+    
+    return Promise.all(
+      expenseList.map(async (expense) => {
+        const [paidBy] = await db.select().from(users).where(eq(users.id, expense.paidById));
+        const splits = await db.select().from(groupExpenseSplits).where(eq(groupExpenseSplits.expenseId, expense.id));
+        
+        const splitsWithUsers = await Promise.all(
+          splits.map(async (split) => {
+            const [user] = await db.select().from(users).where(eq(users.id, split.userId));
+            return { ...split, user: sanitizeUser(user) };
+          })
+        );
+        
+        return { ...expense, paidBy: sanitizeUser(paidBy), splits: splitsWithUsers };
+      })
+    );
+  }
+  
+  async markExpenseSplitPaid(splitId: string, paymentMethod: string, paymentReference?: string): Promise<void> {
+    await db.update(groupExpenseSplits)
+      .set({ isPaid: true, paidAt: new Date(), paymentMethod, paymentReference })
+      .where(eq(groupExpenseSplits.id, splitId));
+  }
+  
+  async getGroupExpenseSummary(groupId: string): Promise<{ totalExpenses: number; perPersonBalance: Record<string, number> }> {
+    const expenses = await this.getGroupExpenses(groupId);
+    
+    let totalExpenses = 0;
+    const balances: Record<string, number> = {};
+    
+    for (const expense of expenses) {
+      totalExpenses += parseFloat(expense.amount);
+      
+      balances[expense.paidById] = (balances[expense.paidById] || 0) + parseFloat(expense.amount);
+      
+      for (const split of expense.splits) {
+        balances[split.userId] = (balances[split.userId] || 0) - parseFloat(split.amount);
+      }
+    }
+    
+    return { totalExpenses, perPersonBalance: balances };
+  }
+  
+  // Event Feedback methods
+  async submitEventFeedback(feedback: InsertEventFeedback): Promise<EventFeedback> {
+    const [result] = await db.insert(eventFeedback).values(feedback).returning();
+    return result;
+  }
+  
+  async getEventFeedback(groupId: string): Promise<(EventFeedback & { user: User })[]> {
+    const feedbackList = await db.select().from(eventFeedback).where(eq(eventFeedback.groupId, groupId));
+    
+    return Promise.all(
+      feedbackList.map(async (fb) => {
+        const [user] = await db.select().from(users).where(eq(users.id, fb.userId));
+        return { ...fb, user: sanitizeUser(user) };
+      })
+    );
   }
 }
 
