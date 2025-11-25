@@ -275,9 +275,9 @@ export default function Messages() {
           </Card>
 
           {/* Chat Area */}
-          <Card className="md:col-span-2 p-4 flex flex-col h-[600px]">
+          <Card className={`md:col-span-2 p-4 flex flex-col ${selectedUserId ? 'h-[600px]' : 'min-h-[200px]'}`}>
             {!selectedUserId ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-start justify-center pt-8 text-muted-foreground">
                 Select a conversation to start messaging
               </div>
             ) : (
