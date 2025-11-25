@@ -289,6 +289,9 @@ const InvitationCardPreview = ({
   onClick: () => void;
 }) => {
   const patternDataUrl = `data:image/svg+xml,${encodeURIComponent(getPatternSVG(template.pattern))}`;
+  const textColor = template.textColor === "white" ? "#ffffff" : "#1f2937";
+  const textColorFaded = template.textColor === "white" ? "rgba(255,255,255,0.9)" : "rgba(31,41,55,0.9)";
+  const textColorLight = template.textColor === "white" ? "rgba(255,255,255,0.7)" : "rgba(31,41,55,0.7)";
 
   return (
     <div
@@ -311,23 +314,42 @@ const InvitationCardPreview = ({
         }}
       >
         <div className="text-center">
-          <Badge variant="outline" className={`bg-${template.accentColor}/20 border-white/30 text-${template.textColor} mb-2`}>
+          <Badge 
+            variant="outline" 
+            className="border-white/30 mb-2"
+            style={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: textColor 
+            }}
+          >
             You're Invited
           </Badge>
         </div>
         <div className="text-center space-y-2">
-          <h3 className={`text-lg font-bold text-${template.textColor} drop-shadow-md line-clamp-2`}>
+          <h3 
+            className="text-lg font-bold drop-shadow-md line-clamp-2"
+            style={{ color: textColor }}
+          >
             {eventTitle || "Your Event Title"}
           </h3>
-          <p className={`text-sm text-${template.textColor}/90 drop-shadow`}>
+          <p 
+            className="text-sm drop-shadow"
+            style={{ color: textColorFaded }}
+          >
             {formatDate(eventDate)}
           </p>
-          <p className={`text-xs text-${template.textColor}/80`}>
+          <p 
+            className="text-xs"
+            style={{ color: textColorLight }}
+          >
             {eventLocation || "Event Location"}
           </p>
         </div>
         <div className="text-center">
-          <span className={`text-xs text-${template.textColor}/70`}>
+          <span 
+            className="text-xs"
+            style={{ color: textColorLight }}
+          >
             {template.name}
           </span>
         </div>
