@@ -6,11 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2, Sparkles, Phone, Video, Mail } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
-import type { DirectMessage, User } from "@shared/schema";
+import type { DirectMessage, User, GroupChat, GroupMessage, GroupChatMember } from "@shared/schema";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { IncomingCallModal } from "@/components/IncomingCallModal";
 import { ActiveCallDialog } from "@/components/ActiveCallDialog";
@@ -27,17 +33,43 @@ type DirectMessageWithUser = DirectMessage & {
   recipient: User;
 };
 
+type GroupChatWithDetails = GroupChat & {
+  memberCount: number;
+  lastMessage: GroupMessage | null;
+};
+
+type GroupMessageWithUser = GroupMessage & {
+  sender: User;
+};
+
+type GroupMemberWithUser = GroupChatMember & {
+  user: User;
+};
+
 export default function Messages() {
   const { user: currentUser } = useAuth();
   const [, params] = useRoute("/messages/:userId");
   const [, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState<"direct" | "groups">("direct");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(params?.userId || null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
   const [messages, setMessages] = useState<DirectMessageWithUser[]>([]);
+  const [groupMessages, setGroupMessages] = useState<GroupMessageWithUser[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  
+  // Create group chat state
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  
+  // Group settings state
+  const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
 
   // WebRTC for video/audio calls
   const {
@@ -60,11 +92,20 @@ export default function Messages() {
     queryKey: ["/api/direct-messages/conversations"],
   });
 
+  const { data: groupChats = [], isLoading: groupChatsLoading } = useQuery<GroupChatWithDetails[]>({
+    queryKey: ["/api/group-chats"],
+  });
+
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+  });
+
   // Update selectedUserId when URL parameter changes
   useEffect(() => {
     if (params?.userId) {
       setSelectedUserId(params.userId);
-      // Clear AI suggestions when switching conversations
+      setSelectedGroupId(null);
+      setActiveTab("direct");
       setShowSuggestions(false);
       setAiSuggestions([]);
     }
@@ -72,7 +113,17 @@ export default function Messages() {
 
   const { data: selectedMessages = [], isLoading: messagesLoading } = useQuery<DirectMessageWithUser[]>({
     queryKey: ["/api/direct-messages", selectedUserId],
-    enabled: !!selectedUserId,
+    enabled: !!selectedUserId && activeTab === "direct",
+  });
+
+  const { data: selectedGroupMessages = [], isLoading: groupMessagesLoading } = useQuery<GroupMessageWithUser[]>({
+    queryKey: ["/api/group-chats", selectedGroupId, "messages"],
+    enabled: !!selectedGroupId && activeTab === "groups",
+  });
+
+  const { data: groupMembers = [] } = useQuery<GroupMemberWithUser[]>({
+    queryKey: ["/api/group-chats", selectedGroupId, "members"],
+    enabled: !!selectedGroupId && activeTab === "groups",
   });
 
   useEffect(() => {
@@ -82,8 +133,16 @@ export default function Messages() {
   }, [selectedMessages]);
 
   useEffect(() => {
+    if (selectedGroupMessages.length > 0) {
+      setGroupMessages(selectedGroupMessages);
+    } else {
+      setGroupMessages([]);
+    }
+  }, [selectedGroupMessages]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, groupMessages]);
 
   // Mark messages as read when selecting a conversation
   const markAsReadMutation = useMutation({
@@ -96,10 +155,51 @@ export default function Messages() {
   });
 
   useEffect(() => {
-    if (selectedUserId) {
+    if (selectedUserId && activeTab === "direct") {
       markAsReadMutation.mutate(selectedUserId);
     }
-  }, [selectedUserId]);
+  }, [selectedUserId, activeTab]);
+
+  // Create group chat mutation
+  const createGroupMutation = useMutation({
+    mutationFn: async (data: { name: string; description: string; memberIds: string[] }) => {
+      const res = await apiRequest("/api/group-chats", "POST", data);
+      return await res.json();
+    },
+    onSuccess: (groupChat) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/group-chats"] });
+      setCreateGroupOpen(false);
+      setNewGroupName("");
+      setNewGroupDescription("");
+      setSelectedMembers([]);
+      setSelectedGroupId(groupChat.id);
+      setActiveTab("groups");
+    },
+  });
+
+  // Add member mutation
+  const addMemberMutation = useMutation({
+    mutationFn: async ({ groupId, memberId }: { groupId: string; memberId: string }) => {
+      return apiRequest(`/api/group-chats/${groupId}/members`, "POST", { memberId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/group-chats", selectedGroupId, "members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/group-chats"] });
+      setAddMemberOpen(false);
+    },
+  });
+
+  // Leave group mutation
+  const leaveGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      return apiRequest(`/api/group-chats/${groupId}/members/${currentUser?.id}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/group-chats"] });
+      setSelectedGroupId(null);
+      setGroupSettingsOpen(false);
+    },
+  });
 
   // WebSocket connection
   useEffect(() => {
@@ -109,7 +209,7 @@ export default function Messages() {
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("WebSocket connected for direct messages");
+      console.log("WebSocket connected for messages");
     };
 
     ws.onmessage = (event) => {
@@ -118,21 +218,26 @@ export default function Messages() {
       if (data.type === "direct-message") {
         const newMessage = data.message as DirectMessageWithUser;
         
-        // If this message is part of the currently selected conversation
         if (
           selectedUserId &&
           (newMessage.senderId === selectedUserId || newMessage.recipientId === selectedUserId)
         ) {
           setMessages((prev) => [...prev, newMessage]);
           
-          // Mark as read if we received it
           if (newMessage.recipientId === currentUser?.id) {
             markAsReadMutation.mutate(selectedUserId);
           }
         }
         
-        // Refresh conversations list to update unread counts
         queryClient.invalidateQueries({ queryKey: ["/api/direct-messages/conversations"] });
+      } else if (data.type === "group-message") {
+        const newMessage = data.message as GroupMessageWithUser;
+        
+        if (selectedGroupId === data.groupId) {
+          setGroupMessages((prev) => [...prev, newMessage]);
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/group-chats"] });
       }
     };
 
@@ -143,18 +248,28 @@ export default function Messages() {
     return () => {
       ws.close();
     };
-  }, [selectedUserId, currentUser]);
+  }, [selectedUserId, selectedGroupId, currentUser]);
 
   const handleSendMessage = () => {
-    if (!messageContent.trim() || !selectedUserId || !wsRef.current) return;
+    if (!messageContent.trim() || !wsRef.current) return;
 
-    wsRef.current.send(
-      JSON.stringify({
-        type: "direct-message",
-        recipientId: selectedUserId,
-        content: messageContent.trim(),
-      })
-    );
+    if (activeTab === "direct" && selectedUserId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "direct-message",
+          recipientId: selectedUserId,
+          content: messageContent.trim(),
+        })
+      );
+    } else if (activeTab === "groups" && selectedGroupId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "group-message",
+          groupId: selectedGroupId,
+          content: messageContent.trim(),
+        })
+      );
+    }
 
     setMessageContent("");
     setShowSuggestions(false);
@@ -182,7 +297,25 @@ export default function Messages() {
     setShowSuggestions(false);
   };
 
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) return;
+    createGroupMutation.mutate({
+      name: newGroupName.trim(),
+      description: newGroupDescription.trim(),
+      memberIds: selectedMembers,
+    });
+  };
+
   const selectedConversation = conversations.find((c) => c.userId === selectedUserId);
+  const selectedGroup = groupChats.find((g) => g.id === selectedGroupId);
+  const currentUserMember = groupMembers.find(m => m.userId === currentUser?.id);
+  const isGroupAdmin = currentUserMember?.role === 'admin' || selectedGroup?.createdById === currentUser?.id;
+
+  // Filter out current user and existing group members for adding new members
+  const availableUsersForGroup = allUsers.filter(u => 
+    u.id !== currentUser?.id && 
+    !groupMembers.some(m => m.userId === u.id)
+  );
 
   if (!currentUser) {
     return (
@@ -215,74 +348,231 @@ export default function Messages() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Conversations List */}
           <Card className="md:col-span-1 p-4">
-            <h2 className="text-lg font-semibold mb-4">Conversations</h2>
-            
-            {conversationsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : conversations.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">
-                No conversations yet. Start chatting with event participants!
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {conversations.map((conv) => (
-                  <button
-                    key={conv.userId}
-                    onClick={() => {
-                      setSelectedUserId(conv.userId);
-                      setLocation(`/messages/${conv.userId}`);
-                    }}
-                    className={`w-full p-3 rounded-md text-left transition-colors hover-elevate active-elevate-2 ${
-                      selectedUserId === conv.userId
-                        ? "bg-accent"
-                        : "bg-transparent"
-                    }`}
-                    data-testid={`button-conversation-${conv.userId}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={conv.user.profileImageUrl || undefined} />
-                        <AvatarFallback>
-                          {conv.user.firstName?.[0]}{conv.user.lastName?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-medium truncate">
-                            {conv.user.firstName} {conv.user.lastName}
-                          </p>
-                          {conv.unreadCount > 0 && (
-                            <Badge variant="default" className="ml-auto" data-testid={`badge-unread-${conv.userId}`}>
-                              {conv.unreadCount}
-                            </Badge>
-                          )}
+            <Tabs value={activeTab} onValueChange={(v) => {
+              setActiveTab(v as "direct" | "groups");
+              if (v === "direct") {
+                setSelectedGroupId(null);
+              } else {
+                setSelectedUserId(null);
+              }
+            }}>
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="direct" className="flex-1 gap-2" data-testid="tab-direct-messages">
+                  <Mail className="h-4 w-4" />
+                  Direct
+                </TabsTrigger>
+                <TabsTrigger value="groups" className="flex-1 gap-2" data-testid="tab-group-chats">
+                  <Users className="h-4 w-4" />
+                  Groups
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="direct" className="mt-0">
+                {conversationsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : conversations.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">
+                    No conversations yet. Start chatting with event participants!
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {conversations.map((conv) => (
+                      <button
+                        key={conv.userId}
+                        onClick={() => {
+                          setSelectedUserId(conv.userId);
+                          setSelectedGroupId(null);
+                          setLocation(`/messages/${conv.userId}`);
+                        }}
+                        className={`w-full p-3 rounded-md text-left transition-colors hover-elevate active-elevate-2 ${
+                          selectedUserId === conv.userId
+                            ? "bg-accent"
+                            : "bg-transparent"
+                        }`}
+                        data-testid={`button-conversation-${conv.userId}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={conv.user.profileImageUrl || undefined} />
+                            <AvatarFallback>
+                              {conv.user.firstName?.[0]}{conv.user.lastName?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium truncate">
+                                {conv.user.firstName} {conv.user.lastName}
+                              </p>
+                              {conv.unreadCount > 0 && (
+                                <Badge variant="default" className="ml-auto" data-testid={`badge-unread-${conv.userId}`}>
+                                  {conv.unreadCount}
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {conv.lastMessage && (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {conv.lastMessage.content}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        
-                        {conv.lastMessage && (
-                          <p className="text-sm text-muted-foreground truncate">
-                            {conv.lastMessage.content}
-                          </p>
-                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="groups" className="mt-0">
+                {/* Create Group Button */}
+                <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full mb-4 gap-2" data-testid="button-create-group">
+                      <Plus className="h-4 w-4" />
+                      Create Group
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Create Group Chat</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="groupName">Group Name</Label>
+                        <Input
+                          id="groupName"
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          placeholder="Enter group name"
+                          data-testid="input-group-name"
+                        />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="groupDescription">Description (optional)</Label>
+                        <Textarea
+                          id="groupDescription"
+                          value={newGroupDescription}
+                          onChange={(e) => setNewGroupDescription(e.target.value)}
+                          placeholder="What's this group about?"
+                          className="resize-none"
+                          data-testid="input-group-description"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Add Members</Label>
+                        <ScrollArea className="h-[200px] border rounded-md p-2">
+                          {allUsers.filter(u => u.id !== currentUser.id).map((user) => (
+                            <div key={user.id} className="flex items-center gap-3 p-2 hover:bg-accent rounded-md">
+                              <Checkbox
+                                id={`user-${user.id}`}
+                                checked={selectedMembers.includes(user.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedMembers([...selectedMembers, user.id]);
+                                  } else {
+                                    setSelectedMembers(selectedMembers.filter(id => id !== user.id));
+                                  }
+                                }}
+                                data-testid={`checkbox-member-${user.id}`}
+                              />
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={user.profileImageUrl || undefined} />
+                                <AvatarFallback>
+                                  {user.firstName?.[0]}{user.lastName?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
+                                {user.firstName} {user.lastName}
+                              </label>
+                            </div>
+                          ))}
+                        </ScrollArea>
+                      </div>
+                      <Button 
+                        onClick={handleCreateGroup} 
+                        disabled={!newGroupName.trim() || createGroupMutation.isPending}
+                        className="w-full"
+                        data-testid="button-confirm-create-group"
+                      >
+                        {createGroupMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : null}
+                        Create Group
+                      </Button>
                     </div>
-                  </button>
-                ))}
-              </div>
-            )}
+                  </DialogContent>
+                </Dialog>
+
+                {groupChatsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : groupChats.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">
+                    No group chats yet. Create one to get started!
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {groupChats.map((group) => (
+                      <button
+                        key={group.id}
+                        onClick={() => {
+                          setSelectedGroupId(group.id);
+                          setSelectedUserId(null);
+                        }}
+                        className={`w-full p-3 rounded-md text-left transition-colors hover-elevate active-elevate-2 ${
+                          selectedGroupId === group.id
+                            ? "bg-accent"
+                            : "bg-transparent"
+                        }`}
+                        data-testid={`button-group-${group.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-semibold">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium truncate">
+                                {group.name}
+                              </p>
+                              <Badge variant="secondary" className="text-xs">
+                                {group.memberCount}
+                              </Badge>
+                            </div>
+                            
+                            {group.lastMessage ? (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {group.lastMessage.content}
+                              </p>
+                            ) : group.description ? (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {group.description}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </Card>
 
           {/* Chat Area */}
-          <Card className={`md:col-span-2 p-4 flex flex-col ${selectedUserId ? 'h-[600px]' : 'min-h-[200px]'}`}>
-            {!selectedUserId ? (
+          <Card className={`md:col-span-2 p-4 flex flex-col ${(selectedUserId || selectedGroupId) ? 'h-[600px]' : 'min-h-[200px]'}`}>
+            {!selectedUserId && !selectedGroupId ? (
               <div className="flex items-start justify-center pt-8 text-muted-foreground">
-                Select a conversation to start messaging
+                Select a conversation or group to start messaging
               </div>
-            ) : (
+            ) : activeTab === "direct" && selectedUserId ? (
               <>
-                {/* Chat Header */}
+                {/* Chat Header - Direct Messages */}
                 <div className="border-b pb-4 mb-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -327,7 +617,7 @@ export default function Messages() {
                   </div>
                 </div>
 
-                {/* Messages */}
+                {/* Messages - Direct */}
                 <div className="flex-1 overflow-y-auto space-y-4 mb-4">
                   {messagesLoading ? (
                     <div className="flex items-center justify-center h-full">
@@ -388,7 +678,7 @@ export default function Messages() {
                   </div>
                 )}
 
-                {/* Input */}
+                {/* Input - Direct Messages */}
                 <div className="flex gap-2">
                   <Button
                     onClick={handleGetSuggestions}
@@ -426,7 +716,216 @@ export default function Messages() {
                   </Button>
                 </div>
               </>
-            )}
+            ) : activeTab === "groups" && selectedGroupId ? (
+              <>
+                {/* Chat Header - Group */}
+                <div className="border-b pb-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-semibold">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold" data-testid="text-group-name">
+                        {selectedGroup?.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {groupMembers.length} members
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {isGroupAdmin && (
+                        <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Add member"
+                              data-testid="button-add-member"
+                            >
+                              <UserPlus className="h-5 w-5" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Add Member</DialogTitle>
+                            </DialogHeader>
+                            <ScrollArea className="h-[300px] py-4">
+                              {availableUsersForGroup.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-4">
+                                  No users available to add
+                                </p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {availableUsersForGroup.map((user) => (
+                                    <button
+                                      key={user.id}
+                                      onClick={() => addMemberMutation.mutate({ 
+                                        groupId: selectedGroupId, 
+                                        memberId: user.id 
+                                      })}
+                                      className="w-full flex items-center gap-3 p-3 rounded-md hover-elevate active-elevate-2"
+                                      disabled={addMemberMutation.isPending}
+                                      data-testid={`button-add-user-${user.id}`}
+                                    >
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarImage src={user.profileImageUrl || undefined} />
+                                        <AvatarFallback>
+                                          {user.firstName?.[0]}{user.lastName?.[0]}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span className="flex-1 text-left">
+                                        {user.firstName} {user.lastName}
+                                      </span>
+                                      <Plus className="h-4 w-4 text-muted-foreground" />
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </ScrollArea>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                      <Dialog open={groupSettingsOpen} onOpenChange={setGroupSettingsOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Group settings"
+                            data-testid="button-group-settings"
+                          >
+                            <Settings className="h-5 w-5" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Group Settings</DialogTitle>
+                          </DialogHeader>
+                          <div className="py-4 space-y-4">
+                            <div>
+                              <Label className="text-muted-foreground text-sm">Members</Label>
+                              <ScrollArea className="h-[200px] mt-2 border rounded-md p-2">
+                                {groupMembers.map((member) => (
+                                  <div key={member.id} className="flex items-center gap-3 p-2">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarImage src={member.user.profileImageUrl || undefined} />
+                                      <AvatarFallback>
+                                        {member.user.firstName?.[0]}{member.user.lastName?.[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="flex-1">
+                                      {member.user.firstName} {member.user.lastName}
+                                    </span>
+                                    {member.role === 'admin' && (
+                                      <Badge variant="secondary">Admin</Badge>
+                                    )}
+                                  </div>
+                                ))}
+                              </ScrollArea>
+                            </div>
+                            {selectedGroup?.createdById !== currentUser.id && (
+                              <Button
+                                onClick={() => leaveGroupMutation.mutate(selectedGroupId)}
+                                disabled={leaveGroupMutation.isPending}
+                                variant="destructive"
+                                className="w-full gap-2"
+                                data-testid="button-leave-group"
+                              >
+                                {leaveGroupMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <LogOut className="h-4 w-4" />
+                                )}
+                                Leave Group
+                              </Button>
+                            )}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages - Group */}
+                <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+                  {groupMessagesLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : groupMessages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      No messages yet. Start the conversation!
+                    </div>
+                  ) : (
+                    groupMessages.map((msg) => {
+                      const isCurrentUser = msg.senderId === currentUser.id;
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          data-testid={`group-message-${msg.id}`}
+                        >
+                          <div className={`flex items-end gap-2 max-w-[70%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                            {!isCurrentUser && (
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={msg.sender?.profileImageUrl || undefined} />
+                                <AvatarFallback className="text-xs">
+                                  {msg.sender?.firstName?.[0]}{msg.sender?.lastName?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+                            <div
+                              className={`rounded-lg p-3 ${
+                                isCurrentUser
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              {!isCurrentUser && (
+                                <p className="text-xs font-medium mb-1 opacity-70">
+                                  {msg.sender?.firstName} {msg.sender?.lastName}
+                                </p>
+                              )}
+                              <p className="text-sm break-words">{msg.content}</p>
+                              <p className="text-xs opacity-70 mt-1">
+                                {new Date(msg.createdAt).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input - Group */}
+                <div className="flex gap-2">
+                  <Input
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    data-testid="input-group-message"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!messageContent.trim()}
+                    size="icon"
+                    data-testid="button-send-group-message"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            ) : null}
           </Card>
         </div>
       </div>
