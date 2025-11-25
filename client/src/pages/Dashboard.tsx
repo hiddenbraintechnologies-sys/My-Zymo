@@ -167,25 +167,25 @@ export default function Dashboard() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Welcome Banner with Gradient */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 p-8 text-white shadow-xl">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+        {/* Welcome Banner - Clean White Design */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl bg-white dark:bg-card border border-border p-8 shadow-lg">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950/30 dark:to-amber-950/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60"></div>
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-heading font-bold mb-2 flex items-center gap-2">
-                <Sparkles className="w-8 h-8" />
+              <h1 className="text-4xl font-heading font-bold mb-2 flex items-center gap-2 text-foreground">
+                <Sparkles className="w-8 h-8 text-orange-500" />
                 Welcome back, {user.firstName}!
               </h1>
-              <p className="text-white/90 text-lg">Create and share your celebrations with friends and family</p>
+              <p className="text-muted-foreground text-lg">Create and share your celebrations with friends and family</p>
             </div>
             <div className="hidden md:flex items-center gap-4">
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg p-4 min-w-[100px]">
-                <div className="text-3xl font-bold">{privateEvents?.length || 0}</div>
-                <div className="text-sm text-white/80">My Events</div>
+              <div className="text-center bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4 min-w-[100px]">
+                <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{privateEvents?.length || 0}</div>
+                <div className="text-sm text-orange-600/70 dark:text-orange-400/70">My Events</div>
               </div>
-              <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg p-4 min-w-[100px]">
-                <div className="text-3xl font-bold">{followedPublicEvents?.length || 0}</div>
-                <div className="text-sm text-white/80">Followed</div>
+              <div className="text-center bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 min-w-[100px]">
+                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">{followedPublicEvents?.length || 0}</div>
+                <div className="text-sm text-amber-600/70 dark:text-amber-400/70">Followed</div>
               </div>
             </div>
           </div>
