@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
@@ -20,6 +20,8 @@ import type { DirectMessage, User, GroupChat, GroupMessage, GroupChatMember } fr
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { IncomingCallModal } from "@/components/IncomingCallModal";
 import { ActiveCallDialog } from "@/components/ActiveCallDialog";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { useToast } from "@/hooks/use-toast";
 
 type ConversationListItem = {
   userId: string;
@@ -31,6 +33,10 @@ type ConversationListItem = {
 type DirectMessageWithUser = DirectMessage & {
   sender: User;
   recipient: User;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  fileType?: string | null;
 };
 
 type GroupChatWithDetails = GroupChat & {
@@ -40,6 +46,10 @@ type GroupChatWithDetails = GroupChat & {
 
 type GroupMessageWithUser = GroupMessage & {
   sender: User;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  fileType?: string | null;
 };
 
 type GroupMemberWithUser = GroupChatMember & {
@@ -48,6 +58,7 @@ type GroupMemberWithUser = GroupChatMember & {
 
 export default function Messages() {
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
   const [, params] = useRoute("/messages/:userId");
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<"direct" | "groups">("direct");
@@ -60,6 +71,9 @@ export default function Messages() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  
+  // File upload state
+  const [isUploading, setIsUploading] = useState(false);
   
   // Create group chat state
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -295,6 +309,113 @@ export default function Messages() {
   const handleUseSuggestion = (suggestion: string) => {
     setMessageContent(suggestion);
     setShowSuggestions(false);
+  };
+
+  // File upload handlers
+  const handleGetUploadParameters = async (file: { name: string; type: string; size: number }) => {
+    setIsUploading(true);
+    const res = await apiRequest("/api/objects/upload-url", "POST", { fileName: file.name });
+    const data = await res.json();
+    return {
+      method: "PUT" as const,
+      url: data.url,
+      objectPath: data.objectPath,
+    };
+  };
+
+  const handleFileUploadComplete = (file: { name: string; type: string; size: number; objectPath: string }) => {
+    setIsUploading(false);
+    
+    if (!wsRef.current) return;
+
+    if (activeTab === "direct" && selectedUserId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "direct-message",
+          recipientId: selectedUserId,
+          content: "",
+          fileUrl: file.objectPath,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+        })
+      );
+    } else if (activeTab === "groups" && selectedGroupId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "group-message",
+          groupId: selectedGroupId,
+          content: "",
+          fileUrl: file.objectPath,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+        })
+      );
+    }
+
+    toast({
+      title: "File shared",
+      description: `${file.name} has been shared successfully`,
+    });
+  };
+
+  const handleFileUploadError = (error: Error) => {
+    setIsUploading(false);
+    toast({
+      title: "Upload failed",
+      description: error.message,
+      variant: "destructive",
+    });
+  };
+
+  // Helper to format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Helper to render file attachment
+  const renderFileAttachment = (fileUrl: string | null | undefined, fileName: string | null | undefined, fileSize: number | null | undefined, fileType: string | null | undefined, isCurrentUser: boolean) => {
+    if (!fileUrl) return null;
+
+    const isImage = fileType?.startsWith('image/');
+    const downloadUrl = `/api${fileUrl}`;
+
+    return (
+      <div className="mt-2">
+        {isImage ? (
+          <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="block">
+            <img 
+              src={downloadUrl} 
+              alt={fileName || 'Shared image'} 
+              className="max-w-full max-h-48 rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+              data-testid="img-file-attachment"
+            />
+          </a>
+        ) : (
+          <a
+            href={downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center gap-2 p-2 rounded-md ${
+              isCurrentUser ? 'bg-primary-foreground/20' : 'bg-background/50'
+            } hover:opacity-80 transition-opacity`}
+            data-testid="link-file-download"
+          >
+            <File className="h-4 w-4 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{fileName || 'File'}</p>
+              {fileSize && (
+                <p className="text-xs opacity-70">{formatFileSize(fileSize)}</p>
+              )}
+            </div>
+            <Download className="h-4 w-4 shrink-0" />
+          </a>
+        )}
+      </div>
+    );
   };
 
   const handleCreateGroup = () => {
@@ -643,7 +764,8 @@ export default function Messages() {
                                 : "bg-muted"
                             }`}
                           >
-                            <p className="text-sm break-words">{msg.content}</p>
+                            {msg.content && <p className="text-sm break-words">{msg.content}</p>}
+                            {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
                             <p className="text-xs opacity-70 mt-1">
                               {new Date(msg.createdAt).toLocaleTimeString([], {
                                 hour: "2-digit",
@@ -694,6 +816,22 @@ export default function Messages() {
                       <Sparkles className="h-4 w-4" />
                     )}
                   </Button>
+                  <ObjectUploader
+                    onGetUploadParameters={handleGetUploadParameters}
+                    onComplete={handleFileUploadComplete}
+                    onError={handleFileUploadError}
+                    maxFileSize={10485760}
+                    disabled={isUploading}
+                    isUploading={isUploading}
+                    buttonVariant="ghost"
+                    buttonSize="icon"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-4 w-4" />
+                    )}
+                  </ObjectUploader>
                   <Input
                     value={messageContent}
                     onChange={(e) => setMessageContent(e.target.value)}
@@ -885,7 +1023,8 @@ export default function Messages() {
                                   {msg.sender?.firstName} {msg.sender?.lastName}
                                 </p>
                               )}
-                              <p className="text-sm break-words">{msg.content}</p>
+                              {msg.content && <p className="text-sm break-words">{msg.content}</p>}
+                              {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
                               <p className="text-xs opacity-70 mt-1">
                                 {new Date(msg.createdAt).toLocaleTimeString([], {
                                   hour: "2-digit",
@@ -903,6 +1042,22 @@ export default function Messages() {
 
                 {/* Input - Group */}
                 <div className="flex gap-2">
+                  <ObjectUploader
+                    onGetUploadParameters={handleGetUploadParameters}
+                    onComplete={handleFileUploadComplete}
+                    onError={handleFileUploadError}
+                    maxFileSize={10485760}
+                    disabled={isUploading}
+                    isUploading={isUploading}
+                    buttonVariant="ghost"
+                    buttonSize="icon"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-4 w-4" />
+                    )}
+                  </ObjectUploader>
                   <Input
                     value={messageContent}
                     onChange={(e) => setMessageContent(e.target.value)}

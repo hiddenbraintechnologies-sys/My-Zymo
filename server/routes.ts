@@ -1682,6 +1682,56 @@ Return your response as a JSON object with this exact structure:
     }
   });
 
+  // Object Storage routes for file sharing
+  const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
+  const objectStorage = new ObjectStorageService();
+
+  // Get upload URL for file sharing
+  app.post('/api/objects/upload-url', isAuthenticated, async (req: any, res) => {
+    try {
+      const { fileName } = req.body;
+      if (!fileName) {
+        return res.status(400).json({ message: 'File name is required' });
+      }
+      
+      const { uploadURL, objectPath } = await objectStorage.getObjectEntityUploadURL(fileName);
+      res.json({ 
+        url: uploadURL, 
+        objectPath,
+        method: 'PUT' 
+      });
+    } catch (error: any) {
+      console.error('Error generating upload URL:', error);
+      res.status(500).json({ message: error.message || 'Failed to generate upload URL' });
+    }
+  });
+
+  // Serve uploaded objects
+  app.get('/api/objects/*', isAuthenticated, async (req: any, res) => {
+    try {
+      const objectPath = `/objects/${req.params[0]}`;
+      const objectFile = await objectStorage.getObjectEntityFile(objectPath);
+      
+      // Check access
+      const canAccess = await objectStorage.canAccessObjectEntity({
+        userId: req.user.id,
+        objectFile,
+      });
+      
+      if (!canAccess) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      await objectStorage.downloadObject(objectFile, res);
+    } catch (error: any) {
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ message: 'Object not found' });
+      }
+      console.error('Error serving object:', error);
+      res.status(500).json({ message: 'Failed to serve object' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time chat - blueprint: javascript_websocket
@@ -1840,8 +1890,8 @@ Return your response as a JSON object with this exact structure:
               }
             });
           }
-        } else if (message.type === 'direct-message' && message.recipientId && message.content) {
-          // Handle private direct messages
+        } else if (message.type === 'direct-message' && message.recipientId && (message.content || message.fileUrl)) {
+          // Handle private direct messages with optional file attachments
           const recipientId = message.recipientId;
           
           // Verify recipient exists
@@ -1851,11 +1901,15 @@ Return your response as a JSON object with this exact structure:
             return;
           }
           
-          // Save direct message to database
+          // Save direct message to database with optional file fields
           const savedMessage = await storage.createDirectMessage({
             senderId: authenticatedUserId,
             recipientId,
-            content: message.content,
+            content: message.content || '',
+            fileUrl: message.fileUrl || null,
+            fileName: message.fileName || null,
+            fileSize: message.fileSize || null,
+            fileType: message.fileType || null,
           });
           
           // Get sender info
@@ -2024,8 +2078,8 @@ Return your response as a JSON object with this exact structure:
           }
           
           ws.send(JSON.stringify({ type: 'left-group', groupId }));
-        } else if (message.type === 'group-message' && message.groupId && message.content) {
-          // Send message to a group chat
+        } else if (message.type === 'group-message' && message.groupId && (message.content || message.fileUrl)) {
+          // Send message to a group chat with optional file attachments
           const groupId = message.groupId;
           
           // Verify user is a member
@@ -2035,11 +2089,15 @@ Return your response as a JSON object with this exact structure:
             return;
           }
           
-          // Save message to database
+          // Save message to database with optional file fields
           const savedMessage = await storage.createGroupMessage({
             groupId,
             senderId: authenticatedUserId,
-            content: message.content,
+            content: message.content || '',
+            fileUrl: message.fileUrl || null,
+            fileName: message.fileName || null,
+            fileSize: message.fileSize || null,
+            fileType: message.fileType || null,
           });
           
           // Get sender info
