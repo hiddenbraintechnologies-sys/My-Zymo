@@ -169,25 +169,24 @@ export default function Dashboard() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Welcome Banner - Clean White Design */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl bg-white dark:bg-card border border-border p-8 shadow-lg">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950/30 dark:to-amber-950/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60"></div>
-          <div className="relative z-10 flex items-center justify-between">
+        {/* Welcome Banner - Warm Cream Design */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50/80 to-orange-50 dark:from-orange-950/20 dark:via-amber-950/15 dark:to-orange-950/20 border border-orange-100 dark:border-orange-900/30 p-8 shadow-sm">
+          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-4xl font-heading font-bold mb-2 flex items-center gap-2 text-foreground">
-                <Sparkles className="w-8 h-8 text-orange-500" />
+              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-foreground">
+                <Sparkles className="w-7 h-7 text-orange-500" />
                 Welcome back, {user.firstName}!
               </h1>
-              <p className="text-muted-foreground text-lg">Create and share your celebrations with friends and family</p>
+              <p className="text-muted-foreground text-base md:text-lg">Create and share your celebrations with friends and family</p>
             </div>
-            <div className="hidden md:flex items-center gap-4">
-              <div className="text-center bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4 min-w-[100px]">
-                <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{privateEvents?.length || 0}</div>
-                <div className="text-sm text-orange-600/70 dark:text-orange-400/70">My Events</div>
+            <div className="flex items-center gap-3">
+              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-4 min-w-[90px] shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{privateEvents?.length || 0}</div>
+                <div className="text-xs md:text-sm text-orange-600/80 dark:text-orange-400/80">My Events</div>
               </div>
-              <div className="text-center bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 min-w-[100px]">
-                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">{followedPublicEvents?.length || 0}</div>
-                <div className="text-sm text-amber-600/70 dark:text-amber-400/70">Followed</div>
+              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-4 min-w-[90px] shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{followedPublicEvents?.length || 0}</div>
+                <div className="text-xs md:text-sm text-orange-600/80 dark:text-orange-400/80">Followed</div>
               </div>
             </div>
           </div>

@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Store, Edit, Trash2, Plus, MapPin, Phone, Mail, IndianRupee, ChevronLeft, Check, X } from "lucide-react";
+import { Store, Edit, Trash2, Plus, MapPin, Phone, Mail, IndianRupee, ChevronLeft, Check, X, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import type { Vendor } from "@shared/schema";
 
@@ -173,22 +173,37 @@ export default function VendorManagement() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="ghost" size="icon" data-testid="button-back-admin">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Vendor Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage vendor listings and categories
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Welcome Banner - Warm Cream Design */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50/80 to-orange-50 dark:from-orange-950/20 dark:via-amber-950/15 dark:to-orange-950/20 border border-orange-100 dark:border-orange-900/30 p-6 shadow-sm">
+          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <Link href="/admin">
+                <Button variant="ghost" size="icon" data-testid="button-back-admin" className="hover:bg-orange-100 dark:hover:bg-orange-900/30">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-heading font-bold flex items-center gap-3 text-foreground">
+                  <Sparkles className="w-6 h-6 text-orange-500" />
+                  Vendor Management
+                </h1>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  Manage vendor listings and categories
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-3 min-w-[80px] shadow-sm">
+                <div className="text-xl md:text-2xl font-bold text-orange-600 dark:text-orange-400">{vendors?.length ?? 0}</div>
+                <div className="text-xs text-orange-600/80 dark:text-orange-400/80">Vendors</div>
+              </div>
+            </div>
           </div>
         </div>
 
+      <div className="flex items-center justify-end">
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-create-vendor">
@@ -533,6 +548,7 @@ export default function VendorManagement() {
           </DialogContent>
         </Dialog>
       )}
+      </div>
     </div>
   );
 }

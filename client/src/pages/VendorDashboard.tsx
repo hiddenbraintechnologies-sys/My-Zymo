@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Store, Package, Star, Calendar, MapPin, DollarSign, Clock } from "lucide-react";
+import { Store, Package, Star, Calendar, MapPin, DollarSign, Clock, Sparkles, Home } from "lucide-react";
 import type { Vendor, Booking, User } from "@shared/schema";
 
 export default function VendorDashboard() {
@@ -87,42 +87,57 @@ export default function VendorDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <div className="container mx-auto py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-heading font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Vendor Dashboard</h1>
-            <p className="text-muted-foreground mt-2">
-              Welcome back, {user.firstName}! Manage your business and bookings.
-            </p>
+        {/* Welcome Banner - Warm Cream Design */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50/80 to-orange-50 dark:from-orange-950/20 dark:via-amber-950/15 dark:to-orange-950/20 border border-orange-100 dark:border-orange-900/30 p-8 shadow-sm">
+          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-foreground">
+                <Sparkles className="w-7 h-7 text-orange-500" />
+                Welcome back, {user.firstName}!
+              </h1>
+              <p className="text-muted-foreground text-base md:text-lg">Manage your business and bookings</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-4 min-w-[90px] shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{myBookings.length}</div>
+                <div className="text-xs md:text-sm text-orange-600/80 dark:text-orange-400/80">Bookings</div>
+              </div>
+              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-4 min-w-[90px] shadow-sm">
+                <div className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{pendingBookings.length}</div>
+                <div className="text-xs md:text-sm text-orange-600/80 dark:text-orange-400/80">Pending</div>
+              </div>
+              <Button onClick={() => navigate("/")} variant="outline" data-testid="button-home" className="hidden sm:flex">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </div>
           </div>
-          <Button onClick={() => navigate("/")} variant="outline" data-testid="button-home">
-            Back to Home
-          </Button>
         </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card data-testid="card-total-bookings">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border border-orange-100 dark:border-orange-900/30" data-testid="card-total-bookings">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{myBookings.length}</div>
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{myBookings.length}</div>
             <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
-        <Card data-testid="card-pending-bookings">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border border-orange-100 dark:border-orange-900/30" data-testid="card-pending-bookings">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingBookings.length}</div>
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pendingBookings.length}</div>
             <p className="text-xs text-muted-foreground">Awaiting response</p>
           </CardContent>
         </Card>
 
-        <Card data-testid="card-rating">
+        <Card className="border border-orange-100 dark:border-orange-900/30" data-testid="card-rating">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Rating</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
