@@ -593,3 +593,474 @@ export const insertQuoteSchema = createInsertSchema(quotes).omit({
 // Types for quotes
 export type InsertQuote = z.infer<typeof insertQuoteSchema>;
 export type Quote = typeof quotes.$inferSelect;
+
+// ============================================
+// GROUP PLANNING TABLES
+// ============================================
+
+// Event Planning Groups table - Enhanced groups linked to events
+export const eventGroups = pgTable("event_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  eventType: text("event_type").notNull(), // reunion, birthday, wedding, family_meet, corporate, other
+  eventDate: timestamp("event_date"),
+  locationCity: text("location_city"),
+  locationPreference: text("location_preference"), // indoor, outdoor, both
+  budget: decimal("budget", { precision: 12, scale: 2 }),
+  inviteCode: varchar("invite_code").unique(), // Unique invite code for sharing
+  qrCodeUrl: text("qr_code_url"), // QR code image URL
+  eventId: varchar("event_id").references(() => events.id, { onDelete: "set null" }), // Link to created event
+  createdById: varchar("created_by_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("planning"), // planning, finalized, completed, cancelled
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const eventGroupsRelations = relations(eventGroups, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [eventGroups.createdById],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [eventGroups.eventId],
+    references: [events.id],
+  }),
+  members: many(eventGroupMembers),
+  polls: many(groupPolls),
+  itineraryItems: many(groupItineraryItems),
+  invitations: many(groupInvitations),
+  photos: many(eventPhotos),
+  shortlistedVendors: many(vendorShortlist),
+  groupMessages: many(eventGroupMessages),
+}));
+
+// Event Group Members table with enhanced roles
+export const eventGroupMembers = pgTable("event_group_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("member"), // host, admin, member
+  planningRole: text("planning_role"), // treasurer, planner, venue_manager, food_manager, transport_manager, photographer
+  status: text("status").notNull().default("active"), // active, invited, left
+  attendanceStatus: text("attendance_status"), // confirmed, maybe, declined, attended
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+});
+
+export const eventGroupMembersRelations = relations(eventGroupMembers, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [eventGroupMembers.groupId],
+    references: [eventGroups.id],
+  }),
+  user: one(users, {
+    fields: [eventGroupMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+// Group Invitations table
+export const groupInvitations = pgTable("group_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  invitedById: varchar("invited_by_id").notNull().references(() => users.id),
+  inviteeEmail: text("invitee_email"),
+  inviteePhone: text("invitee_phone"),
+  inviteCode: varchar("invite_code").notNull().unique(),
+  inviteType: text("invite_type").notNull().default("link"), // link, email, sms, whatsapp, qr
+  status: text("status").notNull().default("pending"), // pending, accepted, expired, cancelled
+  expiresAt: timestamp("expires_at"),
+  acceptedAt: timestamp("accepted_at"),
+  acceptedByUserId: varchar("accepted_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const groupInvitationsRelations = relations(groupInvitations, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [groupInvitations.groupId],
+    references: [eventGroups.id],
+  }),
+  invitedBy: one(users, {
+    fields: [groupInvitations.invitedById],
+    references: [users.id],
+    relationName: "invitedBy",
+  }),
+  acceptedBy: one(users, {
+    fields: [groupInvitations.acceptedByUserId],
+    references: [users.id],
+    relationName: "acceptedBy",
+  }),
+}));
+
+// Group Polls table
+export const groupPolls = pgTable("group_polls", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  question: text("question").notNull(),
+  pollType: text("poll_type").notNull().default("single"), // single, multiple, date, budget, venue
+  allowMultiple: boolean("allow_multiple").notNull().default(false),
+  isAnonymous: boolean("is_anonymous").notNull().default(false),
+  status: text("status").notNull().default("active"), // active, closed, finalized
+  finalizedOptionId: varchar("finalized_option_id"),
+  endsAt: timestamp("ends_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  closedAt: timestamp("closed_at"),
+});
+
+export const groupPollsRelations = relations(groupPolls, ({ one, many }) => ({
+  group: one(eventGroups, {
+    fields: [groupPolls.groupId],
+    references: [eventGroups.id],
+  }),
+  createdBy: one(users, {
+    fields: [groupPolls.createdById],
+    references: [users.id],
+  }),
+  options: many(groupPollOptions),
+  votes: many(groupPollVotes),
+}));
+
+// Group Poll Options table
+export const groupPollOptions = pgTable("group_poll_options", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pollId: varchar("poll_id").notNull().references(() => groupPolls.id, { onDelete: "cascade" }),
+  optionText: text("option_text").notNull(),
+  optionValue: text("option_value"), // For date/budget polls, stores the actual value
+  voteCount: integer("vote_count").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const groupPollOptionsRelations = relations(groupPollOptions, ({ one, many }) => ({
+  poll: one(groupPolls, {
+    fields: [groupPollOptions.pollId],
+    references: [groupPolls.id],
+  }),
+  votes: many(groupPollVotes),
+}));
+
+// Group Poll Votes table
+export const groupPollVotes = pgTable("group_poll_votes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pollId: varchar("poll_id").notNull().references(() => groupPolls.id, { onDelete: "cascade" }),
+  optionId: varchar("option_id").notNull().references(() => groupPollOptions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const groupPollVotesRelations = relations(groupPollVotes, ({ one }) => ({
+  poll: one(groupPolls, {
+    fields: [groupPollVotes.pollId],
+    references: [groupPolls.id],
+  }),
+  option: one(groupPollOptions, {
+    fields: [groupPollVotes.optionId],
+    references: [groupPollOptions.id],
+  }),
+  user: one(users, {
+    fields: [groupPollVotes.userId],
+    references: [users.id],
+  }),
+}));
+
+// Group Itinerary Items table
+export const groupItineraryItems = pgTable("group_itinerary_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  location: text("location"),
+  assignedToId: varchar("assigned_to_id").references(() => users.id),
+  status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, cancelled
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const groupItineraryItemsRelations = relations(groupItineraryItems, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [groupItineraryItems.groupId],
+    references: [eventGroups.id],
+  }),
+  assignedTo: one(users, {
+    fields: [groupItineraryItems.assignedToId],
+    references: [users.id],
+  }),
+}));
+
+// Event Photos table (gallery)
+export const eventPhotos = pgTable("event_photos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  uploadedById: varchar("uploaded_by_id").notNull().references(() => users.id),
+  imageUrl: text("image_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  caption: text("caption"),
+  isAlbumCover: boolean("is_album_cover").notNull().default(false),
+  photoType: text("photo_type").notNull().default("event"), // event, planning, memory
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const eventPhotosRelations = relations(eventPhotos, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [eventPhotos.groupId],
+    references: [eventGroups.id],
+  }),
+  uploadedBy: one(users, {
+    fields: [eventPhotos.uploadedById],
+    references: [users.id],
+  }),
+}));
+
+// Vendor Shortlist table (for group vendor voting)
+export const vendorShortlist = pgTable("vendor_shortlist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  vendorId: varchar("vendor_id").notNull().references(() => vendors.id, { onDelete: "cascade" }),
+  addedById: varchar("added_by_id").notNull().references(() => users.id),
+  notes: text("notes"),
+  status: text("status").notNull().default("shortlisted"), // shortlisted, voted, selected, rejected
+  voteCount: integer("vote_count").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const vendorShortlistRelations = relations(vendorShortlist, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [vendorShortlist.groupId],
+    references: [eventGroups.id],
+  }),
+  vendor: one(vendors, {
+    fields: [vendorShortlist.vendorId],
+    references: [vendors.id],
+  }),
+  addedBy: one(users, {
+    fields: [vendorShortlist.addedById],
+    references: [users.id],
+  }),
+}));
+
+// Event Group Messages table (separate from groupChats for planning-specific chat)
+export const eventGroupMessages = pgTable("event_group_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content"),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  fileType: text("file_type"),
+  messageType: text("message_type").notNull().default("text"), // text, file, image, video, system
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const eventGroupMessagesRelations = relations(eventGroupMessages, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [eventGroupMessages.groupId],
+    references: [eventGroups.id],
+  }),
+  sender: one(users, {
+    fields: [eventGroupMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
+// Group Expenses table (enhanced expense tracking for groups)
+export const groupExpenses = pgTable("group_expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  category: text("category").notNull().default("general"), // venue, food, decoration, transport, entertainment, other
+  paidById: varchar("paid_by_id").notNull().references(() => users.id),
+  splitType: text("split_type").notNull().default("equal"), // equal, custom, percentage
+  receiptUrl: text("receipt_url"),
+  isSettled: boolean("is_settled").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  settledAt: timestamp("settled_at"),
+});
+
+export const groupExpensesRelations = relations(groupExpenses, ({ one, many }) => ({
+  group: one(eventGroups, {
+    fields: [groupExpenses.groupId],
+    references: [eventGroups.id],
+  }),
+  paidBy: one(users, {
+    fields: [groupExpenses.paidById],
+    references: [users.id],
+  }),
+  splits: many(groupExpenseSplits),
+}));
+
+// Group Expense Splits table
+export const groupExpenseSplits = pgTable("group_expense_splits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  expenseId: varchar("expense_id").notNull().references(() => groupExpenses.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  percentage: decimal("percentage", { precision: 5, scale: 2 }),
+  isPaid: boolean("is_paid").notNull().default(false),
+  paidAt: timestamp("paid_at"),
+  paymentMethod: text("payment_method"), // upi, cash, bank_transfer, wallet
+  paymentReference: text("payment_reference"), // UPI transaction ID, etc.
+});
+
+export const groupExpenseSplitsRelations = relations(groupExpenseSplits, ({ one }) => ({
+  expense: one(groupExpenses, {
+    fields: [groupExpenseSplits.expenseId],
+    references: [groupExpenses.id],
+  }),
+  user: one(users, {
+    fields: [groupExpenseSplits.userId],
+    references: [users.id],
+  }),
+}));
+
+// Event Feedback table (post-event feedback polls)
+export const eventFeedback = pgTable("event_feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  overallRating: integer("overall_rating"), // 1-5
+  venueRating: integer("venue_rating"),
+  foodRating: integer("food_rating"),
+  organizationRating: integer("organization_rating"),
+  comments: text("comments"),
+  highlights: text("highlights"), // What they loved
+  improvements: text("improvements"), // What could be better
+  isAnonymous: boolean("is_anonymous").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const eventFeedbackRelations = relations(eventFeedback, ({ one }) => ({
+  group: one(eventGroups, {
+    fields: [eventFeedback.groupId],
+    references: [eventGroups.id],
+  }),
+  user: one(users, {
+    fields: [eventFeedback.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================
+// INSERT SCHEMAS FOR GROUP PLANNING
+// ============================================
+
+export const insertEventGroupSchema = createInsertSchema(eventGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  inviteCode: true,
+  qrCodeUrl: true,
+});
+
+export const insertEventGroupMemberSchema = createInsertSchema(eventGroupMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertGroupInvitationSchema = createInsertSchema(groupInvitations).omit({
+  id: true,
+  createdAt: true,
+  acceptedAt: true,
+});
+
+export const insertGroupPollSchema = createInsertSchema(groupPolls).omit({
+  id: true,
+  createdAt: true,
+  closedAt: true,
+});
+
+export const insertGroupPollOptionSchema = createInsertSchema(groupPollOptions).omit({
+  id: true,
+  createdAt: true,
+  voteCount: true,
+});
+
+export const insertGroupPollVoteSchema = createInsertSchema(groupPollVotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGroupItineraryItemSchema = createInsertSchema(groupItineraryItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventPhotoSchema = createInsertSchema(eventPhotos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertVendorShortlistSchema = createInsertSchema(vendorShortlist).omit({
+  id: true,
+  createdAt: true,
+  voteCount: true,
+});
+
+export const insertEventGroupMessageSchema = createInsertSchema(eventGroupMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGroupExpenseSchema = createInsertSchema(groupExpenses).omit({
+  id: true,
+  createdAt: true,
+  settledAt: true,
+});
+
+export const insertGroupExpenseSplitSchema = createInsertSchema(groupExpenseSplits).omit({
+  id: true,
+  paidAt: true,
+});
+
+export const insertEventFeedbackSchema = createInsertSchema(eventFeedback).omit({
+  id: true,
+  createdAt: true,
+});
+
+// ============================================
+// TYPES FOR GROUP PLANNING
+// ============================================
+
+export type InsertEventGroup = z.infer<typeof insertEventGroupSchema>;
+export type EventGroup = typeof eventGroups.$inferSelect;
+
+export type InsertEventGroupMember = z.infer<typeof insertEventGroupMemberSchema>;
+export type EventGroupMember = typeof eventGroupMembers.$inferSelect;
+
+export type InsertGroupInvitation = z.infer<typeof insertGroupInvitationSchema>;
+export type GroupInvitation = typeof groupInvitations.$inferSelect;
+
+export type InsertGroupPoll = z.infer<typeof insertGroupPollSchema>;
+export type GroupPoll = typeof groupPolls.$inferSelect;
+
+export type InsertGroupPollOption = z.infer<typeof insertGroupPollOptionSchema>;
+export type GroupPollOption = typeof groupPollOptions.$inferSelect;
+
+export type InsertGroupPollVote = z.infer<typeof insertGroupPollVoteSchema>;
+export type GroupPollVote = typeof groupPollVotes.$inferSelect;
+
+export type InsertGroupItineraryItem = z.infer<typeof insertGroupItineraryItemSchema>;
+export type GroupItineraryItem = typeof groupItineraryItems.$inferSelect;
+
+export type InsertEventPhoto = z.infer<typeof insertEventPhotoSchema>;
+export type EventPhoto = typeof eventPhotos.$inferSelect;
+
+export type InsertVendorShortlist = z.infer<typeof insertVendorShortlistSchema>;
+export type VendorShortlist = typeof vendorShortlist.$inferSelect;
+
+export type InsertEventGroupMessage = z.infer<typeof insertEventGroupMessageSchema>;
+export type EventGroupMessage = typeof eventGroupMessages.$inferSelect;
+
+export type InsertGroupExpense = z.infer<typeof insertGroupExpenseSchema>;
+export type GroupExpense = typeof groupExpenses.$inferSelect;
+
+export type InsertGroupExpenseSplit = z.infer<typeof insertGroupExpenseSplitSchema>;
+export type GroupExpenseSplit = typeof groupExpenseSplits.$inferSelect;
+
+export type InsertEventFeedback = z.infer<typeof insertEventFeedbackSchema>;
+export type EventFeedback = typeof eventFeedback.$inferSelect;
