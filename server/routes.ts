@@ -790,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Build conversation context for AI
       const conversationContext = recentMessages.map(msg => ({
-        role: msg.senderId === userId ? "assistant" : "user",
+        role: (msg.senderId === userId ? "assistant" : "user") as "assistant" | "user",
         content: msg.content
       }));
       
