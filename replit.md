@@ -84,6 +84,15 @@ Myzymo includes a comprehensive set of features:
 *   **Admin Dashboard:** Full-featured panel with role-based access control (super_admin, admin, master_user, user) for managing users, events, and vendors.
 *   **AI-Powered Quote Estimation:** Provides instant event cost estimates using OpenAI GPT with Indian market pricing intelligence, including multi-step forms and guest privacy features.
 *   **AI Event Title & Description Suggestions:** Assists event creation with culturally aware title and description suggestions using OpenAI GPT-5.
+*   **Group Planning System:** Comprehensive collaborative event planning with:
+    *   Group creation wizard with event type, date, location, and budget settings
+    *   Invite code system for easy member onboarding
+    *   Polls & Voting for group decision-making (venues, dates, activities)
+    *   Itinerary Builder with timeline-based activity planning
+    *   Member Role Assignment (admin, treasurer, planner, venue_manager, food_manager, transport_manager)
+    *   Expense Tracking with category-based spending and member contributions
+    *   Database tables: eventGroups, eventGroupMembers, groupPolls, groupPollOptions, groupPollVotes, groupMemberRoles, groupInvitations, groupItineraryItems, eventAttendance, eventPhotos, eventFeedback, groupExpenses, groupExpenseSplits
+    *   Accessible via dedicated /groups route and Dashboard quick action card
 
 ### System Design Choices
 

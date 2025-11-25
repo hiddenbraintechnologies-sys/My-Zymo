@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee } from "lucide-react";
+import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee, Vote } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -193,7 +193,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Action Cards - Vibrant and Colorful */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <Card 
             className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/events/create")} 
@@ -280,6 +280,30 @@ export default function Dashboard() {
               </CardTitle>
               <CardDescription className="text-emerald-600 dark:text-emerald-300">
                 AI-powered instant cost estimate
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card 
+            className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-100 via-violet-50 to-purple-200 dark:from-purple-950/20 dark:to-violet-950/20 shadow-lg hover:shadow-xl transition-all" 
+            onClick={() => setLocation("/groups")} 
+            data-testid="card-quick-action-groups"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-400 rounded-xl shadow-md">
+                  <Vote className="w-6 h-6 text-white" />
+                </div>
+                <Badge className="bg-purple-400 text-white">
+                  <Users className="w-3 h-3 mr-1" />
+                  Team
+                </Badge>
+              </div>
+              <CardTitle className="text-xl font-bold text-purple-700 dark:text-purple-100">
+                Group Planning
+              </CardTitle>
+              <CardDescription className="text-purple-600 dark:text-purple-300">
+                Plan events with polls & collaboration
               </CardDescription>
             </CardHeader>
           </Card>
