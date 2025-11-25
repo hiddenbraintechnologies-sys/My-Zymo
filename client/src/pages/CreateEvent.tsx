@@ -50,8 +50,12 @@ export default function CreateEvent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [eventType, setEventType] = useState<string>("");
+  const [customEventType, setCustomEventType] = useState<string>("");
   const [invitationCardUrl, setInvitationCardUrl] = useState<string>("");
   const [isCardSectionOpen, setIsCardSectionOpen] = useState(false);
+
+  // Get the effective event type (custom if "Other" is selected)
+  const effectiveEventType = eventType === "Other" ? customEventType : eventType;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -141,7 +145,12 @@ export default function CreateEvent() {
               <label htmlFor="event-type" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Event Type (Optional - helps with AI suggestions)
               </label>
-              <Select value={eventType} onValueChange={setEventType}>
+              <Select value={eventType} onValueChange={(value) => {
+                setEventType(value);
+                if (value !== "Other") {
+                  setCustomEventType("");
+                }
+              }}>
                 <SelectTrigger id="event-type" data-testid="select-event-type">
                   <SelectValue placeholder="Select event type for AI suggestions" />
                 </SelectTrigger>
@@ -153,12 +162,23 @@ export default function CreateEvent() {
                   ))}
                 </SelectContent>
               </Select>
+              
+              {/* Custom Event Type Input - shown when "Other" is selected */}
+              {eventType === "Other" && (
+                <Input
+                  placeholder="Enter your custom event type (e.g., Retirement Party, Farewell)"
+                  value={customEventType}
+                  onChange={(e) => setCustomEventType(e.target.value)}
+                  className="mt-2"
+                  data-testid="input-custom-event-type"
+                />
+              )}
             </div>
 
             {/* AI Suggestions - shown when event type is selected */}
-            {eventType && (
+            {effectiveEventType && (
               <EventFieldSuggestions
-                eventType={eventType}
+                eventType={effectiveEventType}
                 date={form.watch("date")}
                 location={form.watch("location")}
                 onSelectTitle={(title) => form.setValue("title", title)}
@@ -323,7 +343,7 @@ export default function CreateEvent() {
               </CollapsibleTrigger>
               <CollapsibleContent className="p-4 pt-0">
                 <InvitationCardCreator
-                  eventType={eventType}
+                  eventType={effectiveEventType}
                   eventTitle={form.watch("title")}
                   eventDate={form.watch("date")}
                   eventLocation={form.watch("location")}
