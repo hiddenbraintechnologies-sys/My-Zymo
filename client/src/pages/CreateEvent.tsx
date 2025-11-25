@@ -9,13 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, ArrowLeft, Globe, Lock } from "lucide-react";
+import { Calendar, ArrowLeft, Globe, Lock, Image } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertEventSchema, type InsertEvent } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { z } from "zod";
 import { EventFieldSuggestions } from "@/components/EventFieldSuggestions";
+import { InvitationCardCreator } from "@/components/InvitationCardCreator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // Form schema with string date (for datetime-local input)
 // Omit creatorId since backend sets it from session
@@ -48,6 +50,8 @@ export default function CreateEvent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [eventType, setEventType] = useState<string>("");
+  const [invitationCardUrl, setInvitationCardUrl] = useState<string>("");
+  const [isCardSectionOpen, setIsCardSectionOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -62,7 +66,7 @@ export default function CreateEvent() {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; date: string; isPublic?: boolean }) => {
+    mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; invitationCardUrl?: string | null; date: string; isPublic?: boolean }) => {
       console.log("[CreateEvent] Mutation starting with data:", data);
       try {
         const response = await apiRequest("/api/events", "POST", data);
@@ -104,6 +108,7 @@ export default function CreateEvent() {
       description: data.description || null,
       location: data.location,
       imageUrl: data.imageUrl?.trim() ? data.imageUrl : null,
+      invitationCardUrl: invitationCardUrl || null, // Include invitation card
       date: new Date(data.date).toISOString(), // Backend expects ISO string
       isPublic: data.isPublic || false,
     };
@@ -289,6 +294,44 @@ export default function CreateEvent() {
                 </FormItem>
               )}
             />
+
+            <Collapsible 
+              open={isCardSectionOpen} 
+              onOpenChange={setIsCardSectionOpen}
+              className="border rounded-lg overflow-hidden"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full flex items-center justify-between gap-2 p-4 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  data-testid="button-toggle-invitation-card"
+                >
+                  <div className="flex items-center gap-2">
+                    <Image className="w-5 h-5 text-orange-500" />
+                    <span className="font-medium">Create Invitation Card</span>
+                    {invitationCardUrl && (
+                      <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
+                        Card Selected
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-muted-foreground text-sm">
+                    {isCardSectionOpen ? "Hide" : "Show"}
+                  </span>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="p-4 pt-0">
+                <InvitationCardCreator
+                  eventType={eventType}
+                  eventTitle={form.watch("title")}
+                  eventDate={form.watch("date")}
+                  eventLocation={form.watch("location")}
+                  onSelectCard={setInvitationCardUrl}
+                  selectedCard={invitationCardUrl}
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
             <div className="flex gap-4">
               <Button

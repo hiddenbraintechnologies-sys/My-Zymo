@@ -1686,6 +1686,60 @@ Return your response as a JSON object with this exact structure:
   const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
   const objectStorage = new ObjectStorageService();
 
+  // AI Invitation Card Generation - Create beautiful AI-generated invitation cards
+  app.post('/api/ai/generate-invitation-card', isAuthenticated, async (req: any, res) => {
+    try {
+      const { eventType, eventTitle, eventDate, eventLocation } = req.body;
+      
+      if (!eventTitle) {
+        return res.status(400).json({ message: "Event title is required" });
+      }
+
+      const { generateInvitationCardImage } = await import('./openai');
+      
+      // Generate the base64 image
+      const base64DataUrl = await generateInvitationCardImage(
+        eventType || "celebration",
+        eventTitle,
+        eventDate || "",
+        eventLocation || ""
+      );
+      
+      // Extract base64 data and upload to object storage
+      const base64Data = base64DataUrl.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      
+      // Get upload URL from object storage
+      const fileName = `invitation-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+      const { uploadURL, objectPath } = await objectStorage.getObjectEntityUploadURL(fileName);
+      
+      // Upload the image buffer to object storage
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: buffer,
+        headers: {
+          'Content-Type': 'image/png',
+          'Content-Length': buffer.length.toString(),
+        },
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text().catch(() => 'Unknown error');
+        console.error('Upload failed:', uploadResponse.status, errorText);
+        throw new Error('Failed to upload image to object storage');
+      }
+      
+      // Generate the public URL for the uploaded image
+      // objectPath is in format "/objects/bucket/path/filename.png"
+      const imageUrl = objectPath.startsWith('/objects/') ? `/api${objectPath}` : `/api/objects${objectPath}`;
+      
+      res.json({ imageUrl });
+    } catch (error: any) {
+      console.error("Error generating invitation card:", error);
+      res.status(500).json({ message: error.message || "Failed to generate invitation card" });
+    }
+  });
+
   // Get upload URL for file sharing
   app.post('/api/objects/upload-url', isAuthenticated, async (req: any, res) => {
     try {

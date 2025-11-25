@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Share2, LogOut, MessageCircle, DollarSign, Package, UserPlus } from "lucide-react";
+import { Calendar, MapPin, Users, Share2, LogOut, MessageCircle, DollarSign, Package, UserPlus, Image, Download, X, Sparkles, Palette } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +14,14 @@ import type { Event, User, EventParticipant } from "@shared/schema";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { InvitationCardRenderer, isTemplateCard } from "@/components/InvitationCardRenderer";
 
 // Full event detail for authenticated users
 type EventDetail = Event & {
@@ -21,7 +30,7 @@ type EventDetail = Event & {
 };
 
 // Public preview for unauthenticated visitors (matches actual backend response)
-type PublicEventPreview = Pick<Event, 'id' | 'title' | 'description' | 'date' | 'location' | 'imageUrl' | 'isPublic' | 'creatorId'> & {
+type PublicEventPreview = Pick<Event, 'id' | 'title' | 'description' | 'date' | 'location' | 'imageUrl' | 'invitationCardUrl' | 'isPublic' | 'creatorId'> & {
   participants: []; // Empty array in public preview
   messages: [];
   expenses: [];
@@ -35,6 +44,7 @@ export default function EventDetail() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/events/:id");
   const { toast } = useToast();
+  const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   
   // Authenticated query - full event details or participant preview
   const { data: authenticatedEvent, isLoading: authenticatedLoading } = useQuery<EventDetail>({
@@ -247,6 +257,116 @@ export default function EventDetail() {
               </div>
             </div>
 
+            {event.invitationCardUrl && (
+              <Card className="border-orange-200 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center justify-between text-lg">
+                    <div className="flex items-center gap-2">
+                      <Image className="w-5 h-5 text-orange-500" />
+                      Invitation Card
+                    </div>
+                    <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                      {isTemplateCard(event.invitationCardUrl) ? (
+                        <>
+                          <Palette className="w-3 h-3 mr-1" />
+                          Template
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          AI Generated
+                        </>
+                      )}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
+                    <DialogTrigger asChild>
+                      <div className="cursor-pointer rounded-xl overflow-hidden border-2 border-orange-200 dark:border-orange-700 hover:border-orange-400 transition-colors max-w-md mx-auto">
+                        {isTemplateCard(event.invitationCardUrl) ? (
+                          <InvitationCardRenderer
+                            templateData={event.invitationCardUrl}
+                            eventTitle={event.title}
+                            eventDate={event.date.toString()}
+                            eventLocation={event.location}
+                            data-testid="template-invitation-card"
+                          />
+                        ) : (
+                          <img 
+                            src={event.invitationCardUrl} 
+                            alt={`${event.title} invitation card`}
+                            className="w-full h-auto"
+                            data-testid="img-invitation-card"
+                          />
+                        )}
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Image className="w-5 h-5 text-orange-500" />
+                          {event.title} - Invitation Card
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        {isTemplateCard(event.invitationCardUrl) ? (
+                          <InvitationCardRenderer
+                            templateData={event.invitationCardUrl}
+                            eventTitle={event.title}
+                            eventDate={event.date.toString()}
+                            eventLocation={event.location}
+                            className="border-2 border-orange-200 dark:border-orange-700"
+                          />
+                        ) : (
+                          <img 
+                            src={event.invitationCardUrl}
+                            alt={`${event.title} invitation card`}
+                            className="w-full h-auto rounded-lg"
+                          />
+                        )}
+                        <div className="flex gap-2 justify-center flex-wrap">
+                          {!isTemplateCard(event.invitationCardUrl) && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                const link = document.createElement("a");
+                                link.href = event.invitationCardUrl!;
+                                link.download = `${event.title.replace(/\s+/g, "-")}-invitation.png`;
+                                link.click();
+                              }}
+                              data-testid="button-download-invitation"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Card
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => {
+                              const message = `You're invited to ${event.title}!\n\n` +
+                                `Date: ${format(new Date(event.date), 'PPP')}\n` +
+                                `Location: ${event.location}\n\n` +
+                                `Join us on Myzymo: ${window.location.href}`;
+                              const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                              window.open(whatsappUrl, '_blank');
+                            }}
+                            className="bg-[#25D366] hover:bg-[#20BA5A] text-white"
+                            data-testid="button-share-invitation"
+                          >
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Share on WhatsApp
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Click to view full size and share
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Show join/login CTA for non-participants or unauthenticated users */}
             {(!user || (user && event?.hasJoined === false)) && (
               <Alert className="border-primary bg-primary/5" data-testid="alert-join-event">
@@ -259,7 +379,7 @@ export default function EventDetail() {
                   </span>
                   <Button 
                     onClick={() => user ? joinMutation.mutate() : window.location.href = "/api/login"}
-                    disabled={user && joinMutation.isPending}
+                    disabled={!!user && joinMutation.isPending}
                     data-testid="button-join-event"
                   >
                     {user 

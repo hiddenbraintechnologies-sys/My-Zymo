@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import pLimit from "p-limit";
 import pRetry, { AbortError } from "p-retry";
+import { Buffer } from "node:buffer";
 
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 const openai = new OpenAI({
@@ -48,6 +49,70 @@ export async function chatWithAI(
       retries: 7,
       minTimeout: 2000,
       maxTimeout: 128000,
+      factor: 2,
+    }
+  );
+}
+
+export async function generateInvitationCardImage(
+  eventType: string,
+  eventTitle: string,
+  eventDate: string,
+  eventLocation: string
+): Promise<string> {
+  const formattedDate = eventDate ? new Date(eventDate).toLocaleDateString("en-IN", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }) : "Date to be announced";
+
+  const prompt = `Create a beautiful, elegant invitation card design for an Indian ${eventType} celebration. 
+
+Event Details:
+- Title: "${eventTitle}"
+- Date: ${formattedDate}
+- Location: ${eventLocation || "Venue to be announced"}
+
+Design Requirements:
+- Vibrant, festive color palette appropriate for ${eventType} (use warm colors like orange, amber, gold for Indian celebrations)
+- Beautiful decorative borders and patterns inspired by Indian art (rangoli, mandala, or floral patterns)
+- Clear, elegant typography with the event title prominently displayed
+- Include "You're Invited!" text at the top
+- Include the date and location information
+- Professional event invitation layout
+- Aspect ratio: 4:3 landscape
+- High-quality, print-ready design
+- No people or faces in the design
+- Focus on decorative elements, patterns, and typography`;
+
+  return pRetry(
+    async () => {
+      try {
+        const response = await openai.images.generate({
+          model: "gpt-image-1",
+          prompt,
+          size: "1024x1024",
+        });
+        
+        const base64 = response.data?.[0]?.b64_json ?? "";
+        if (!base64) {
+          throw new Error("No image data received from AI");
+        }
+        
+        return `data:image/png;base64,${base64}`;
+      } catch (error: any) {
+        console.error("Error generating invitation card:", error);
+        if (isRateLimitError(error)) {
+          throw error;
+        }
+        throw new AbortError(error);
+      }
+    },
+    {
+      retries: 3,
+      minTimeout: 2000,
+      maxTimeout: 30000,
       factor: 2,
     }
   );
