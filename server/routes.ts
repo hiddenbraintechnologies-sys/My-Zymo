@@ -1943,11 +1943,15 @@ Return your response as a JSON object with this exact structure:
             return;
           }
           
-          // Validate message schema using authenticated userId
+          // Validate message schema using authenticated userId with optional file fields
           const validatedMessage = insertMessageSchema.parse({
             eventId: currentEventId,
             senderId: authenticatedUserId,
-            content: message.content,
+            content: message.content || '',
+            fileUrl: message.fileUrl || null,
+            fileName: message.fileName || null,
+            fileSize: message.fileSize || null,
+            fileType: message.fileType || null,
           });
 
           // Save to database
@@ -1973,6 +1977,9 @@ Return your response as a JSON object with this exact structure:
               }
             });
           }
+        } else if (message.type === 'ping') {
+          // Respond to heartbeat
+          ws.send(JSON.stringify({ type: 'pong' }));
         } else if (message.type === 'direct-message' && message.recipientId && (message.content || message.fileUrl)) {
           // Handle private direct messages with optional file attachments
           const recipientId = message.recipientId;

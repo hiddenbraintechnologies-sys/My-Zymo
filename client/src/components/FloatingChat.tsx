@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,21 +9,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Send, MessageSquare, Smile, Users, ArrowLeft, Phone, Video, Mail, Calendar, X } from "lucide-react";
+import { Send, MessageSquare, Smile, Users, ArrowLeft, Phone, Video, Mail, Calendar, X, Minimize2, Maximize2, Paperclip, FileIcon, ImageIcon, Loader2 } from "lucide-react";
 import type { Event, User } from "@shared/schema";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { IncomingCallModal } from "@/components/IncomingCallModal";
 import { ActiveCallDialog } from "@/components/ActiveCallDialog";
+import { ObjectUploader } from "@/components/ObjectUploader";
 
 interface Message {
   id: string;
   senderId: string;
   content: string;
   createdAt: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  fileType?: string | null;
   sender?: {
     id: string;
     firstName: string | null;
@@ -49,6 +54,7 @@ export default function FloatingChat() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [currentView, setCurrentView] = useState<ChatView>('event-list');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
@@ -56,9 +62,11 @@ export default function FloatingChat() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const callInitiatingRef = useRef(false);
+  const reconnectAttemptRef = useRef(0);
   
   // Check if we're on the Messages page - will be used for early return after all hooks
   const isMessagesPage = location.startsWith('/messages');
@@ -112,61 +120,101 @@ export default function FloatingChat() {
     }
   }, [callState]);
 
-  // WebSocket connection
+  // WebSocket connection with reconnection logic
   useEffect(() => {
     if (!selectedEventId || !user) return;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const ws = new WebSocket(wsUrl);
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+    let isCleaningUp = false;
 
-    ws.onopen = () => {
-      console.log('[WebSocket] Connected');
-      ws.send(JSON.stringify({ type: 'join', eventId: selectedEventId }));
-    };
+    const connect = () => {
+      if (isCleaningUp) return;
+      
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      ws = new WebSocket(wsUrl);
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'message') {
-          queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId] });
-          if (!isOpen) {
-            setUnreadCount(prev => prev + 1);
+      ws.onopen = () => {
+        console.log('[WebSocket] Connected');
+        reconnectAttemptRef.current = 0;
+        // Send authenticated join message with user info
+        ws?.send(JSON.stringify({ 
+          type: 'join', 
+          eventId: selectedEventId,
+          userId: user.id,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+        }));
+        
+        // Start heartbeat
+        heartbeatInterval = setInterval(() => {
+          if (ws?.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }));
           }
-          setTimeout(() => {
-            if (scrollRef.current) {
-              scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }, 30000);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'message') {
+            queryClient.invalidateQueries({ queryKey: ["/api/events", selectedEventId] });
+            if (!isOpen || isMinimized) {
+              setUnreadCount(prev => prev + 1);
             }
-          }, 100);
-        } else if (data.type === 'presence') {
-          // Update online users list
-          setOnlineUsers(data.activeUsers || []);
-        } else if (data.type === 'error') {
-          toast({
-            title: "Chat Error",
-            description: data.message,
-            variant: "destructive",
-          });
+            setTimeout(() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+              }
+            }, 100);
+          } else if (data.type === 'presence') {
+            // Update online users list
+            setOnlineUsers(data.activeUsers || []);
+          } else if (data.type === 'pong') {
+            // Heartbeat acknowledged
+          } else if (data.type === 'error') {
+            toast({
+              title: "Chat Error",
+              description: data.message,
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('[WebSocket] Error parsing message:', error);
         }
-      } catch (error) {
-        console.error('[WebSocket] Error parsing message:', error);
-      }
+      };
+
+      ws.onerror = (error) => {
+        console.error('[WebSocket] Error:', error);
+      };
+
+      ws.onclose = () => {
+        console.log('[WebSocket] Disconnected');
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        
+        // Reconnect with exponential backoff (max 30 seconds)
+        if (!isCleaningUp && reconnectAttemptRef.current < 5) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptRef.current), 30000);
+          reconnectAttemptRef.current++;
+          console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current})`);
+          reconnectTimeout = setTimeout(connect, delay);
+        }
+      };
+
+      wsRef.current = ws;
     };
 
-    ws.onerror = (error) => {
-      console.error('[WebSocket] Error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('[WebSocket] Disconnected');
-    };
-
-    wsRef.current = ws;
+    connect();
 
     return () => {
-      ws.close();
+      isCleaningUp = true;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      if (ws) ws.close();
+      wsRef.current = null;
     };
-  }, [selectedEventId, user, isOpen]);
+  }, [selectedEventId, user, isOpen, isMinimized, toast]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -176,14 +224,28 @@ export default function FloatingChat() {
   }, [selectedEvent?.messages]);
 
   const handleToggle = () => {
-    setIsOpen(!isOpen);
-    if (!isOpen) {
-      setUnreadCount(0);
-    } else {
+    if (isOpen) {
+      // Closing the chat
+      setIsOpen(false);
+      setIsMinimized(false);
       setCurrentView('event-list');
       setSelectedEventId(null);
       setSelectedParticipantId(null);
+    } else {
+      // Opening the chat
+      setIsOpen(true);
+      setIsMinimized(false);
+      setUnreadCount(0);
     }
+  };
+
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  const handleMaximize = () => {
+    setIsMinimized(false);
+    setUnreadCount(0);
   };
 
   const handleSelectEvent = (eventId: string) => {
@@ -213,6 +275,67 @@ export default function FloatingChat() {
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     setMessageInput(prev => prev + emojiData.emoji);
+  };
+
+  // File upload handling
+  const getUploadParameters = useCallback(async (file: { name: string; type: string; size: number }) => {
+    const response = await apiRequest('/api/objects/upload-url', 'POST', {
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+    });
+    return response as { method: "PUT"; url: string; objectPath: string };
+  }, []);
+
+  const handleFileUploadComplete = useCallback((file: { name: string; type: string; size: number; objectPath: string }) => {
+    if (!wsRef.current || !selectedEventId) {
+      toast({
+        title: "Upload Error",
+        description: "Chat connection not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get the public URL for the file
+    const publicUrl = `/api/objects/${file.objectPath}`;
+    
+    // Send file message via WebSocket
+    wsRef.current.send(JSON.stringify({
+      type: 'message',
+      content: `Shared a file: ${file.name}`,
+      fileUrl: publicUrl,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+    }));
+
+    setIsUploading(false);
+    toast({
+      title: "File Shared",
+      description: `${file.name} has been shared`,
+    });
+  }, [selectedEventId, toast]);
+
+  const handleFileUploadError = useCallback((error: Error) => {
+    setIsUploading(false);
+    toast({
+      title: "Upload Failed",
+      description: error.message,
+      variant: "destructive",
+    });
+  }, [toast]);
+
+  // Helper to format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Check if file is an image
+  const isImageFile = (fileType: string | null | undefined) => {
+    return fileType?.startsWith('image/');
   };
 
   const handleStartDirectMessage = (participantId: string) => {
@@ -301,27 +424,71 @@ export default function FloatingChat() {
             )}
           </div>
         </Card>
+      ) : isMinimized ? (
+        // Minimized State - Compact Header Only
+        <Card 
+          className="shadow-2xl border-2 border-orange-200 dark:border-orange-800 animate-in slide-in-from-bottom-4 duration-300" 
+          style={{ width: '280px' }}
+          data-testid="floating-chat-minimized"
+        >
+          <CardHeader className="flex-row items-center justify-between space-y-0 py-3 px-4 gap-2 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white rounded-md">
+            <div className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer" onClick={handleMaximize}>
+              <MessageSquare className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate text-sm font-medium">
+                {currentView === 'chat' 
+                  ? selectedEvent?.title || 'Event Chat'
+                  : 'Event Chats'
+                }
+              </span>
+              {unreadCount > 0 && (
+                <span className="bg-white text-orange-600 rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:bg-white/20"
+                onClick={handleMaximize}
+                data-testid="button-maximize-chat"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:bg-white/20"
+                onClick={handleToggle}
+                data-testid="button-close-chat-minimized"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
       ) : (
-        // Open State - Compact Chat Window
+        // Open State - Full Chat Window
         <Card 
           className="flex flex-col shadow-2xl border-2 border-orange-200 dark:border-orange-800 animate-in slide-in-from-bottom-4 duration-300" 
           style={{ width: '380px', maxHeight: '600px', height: '500px' }}
           data-testid="floating-chat-open"
         >
-          <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white">
-            <CardTitle className="flex items-center gap-2 text-base">
+          <CardHeader className="border-b flex-row items-center justify-between space-y-0 py-3 gap-2 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white">
+            <CardTitle className="flex items-center gap-2 text-base flex-1 min-w-0">
               {currentView === 'chat' ? (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-white hover:bg-white/20 mr-1"
+                  className="h-6 w-6 text-white hover:bg-white/20 flex-shrink-0"
                   onClick={handleBackToEvents}
                   data-testid="button-back-to-events"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
               ) : (
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5 flex-shrink-0" />
               )}
               <span className="truncate">
                 {currentView === 'chat' 
@@ -330,15 +497,26 @@ export default function FloatingChat() {
                 }
               </span>
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-white hover:bg-white/20"
-              onClick={handleToggle}
-              data-testid="button-close-chat"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:bg-white/20"
+                onClick={handleMinimize}
+                data-testid="button-minimize-chat"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:bg-white/20"
+                onClick={handleToggle}
+                data-testid="button-close-chat"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </CardHeader>
           
           <div className="flex-1 overflow-hidden">
@@ -435,7 +613,50 @@ export default function FloatingChat() {
                                         : 'bg-muted'
                                     }`}
                                   >
-                                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                    {/* File attachment display */}
+                                    {msg.fileUrl && (
+                                      <div className="mb-2">
+                                        {isImageFile(msg.fileType) ? (
+                                          <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer">
+                                            <img 
+                                              src={msg.fileUrl} 
+                                              alt={msg.fileName || 'Shared image'} 
+                                              className="max-w-full rounded-md max-h-48 object-contain"
+                                              data-testid={`img-attachment-${msg.id}`}
+                                            />
+                                          </a>
+                                        ) : (
+                                          <a
+                                            href={msg.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`flex items-center gap-2 p-2 rounded border ${
+                                              isCurrentUser 
+                                                ? 'border-white/30 hover:bg-white/10' 
+                                                : 'border-border hover:bg-muted-foreground/10'
+                                            }`}
+                                            data-testid={`link-attachment-${msg.id}`}
+                                          >
+                                            <FileIcon className="w-4 h-4 flex-shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-xs font-medium truncate">{msg.fileName}</p>
+                                              {msg.fileSize && (
+                                                <p className={`text-xs ${isCurrentUser ? 'text-white/70' : 'text-muted-foreground'}`}>
+                                                  {formatFileSize(msg.fileSize)}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </a>
+                                        )}
+                                      </div>
+                                    )}
+                                    {/* Text content - only show if not just a file share notification */}
+                                    {msg.content && !msg.content.startsWith('Shared a file:') && (
+                                      <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                    )}
+                                    {msg.content && msg.content.startsWith('Shared a file:') && !msg.fileUrl && (
+                                      <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -477,6 +698,22 @@ export default function FloatingChat() {
                           />
                         </PopoverContent>
                       </Popover>
+                      <ObjectUploader
+                        onGetUploadParameters={getUploadParameters}
+                        onComplete={handleFileUploadComplete}
+                        onError={handleFileUploadError}
+                        buttonVariant="ghost"
+                        buttonSize="icon"
+                        buttonClassName="h-9 w-9 flex-shrink-0"
+                        disabled={isUploading}
+                        isUploading={isUploading}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Paperclip className="w-4 h-4" />
+                        )}
+                      </ObjectUploader>
                       <Input
                         placeholder="Type a message..."
                         value={messageInput}

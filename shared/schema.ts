@@ -125,6 +125,10 @@ export const messages = pgTable("messages", {
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   senderId: varchar("sender_id").notNull().references(() => users.id),
   content: text("content").notNull(),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  fileType: text("file_type"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
