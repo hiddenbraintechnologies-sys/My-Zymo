@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,8 +14,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateProfileSchema, type UpdateProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { LogOut, User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload } from "lucide-react";
-import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import { User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload } from "lucide-react";
+import Navbar from "@/components/Navbar";
 import { useEffect, useState, useRef } from "react";
 
 export default function Profile() {
@@ -172,10 +172,6 @@ export default function Profile() {
     },
   });
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
-
   const onSubmit = (data: UpdateProfile) => {
     updateProfileMutation.mutate(data);
   };
@@ -197,45 +193,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" data-testid="link-home">
-            <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
-              <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
-              <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Myzymo</span>
-            </div>
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" data-testid="link-dashboard">
-              <Button variant="ghost">Dashboard</Button>
-            </Link>
-            <Link href="/events" data-testid="link-events">
-              <Button variant="ghost">Events</Button>
-            </Link>
-            <Link href="/messages" data-testid="link-messages">
-              <Button variant="ghost">Messages</Button>
-            </Link>
-            <Link href="/vendors" data-testid="link-vendors">
-              <Button variant="ghost">Vendors</Button>
-            </Link>
-            <Link href="/ai-assistant" data-testid="link-ai-assistant">
-              <Button variant="ghost">AI Assistant</Button>
-            </Link>
-            <Link href="/profile" data-testid="link-profile">
-              <Button variant="ghost">Profile</Button>
-            </Link>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
