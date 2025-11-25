@@ -836,6 +836,299 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === Group Chat APIs ===
+  
+  // Get user's group chats
+  app.get('/api/group-chats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupChats = await storage.getUserGroupChats(userId);
+      res.json(groupChats);
+    } catch (error) {
+      console.error("Error fetching group chats:", error);
+      res.status(500).json({ message: "Failed to fetch group chats" });
+    }
+  });
+  
+  // Create a new group chat
+  app.post('/api/group-chats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { name, description, imageUrl, memberIds } = req.body;
+      
+      if (!name || name.trim().length === 0) {
+        return res.status(400).json({ message: "Group name is required" });
+      }
+      
+      // Create the group chat
+      const groupChat = await storage.createGroupChat({
+        name: name.trim(),
+        description: description?.trim() || null,
+        imageUrl: imageUrl || null,
+        createdById: userId,
+      });
+      
+      // Add additional members if provided
+      if (memberIds && Array.isArray(memberIds)) {
+        for (const memberId of memberIds) {
+          if (memberId !== userId) {
+            try {
+              await storage.addGroupChatMember({
+                groupId: groupChat.id,
+                userId: memberId,
+                role: 'member',
+              });
+            } catch (err) {
+              console.error("Error adding member to group:", err);
+            }
+          }
+        }
+      }
+      
+      res.status(201).json(groupChat);
+    } catch (error) {
+      console.error("Error creating group chat:", error);
+      res.status(500).json({ message: "Failed to create group chat" });
+    }
+  });
+  
+  // Get a specific group chat
+  app.get('/api/group-chats/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      
+      // Verify user is a member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const groupChat = await storage.getGroupChat(groupId);
+      if (!groupChat) {
+        return res.status(404).json({ message: "Group chat not found" });
+      }
+      
+      res.json(groupChat);
+    } catch (error) {
+      console.error("Error fetching group chat:", error);
+      res.status(500).json({ message: "Failed to fetch group chat" });
+    }
+  });
+  
+  // Update group chat (name, description, image)
+  app.patch('/api/group-chats/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      const { name, description, imageUrl } = req.body;
+      
+      // Verify user is a member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const groupChat = await storage.getGroupChat(groupId);
+      if (!groupChat) {
+        return res.status(404).json({ message: "Group chat not found" });
+      }
+      
+      // Only admins or creator can update group details
+      const members = await storage.getGroupChatMembers(groupId);
+      const currentMember = members.find(m => m.userId === userId);
+      if (currentMember?.role !== 'admin' && groupChat.createdById !== userId) {
+        return res.status(403).json({ message: "Only admins can update group details" });
+      }
+      
+      const updatedGroup = await storage.updateGroupChat(groupId, {
+        name: name?.trim() || groupChat.name,
+        description: description?.trim() || groupChat.description,
+        imageUrl: imageUrl || groupChat.imageUrl,
+      });
+      
+      res.json(updatedGroup);
+    } catch (error) {
+      console.error("Error updating group chat:", error);
+      res.status(500).json({ message: "Failed to update group chat" });
+    }
+  });
+  
+  // Delete group chat (only creator can delete)
+  app.delete('/api/group-chats/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      
+      const groupChat = await storage.getGroupChat(groupId);
+      if (!groupChat) {
+        return res.status(404).json({ message: "Group chat not found" });
+      }
+      
+      if (groupChat.createdById !== userId) {
+        return res.status(403).json({ message: "Only the creator can delete this group" });
+      }
+      
+      await storage.deleteGroupChat(groupId);
+      res.json({ message: "Group chat deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting group chat:", error);
+      res.status(500).json({ message: "Failed to delete group chat" });
+    }
+  });
+  
+  // Get group chat members
+  app.get('/api/group-chats/:id/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      
+      // Verify user is a member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const members = await storage.getGroupChatMembers(groupId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching group members:", error);
+      res.status(500).json({ message: "Failed to fetch group members" });
+    }
+  });
+  
+  // Add member to group chat
+  app.post('/api/group-chats/:id/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      const { memberId } = req.body;
+      
+      if (!memberId) {
+        return res.status(400).json({ message: "Member ID is required" });
+      }
+      
+      // Verify user is an admin or creator
+      const groupChat = await storage.getGroupChat(groupId);
+      if (!groupChat) {
+        return res.status(404).json({ message: "Group chat not found" });
+      }
+      
+      const members = await storage.getGroupChatMembers(groupId);
+      const currentMember = members.find(m => m.userId === userId);
+      if (currentMember?.role !== 'admin' && groupChat.createdById !== userId) {
+        return res.status(403).json({ message: "Only admins can add members" });
+      }
+      
+      // Check if user to add exists
+      const userToAdd = await storage.getUser(memberId);
+      if (!userToAdd) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if already a member
+      const isAlreadyMember = await storage.isUserGroupMember(groupId, memberId);
+      if (isAlreadyMember) {
+        return res.status(400).json({ message: "User is already a member" });
+      }
+      
+      const member = await storage.addGroupChatMember({
+        groupId,
+        userId: memberId,
+        role: 'member',
+      });
+      
+      res.status(201).json(member);
+    } catch (error) {
+      console.error("Error adding group member:", error);
+      res.status(500).json({ message: "Failed to add member" });
+    }
+  });
+  
+  // Remove member from group chat
+  app.delete('/api/group-chats/:id/members/:memberId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      const memberId = req.params.memberId;
+      
+      const groupChat = await storage.getGroupChat(groupId);
+      if (!groupChat) {
+        return res.status(404).json({ message: "Group chat not found" });
+      }
+      
+      // User can remove themselves, or admins can remove others
+      if (memberId !== userId) {
+        const members = await storage.getGroupChatMembers(groupId);
+        const currentMember = members.find(m => m.userId === userId);
+        if (currentMember?.role !== 'admin' && groupChat.createdById !== userId) {
+          return res.status(403).json({ message: "Only admins can remove other members" });
+        }
+      }
+      
+      // Can't remove the creator
+      if (memberId === groupChat.createdById) {
+        return res.status(400).json({ message: "Cannot remove the group creator" });
+      }
+      
+      await storage.removeGroupChatMember(groupId, memberId);
+      res.json({ message: "Member removed successfully" });
+    } catch (error) {
+      console.error("Error removing group member:", error);
+      res.status(500).json({ message: "Failed to remove member" });
+    }
+  });
+  
+  // Get group chat messages
+  app.get('/api/group-chats/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      
+      // Verify user is a member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const messages = await storage.getGroupMessages(groupId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching group messages:", error);
+      res.status(500).json({ message: "Failed to fetch group messages" });
+    }
+  });
+  
+  // Send message to group chat (REST fallback, WebSocket preferred)
+  app.post('/api/group-chats/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const groupId = req.params.id;
+      const { content } = req.body;
+      
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+      
+      // Verify user is a member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const message = await storage.createGroupMessage({
+        groupId,
+        senderId: userId,
+        content: content.trim(),
+      });
+      
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error sending group message:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
   // === AI Assistant APIs ===
   
   // Get user's conversations
