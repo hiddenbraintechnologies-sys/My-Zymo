@@ -55,6 +55,7 @@ export default function FloatingChat() {
   const [messageInput, setMessageInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const callInitiatingRef = useRef(false);
@@ -137,6 +138,9 @@ export default function FloatingChat() {
               scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
             }
           }, 100);
+        } else if (data.type === 'presence') {
+          // Update online users list
+          setOnlineUsers(data.activeUsers || []);
         } else if (data.type === 'error') {
           toast({
             title: "Chat Error",
@@ -192,6 +196,7 @@ export default function FloatingChat() {
     setCurrentView('event-list');
     setSelectedEventId(null);
     setSelectedParticipantId(null);
+    setOnlineUsers([]);
   };
 
   const handleSendMessage = () => {
@@ -379,7 +384,10 @@ export default function FloatingChat() {
                   </TabsTrigger>
                   <TabsTrigger value="participants" data-testid="tab-participants">
                     <Users className="w-4 h-4 mr-1" />
-                    People ({otherParticipants.length})
+                    People 
+                    <span className="ml-1 text-xs">
+                      (<span className="text-green-500">{onlineUsers.filter(id => id !== user?.id).length}</span>/{otherParticipants.length})
+                    </span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -513,25 +521,39 @@ export default function FloatingChat() {
                       </div>
                     ) : otherParticipants.length > 0 ? (
                       <div className="space-y-2">
-                        {otherParticipants.map((participant) => (
+                        {otherParticipants.map((participant) => {
+                          const isOnline = onlineUsers.includes(participant.userId);
+                          return (
                           <div
                             key={participant.id}
                             className="flex items-center gap-3 p-2 rounded-md hover-elevate border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
                             data-testid={`participant-${participant.userId}`}
                           >
-                            <Avatar className="w-10 h-10">
-                              {participant.user.profileImageUrl ? (
-                                <AvatarImage src={participant.user.profileImageUrl} />
-                              ) : null}
-                              <AvatarFallback>
-                                {getInitials(participant.user.firstName, participant.user.lastName)}
-                              </AvatarFallback>
-                            </Avatar>
+                            <div className="relative">
+                              <Avatar className="w-10 h-10">
+                                {participant.user.profileImageUrl ? (
+                                  <AvatarImage src={participant.user.profileImageUrl} />
+                                ) : null}
+                                <AvatarFallback>
+                                  {getInitials(participant.user.firstName, participant.user.lastName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span 
+                                className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+                                title={isOnline ? 'Online' : 'Offline'}
+                                data-testid={`status-${participant.userId}`}
+                              />
+                            </div>
                             
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">
-                                {participant.user.firstName} {participant.user.lastName}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm truncate">
+                                  {participant.user.firstName} {participant.user.lastName}
+                                </p>
+                                <span className={`text-xs ${isOnline ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                  {isOnline ? 'Online' : 'Offline'}
+                                </span>
+                              </div>
                               {participant.user.profession && (
                                 <p className="text-xs text-muted-foreground truncate">
                                   {participant.user.profession}
@@ -574,7 +596,7 @@ export default function FloatingChat() {
                               </Button>
                             </div>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     ) : (
                       <div className="h-full flex items-center justify-center">
