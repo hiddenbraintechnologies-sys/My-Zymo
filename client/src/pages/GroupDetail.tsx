@@ -264,11 +264,6 @@ Let's plan together! 🎊`;
                   <Badge className={`${STATUS_COLORS[group.status as keyof typeof STATUS_COLORS]} bg-white/20 backdrop-blur border-0`}>
                     {group.status}
                   </Badge>
-                  {group.eventType && (
-                    <Badge className="bg-white/20 backdrop-blur border-0">
-                      {group.eventType.replace(/_/g, " ")}
-                    </Badge>
-                  )}
                 </div>
                 
                 <h1 className="text-2xl md:text-3xl font-heading font-bold mb-2" data-testid="text-group-name">
