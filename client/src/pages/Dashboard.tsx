@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee, Vote } from "lucide-react";
+import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import QuoteDialog from "@/components/QuoteDialog";
 
@@ -36,6 +43,7 @@ export default function Dashboard() {
   const [downloadingEventId, setDownloadingEventId] = useState<string | null>(null);
   const [eventFilter, setEventFilter] = useState<EventFilter>("private");
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
+  const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
   
   const { data: privateEvents, isLoading: isLoadingPrivate } = useQuery<Event[]>({
     queryKey: ["/api/events/private"],
@@ -196,7 +204,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <Card 
             className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setLocation("/events/create")} 
+            onClick={() => setCreateEventDialogOpen(true)} 
             data-testid="card-quick-action-create"
           >
             <CardHeader>
@@ -445,7 +453,7 @@ export default function Dashboard() {
                           Create your first celebration and start sharing with friends!
                         </p>
                         <Button 
-                          onClick={() => setLocation("/events/create")} 
+                          onClick={() => setCreateEventDialogOpen(true)} 
                           data-testid="button-create-first-event"
                           className="bg-gradient-to-r from-orange-300 to-amber-300 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg"
                         >
@@ -501,6 +509,90 @@ export default function Dashboard() {
       </AlertDialog>
 
       <QuoteDialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen} />
+
+      <Dialog open={createEventDialogOpen} onOpenChange={setCreateEventDialogOpen}>
+        <DialogContent className="sm:max-w-lg" data-testid="dialog-create-event-type">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-heading font-bold text-center bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              Choose Event Type
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Select the type of event you want to create
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Card 
+              className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30"
+              onClick={() => {
+                setCreateEventDialogOpen(false);
+                setLocation("/events/create?type=private");
+              }}
+              data-testid="option-private-event"
+            >
+              <CardHeader className="flex flex-row items-center gap-4 p-4">
+                <div className="p-3 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
+                  <Lock className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg text-orange-700 dark:text-orange-100">Private Event</CardTitle>
+                  <CardDescription className="text-orange-600 dark:text-orange-300">
+                    Invite-only celebration for friends & family
+                  </CardDescription>
+                </div>
+                <ArrowRight className="w-5 h-5 text-orange-400" />
+              </CardHeader>
+            </Card>
+
+            <Card 
+              className="hover-elevate cursor-pointer border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30"
+              onClick={() => {
+                setCreateEventDialogOpen(false);
+                setLocation("/events/create?type=public");
+              }}
+              data-testid="option-public-event"
+            >
+              <CardHeader className="flex flex-row items-center gap-4 p-4">
+                <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl shadow-md">
+                  <Globe className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg text-amber-700 dark:text-amber-100">Public Event</CardTitle>
+                  <CardDescription className="text-amber-600 dark:text-amber-300">
+                    Open event visible to everyone on the platform
+                  </CardDescription>
+                </div>
+                <ArrowRight className="w-5 h-5 text-amber-400" />
+              </CardHeader>
+            </Card>
+
+            <Card 
+              className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30"
+              onClick={() => {
+                setCreateEventDialogOpen(false);
+                setLocation("/groups");
+              }}
+              data-testid="option-group-planning"
+            >
+              <CardHeader className="flex flex-row items-center gap-4 p-4">
+                <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-400 rounded-xl shadow-md">
+                  <Vote className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg text-purple-700 dark:text-purple-100">Group Planning</CardTitle>
+                  <CardDescription className="text-purple-600 dark:text-purple-300">
+                    Collaborate with polls, itinerary & expense tracking
+                  </CardDescription>
+                </div>
+                <Badge className="bg-purple-400 text-white mr-2">
+                  <Users className="w-3 h-3 mr-1" />
+                  Team
+                </Badge>
+                <ArrowRight className="w-5 h-5 text-purple-400" />
+              </CardHeader>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

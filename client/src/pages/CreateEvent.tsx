@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, ArrowLeft, Globe, Lock, Image } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertEventSchema, type InsertEvent } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -48,11 +49,16 @@ const EVENT_TYPES = [
 
 export default function CreateEvent() {
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { toast } = useToast();
   const [eventType, setEventType] = useState<string>("");
   const [customEventType, setCustomEventType] = useState<string>("");
   const [invitationCardUrl, setInvitationCardUrl] = useState<string>("");
   const [isCardSectionOpen, setIsCardSectionOpen] = useState(false);
+
+  const urlParams = new URLSearchParams(searchString);
+  const eventTypeParam = urlParams.get("type");
+  const isPublicFromUrl = eventTypeParam === "public";
 
   // Get the effective event type (custom if "Other" is selected)
   const effectiveEventType = eventType === "Other" ? customEventType : eventType;
@@ -65,9 +71,15 @@ export default function CreateEvent() {
       date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
       location: "",
       imageUrl: "",
-      isPublic: false,
+      isPublic: isPublicFromUrl,
     },
   });
+
+  useEffect(() => {
+    if (eventTypeParam) {
+      form.setValue("isPublic", eventTypeParam === "public");
+    }
+  }, [eventTypeParam, form]);
 
   const createEventMutation = useMutation({
     mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; invitationCardUrl?: string | null; date: string; isPublic?: boolean }) => {
@@ -125,14 +137,27 @@ export default function CreateEvent() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
-          <Link href="/events" data-testid="link-back-events">
+          <Link href="/dashboard" data-testid="link-back-dashboard">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
           <div className="flex items-center gap-2">
             <Calendar className="w-6 h-6 text-orange-400" />
-            <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Create Event</span>
+            <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              Create {eventTypeParam === "public" ? "Public" : "Private"} Event
+            </span>
+            {eventTypeParam === "public" ? (
+              <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white">
+                <Globe className="w-3 h-3 mr-1" />
+                Public
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-orange-300 text-orange-600 dark:text-orange-300">
+                <Lock className="w-3 h-3 mr-1" />
+                Private
+              </Badge>
+            )}
           </div>
         </div>
       </header>
