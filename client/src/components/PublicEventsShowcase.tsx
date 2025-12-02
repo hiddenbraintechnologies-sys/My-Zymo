@@ -14,8 +14,13 @@ export default function PublicEventsShowcase() {
 
   if (isLoading) {
     return (
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-20 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-2xl" />
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-12">
             <Skeleton className="h-10 w-64 mx-auto mb-4" />
             <Skeleton className="h-6 w-96 mx-auto" />
@@ -39,8 +44,14 @@ export default function PublicEventsShowcase() {
   const displayEvents = events.slice(0, 6);
 
   return (
-    <section className="py-20 px-4 bg-muted/30" data-testid="section-public-events">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-20 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10" data-testid="section-public-events">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-2xl" />
+        <div className="absolute top-1/4 right-1/3 w-48 h-48 bg-primary/6 rounded-full blur-2xl" />
+      </div>
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-heading font-bold mb-4" data-testid="heading-public-events">
             Upcoming Public Events
