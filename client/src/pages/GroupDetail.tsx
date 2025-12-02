@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { 
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee,
-  Settings, Vote, ClipboardList, UserCog, Image, MessageSquare,
+  Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail,
   ChevronRight, Share2, QrCode, Copy, LogOut, Sparkles, Clock, Target,
   Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle
 } from "lucide-react";
@@ -124,20 +124,46 @@ export default function GroupDetail() {
     const eventDate = group.eventDate ? format(new Date(group.eventDate), 'PPP') : 'TBD';
     const location = group.locationPreference || 'TBD';
     
-    const message = `🎉 You're invited to join our group planning on Myzymo!
+    const message = `You're invited to join our group planning on Myzymo!
 
-📋 *${group.name}*
-${group.eventType ? `🏷️ ${group.eventType.replace(/_/g, ' ')}` : ''}
-📅 ${eventDate}
-📍 ${location}
+${group.name}
+${group.eventType ? `${group.eventType.replace(/_/g, ' ')}` : ''}
+${eventDate}
+${location}
 
-👉 Join with code: *${group.inviteCode}*
+Join with code: ${group.inviteCode}
 Or click: ${joinUrl}
 
-Let's plan together! 🎊`;
+Let's plan together!`;
     
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const shareViaEmail = () => {
+    if (!group) return;
+    
+    const joinUrl = `${window.location.origin}/groups?join=${group.inviteCode}`;
+    const eventDate = group.eventDate ? format(new Date(group.eventDate), 'PPP') : 'TBD';
+    const location = group.locationPreference || 'TBD';
+    
+    const subject = `You're invited to join "${group.name}" on Myzymo!`;
+    const body = `Hi there!
+
+You're invited to join our group planning on Myzymo!
+
+Event: ${group.name}
+${group.eventType ? `Type: ${group.eventType.replace(/_/g, ' ')}` : ''}
+Date: ${eventDate}
+Location: ${location}
+
+Join with invite code: ${group.inviteCode}
+Or click this link: ${joinUrl}
+
+Looking forward to planning together!`;
+    
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
   };
 
   if (authLoading || groupLoading) {
@@ -209,6 +235,10 @@ Let's plan together! 🎊`;
                   <DropdownMenuItem onClick={shareViaWhatsApp} data-testid="button-share-whatsapp">
                     <SiWhatsapp className="w-4 h-4 mr-2 text-green-500" />
                     Share via WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={shareViaEmail} data-testid="button-share-email">
+                    <Mail className="w-4 h-4 mr-2 text-blue-500" />
+                    Share via Email
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={copyInviteCode} data-testid="button-copy-invite">
