@@ -284,29 +284,6 @@ export default function Dashboard() {
             </CardHeader>
           </Card>
 
-          <Card 
-            className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-100 via-violet-50 to-purple-200 dark:from-purple-950/20 dark:to-violet-950/20 shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setLocation("/groups")} 
-            data-testid="card-quick-action-groups"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-400 rounded-xl shadow-md">
-                  <Vote className="w-6 h-6 text-white" />
-                </div>
-                <Badge className="bg-purple-400 text-white">
-                  <Users className="w-3 h-3 mr-1" />
-                  Team
-                </Badge>
-              </div>
-              <CardTitle className="text-xl font-bold text-purple-700 dark:text-purple-100">
-                Group Planning
-              </CardTitle>
-              <CardDescription className="text-purple-600 dark:text-purple-300">
-                Plan events with polls & collaboration
-              </CardDescription>
-            </CardHeader>
-          </Card>
         </div>
 
         {/* Events Section */}
