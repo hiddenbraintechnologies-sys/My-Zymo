@@ -604,6 +604,8 @@ export const eventGroups = pgTable("event_groups", {
   name: text("name").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
+  bannerImageUrl: text("banner_image_url"), // Custom banner image uploaded by user
+  themeColor: text("theme_color"), // Custom theme color (hex or gradient name)
   eventType: text("event_type").notNull(), // reunion, birthday, wedding, family_meet, corporate, other
   eventDate: timestamp("event_date"),
   locationCity: text("location_city"),
