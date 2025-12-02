@@ -22,10 +22,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee,
+  Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee, Upload, Palette,
   Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail, Link2,
   ChevronRight, Share2, QrCode, Copy, LogOut, Sparkles, Clock, Target,
-  Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle
+  Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle, ImagePlus
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -70,12 +70,85 @@ const STATUS_COLORS = {
   cancelled: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
 };
 
+// Comprehensive theme color options with wide variety
+const THEME_COLORS = {
+  gradients: [
+    { id: "orange-amber", name: "Sunset Orange", gradient: "from-orange-500 via-amber-500 to-orange-600", preview: "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600" },
+    { id: "pink-rose", name: "Rose Garden", gradient: "from-pink-500 via-rose-500 to-pink-600", preview: "bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600" },
+    { id: "purple-violet", name: "Royal Purple", gradient: "from-purple-500 via-violet-500 to-purple-600", preview: "bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600" },
+    { id: "blue-cyan", name: "Ocean Blue", gradient: "from-blue-500 via-cyan-500 to-blue-600", preview: "bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600" },
+    { id: "teal-emerald", name: "Forest Teal", gradient: "from-teal-500 via-emerald-500 to-teal-600", preview: "bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-600" },
+    { id: "green-lime", name: "Spring Green", gradient: "from-green-500 via-lime-500 to-green-600", preview: "bg-gradient-to-r from-green-500 via-lime-500 to-green-600" },
+    { id: "red-rose", name: "Cherry Red", gradient: "from-red-500 via-rose-500 to-red-600", preview: "bg-gradient-to-r from-red-500 via-rose-500 to-red-600" },
+    { id: "indigo-blue", name: "Deep Indigo", gradient: "from-indigo-500 via-blue-500 to-indigo-600", preview: "bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-600" },
+    { id: "fuchsia-pink", name: "Neon Fuchsia", gradient: "from-fuchsia-500 via-pink-500 to-fuchsia-600", preview: "bg-gradient-to-r from-fuchsia-500 via-pink-500 to-fuchsia-600" },
+    { id: "amber-yellow", name: "Golden Sun", gradient: "from-amber-500 via-yellow-500 to-amber-600", preview: "bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600" },
+    { id: "slate-gray", name: "Modern Slate", gradient: "from-slate-600 via-gray-500 to-slate-600", preview: "bg-gradient-to-r from-slate-600 via-gray-500 to-slate-600" },
+    { id: "zinc-neutral", name: "Elegant Dark", gradient: "from-zinc-700 via-neutral-600 to-zinc-700", preview: "bg-gradient-to-r from-zinc-700 via-neutral-600 to-zinc-700" },
+  ],
+  solids: [
+    { id: "red", name: "Red", hex: "#ef4444", preview: "bg-red-500" },
+    { id: "orange", name: "Orange", hex: "#f97316", preview: "bg-orange-500" },
+    { id: "amber", name: "Amber", hex: "#f59e0b", preview: "bg-amber-500" },
+    { id: "yellow", name: "Yellow", hex: "#eab308", preview: "bg-yellow-500" },
+    { id: "lime", name: "Lime", hex: "#84cc16", preview: "bg-lime-500" },
+    { id: "green", name: "Green", hex: "#22c55e", preview: "bg-green-500" },
+    { id: "emerald", name: "Emerald", hex: "#10b981", preview: "bg-emerald-500" },
+    { id: "teal", name: "Teal", hex: "#14b8a6", preview: "bg-teal-500" },
+    { id: "cyan", name: "Cyan", hex: "#06b6d4", preview: "bg-cyan-500" },
+    { id: "sky", name: "Sky", hex: "#0ea5e9", preview: "bg-sky-500" },
+    { id: "blue", name: "Blue", hex: "#3b82f6", preview: "bg-blue-500" },
+    { id: "indigo", name: "Indigo", hex: "#6366f1", preview: "bg-indigo-500" },
+    { id: "violet", name: "Violet", hex: "#8b5cf6", preview: "bg-violet-500" },
+    { id: "purple", name: "Purple", hex: "#a855f7", preview: "bg-purple-500" },
+    { id: "fuchsia", name: "Fuchsia", hex: "#d946ef", preview: "bg-fuchsia-500" },
+    { id: "pink", name: "Pink", hex: "#ec4899", preview: "bg-pink-500" },
+    { id: "rose", name: "Rose", hex: "#f43f5e", preview: "bg-rose-500" },
+    { id: "slate", name: "Slate", hex: "#64748b", preview: "bg-slate-500" },
+    { id: "gray", name: "Gray", hex: "#6b7280", preview: "bg-gray-500" },
+    { id: "zinc", name: "Zinc", hex: "#71717a", preview: "bg-zinc-500" },
+  ],
+};
+
+// Helper function to get banner gradient/color classes
+function getBannerStyles(themeColor: string | null | undefined): { gradientClass: string; hasCustomImage: boolean } {
+  if (!themeColor) {
+    return { gradientClass: "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600", hasCustomImage: false };
+  }
+  
+  // Check if it's a gradient
+  const gradient = THEME_COLORS.gradients.find(g => g.id === themeColor);
+  if (gradient) {
+    return { gradientClass: `bg-gradient-to-r ${gradient.gradient}`, hasCustomImage: false };
+  }
+  
+  // Check if it's a solid color
+  const solid = THEME_COLORS.solids.find(s => s.id === themeColor);
+  if (solid) {
+    return { gradientClass: solid.preview, hasCustomImage: false };
+  }
+  
+  // Check if it's a hex color (custom)
+  if (themeColor.startsWith("#")) {
+    return { gradientClass: "", hasCustomImage: false };
+  }
+  
+  return { gradientClass: "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600", hasCustomImage: false };
+}
+
 export default function GroupDetail() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/groups/:id");
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  const [selectedThemeColor, setSelectedThemeColor] = useState<string>("");
+  const [customHexColor, setCustomHexColor] = useState("#f97316");
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [colorPickerTab, setColorPickerTab] = useState<"gradients" | "solids" | "custom">("gradients");
 
   const groupId = params?.id;
 
@@ -177,6 +250,108 @@ Looking forward to planning together!`;
     window.location.href = mailtoUrl;
   };
 
+  // Customization mutation
+  const customizeMutation = useMutation({
+    mutationFn: async (data: { themeColor?: string; bannerImageUrl?: string }) => {
+      const res = await apiRequest(`/api/groups/${groupId}`, "PATCH", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId] });
+      toast({ title: "Customization saved!", description: "Your group banner has been updated." });
+      setCustomizeDialogOpen(false);
+      setBannerFile(null);
+      setBannerPreviewUrl(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to save customization", variant: "destructive" });
+    },
+  });
+
+  // Handle banner file selection
+  const handleBannerFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Please select an image under 5MB", variant: "destructive" });
+        return;
+      }
+      setBannerFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Upload banner and save customization
+  const handleSaveCustomization = async () => {
+    setIsUploadingBanner(true);
+    try {
+      let bannerImageUrl: string | undefined;
+
+      if (bannerFile) {
+        // Get signed upload URL
+        const uploadRes = await fetch(`/api/upload/signed-url?filename=${encodeURIComponent(bannerFile.name)}&contentType=${encodeURIComponent(bannerFile.type)}`);
+        if (!uploadRes.ok) throw new Error("Failed to get upload URL");
+        const { signedUrl, fileUrl } = await uploadRes.json();
+
+        // Upload to storage
+        await fetch(signedUrl, {
+          method: "PUT",
+          body: bannerFile,
+          headers: { "Content-Type": bannerFile.type },
+        });
+        bannerImageUrl = fileUrl;
+      }
+
+      // Determine which color to use based on current tab
+      let themeColorToSave: string;
+      if (colorPickerTab === "custom") {
+        // Always use the custom hex color when on custom tab
+        themeColorToSave = customHexColor;
+      } else if (colorPickerTab === "solids" && selectedThemeColor) {
+        // Use selected solid color
+        themeColorToSave = selectedThemeColor;
+      } else if (colorPickerTab === "gradients" && selectedThemeColor) {
+        // Use selected gradient
+        themeColorToSave = selectedThemeColor;
+      } else {
+        // Fallback to default orange-amber gradient
+        themeColorToSave = "orange-amber";
+      }
+
+      await customizeMutation.mutateAsync({ 
+        themeColor: themeColorToSave, 
+        bannerImageUrl 
+      });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to upload banner", variant: "destructive" });
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
+
+  // Initialize selected theme when dialog opens
+  const openCustomizeDialog = () => {
+    if (group?.themeColor) {
+      setSelectedThemeColor(group.themeColor);
+      if (group.themeColor.startsWith("#")) {
+        setCustomHexColor(group.themeColor);
+        setColorPickerTab("custom");
+      } else if (THEME_COLORS.solids.some(s => s.id === group.themeColor)) {
+        setColorPickerTab("solids");
+      } else {
+        setColorPickerTab("gradients");
+      }
+    }
+    if (group?.bannerImageUrl) {
+      setBannerPreviewUrl(group.bannerImageUrl);
+    }
+    setCustomizeDialogOpen(true);
+  };
+
   if (authLoading || groupLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-background to-amber-50 dark:from-background dark:via-background dark:to-background">
@@ -272,6 +447,10 @@ Looking forward to planning together!`;
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={openCustomizeDialog} data-testid="button-customize-group">
+                    <Palette className="w-4 h-4 mr-2" />
+                    Customize Banner
+                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Group
@@ -299,8 +478,26 @@ Looking forward to planning together!`;
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {/* Group Header Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 p-6 md:p-8 text-white shadow-xl mb-6">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
+        <div 
+          className={`relative overflow-hidden rounded-2xl p-6 md:p-8 text-white shadow-xl mb-6 ${
+            group.bannerImageUrl ? "" : getBannerStyles(group.themeColor).gradientClass
+          }`}
+          style={
+            group.bannerImageUrl 
+              ? { backgroundImage: `url(${group.bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : group.themeColor?.startsWith("#") 
+                ? { backgroundColor: group.themeColor }
+                : undefined
+          }
+        >
+          {/* Dark overlay for custom banner images */}
+          {group.bannerImageUrl && (
+            <div className="absolute inset-0 bg-black/40" />
+          )}
+          {/* Pattern overlay for color backgrounds */}
+          {!group.bannerImageUrl && (
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
+          )}
           
           <div className="relative">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -427,6 +624,238 @@ Looking forward to planning together!`;
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Customization Dialog */}
+      <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5 text-orange-500" />
+              Customize Group Banner
+            </DialogTitle>
+            <DialogDescription>
+              Upload a custom banner image or choose from our color themes
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Banner Image Upload */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <ImagePlus className="w-4 h-4" />
+                Custom Banner Image
+              </Label>
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-4">
+                {bannerPreviewUrl ? (
+                  <div className="relative">
+                    <img 
+                      src={bannerPreviewUrl} 
+                      alt="Banner preview" 
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        setBannerPreviewUrl(null);
+                        setBannerFile(null);
+                      }}
+                      data-testid="button-remove-banner"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center cursor-pointer py-6">
+                    <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                    <span className="text-sm text-muted-foreground">Click to upload or drag and drop</span>
+                    <span className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleBannerFileSelect}
+                      data-testid="input-banner-upload"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Color Theme Picker */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Palette className="w-4 h-4" />
+                Theme Color
+              </Label>
+              
+              {/* Color Picker Tabs */}
+              <Tabs value={colorPickerTab} onValueChange={(v) => setColorPickerTab(v as any)}>
+                <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="gradients">Gradients</TabsTrigger>
+                  <TabsTrigger value="solids">Solid Colors</TabsTrigger>
+                  <TabsTrigger value="custom">Custom</TabsTrigger>
+                </TabsList>
+
+                {/* Gradients */}
+                <TabsContent value="gradients" className="mt-0">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {THEME_COLORS.gradients.map((gradient) => (
+                      <button
+                        key={gradient.id}
+                        type="button"
+                        onClick={() => setSelectedThemeColor(gradient.id)}
+                        className={`relative h-16 rounded-lg ${gradient.preview} transition-all ${
+                          selectedThemeColor === gradient.id 
+                            ? "ring-2 ring-offset-2 ring-primary" 
+                            : "hover:scale-105"
+                        }`}
+                        data-testid={`color-gradient-${gradient.id}`}
+                      >
+                        {selectedThemeColor === gradient.id && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Check className="w-6 h-6 text-white drop-shadow-lg" />
+                          </div>
+                        )}
+                        <span className="absolute bottom-1 left-1 right-1 text-xs text-white font-medium text-center drop-shadow-lg truncate">
+                          {gradient.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                {/* Solid Colors */}
+                <TabsContent value="solids" className="mt-0">
+                  <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                    {THEME_COLORS.solids.map((color) => (
+                      <button
+                        key={color.id}
+                        type="button"
+                        onClick={() => setSelectedThemeColor(color.id)}
+                        className={`relative h-10 w-10 rounded-full ${color.preview} transition-all ${
+                          selectedThemeColor === color.id 
+                            ? "ring-2 ring-offset-2 ring-primary scale-110" 
+                            : "hover:scale-110"
+                        }`}
+                        title={color.name}
+                        data-testid={`color-solid-${color.id}`}
+                      >
+                        {selectedThemeColor === color.id && (
+                          <Check className="absolute inset-0 m-auto w-5 h-5 text-white drop-shadow-lg" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                {/* Custom Hex Color Picker */}
+                <TabsContent value="custom" className="mt-0">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="w-16 h-16 rounded-lg border-2"
+                        style={{ backgroundColor: customHexColor }}
+                      />
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="hex-color">Hex Color Code</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="hex-color"
+                            type="text"
+                            value={customHexColor}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                                setCustomHexColor(val);
+                              }
+                            }}
+                            placeholder="#f97316"
+                            className="font-mono"
+                            data-testid="input-custom-hex"
+                          />
+                          <input
+                            type="color"
+                            value={customHexColor}
+                            onChange={(e) => setCustomHexColor(e.target.value)}
+                            className="w-12 h-10 rounded cursor-pointer"
+                            data-testid="input-color-picker"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Quick color presets */}
+                    <div>
+                      <Label className="text-sm text-muted-foreground mb-2 block">Quick Presets</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9"].map((hex) => (
+                          <button
+                            key={hex}
+                            type="button"
+                            onClick={() => setCustomHexColor(hex)}
+                            className={`w-8 h-8 rounded-full transition-all ${
+                              customHexColor === hex ? "ring-2 ring-offset-2 ring-primary" : "hover:scale-110"
+                            }`}
+                            style={{ backgroundColor: hex }}
+                            data-testid={`color-preset-${hex}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Preview */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Preview</Label>
+              <div 
+                className={`relative overflow-hidden rounded-xl p-4 text-white h-24 ${
+                  bannerPreviewUrl ? "" : colorPickerTab === "custom" 
+                    ? "" 
+                    : getBannerStyles(selectedThemeColor).gradientClass || "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600"
+                }`}
+                style={
+                  bannerPreviewUrl 
+                    ? { backgroundImage: `url(${bannerPreviewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                    : colorPickerTab === "custom"
+                      ? { backgroundColor: customHexColor }
+                      : undefined
+                }
+              >
+                {bannerPreviewUrl && <div className="absolute inset-0 bg-black/40" />}
+                <div className="relative">
+                  <div className="text-lg font-bold">{group.name}</div>
+                  <div className="text-sm text-white/80 mt-1">Your group banner preview</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setCustomizeDialogOpen(false)}
+              data-testid="button-cancel-customize"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveCustomization}
+              disabled={isUploadingBanner || customizeMutation.isPending}
+              className="bg-gradient-to-r from-orange-500 to-amber-500"
+              data-testid="button-save-customize"
+            >
+              {isUploadingBanner ? "Uploading..." : customizeMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
