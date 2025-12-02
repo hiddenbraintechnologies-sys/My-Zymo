@@ -48,18 +48,19 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
-        <Link href={logoHref} data-testid="link-home">
-          <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2 relative">
+        {/* Logo - Left on desktop, Center on mobile */}
+        <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
+          <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
             <img src={logoUrl} alt="Myzymo" className="w-10 h-10 flex-shrink-0" />
-            <span className="font-heading font-bold text-xl hidden sm:inline">Myzymo</span>
+            <span className="font-heading font-bold text-xl">Myzymo</span>
           </div>
         </Link>
         
         {/* Show different navigation based on authentication */}
         {user ? (
           // Authenticated user navigation
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4 ml-auto">
             {/* Desktop navigation - hidden on mobile */}
             <div className="hidden md:flex items-center gap-2">
               {authNavLinks.map((link) => (
@@ -69,22 +70,20 @@ export default function Navbar() {
               ))}
             </div>
             
-            {/* User info and logout - visible on all screens */}
-            <div className="hidden sm:flex items-center gap-2">
+            {/* User info and logout - visible on desktop */}
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-sm truncate max-w-[120px]" data-testid="text-user-name">
                 {user.firstName} {user.lastName}
               </span>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleLogout}
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleLogout}
-              data-testid="button-logout"
-              className="hidden sm:flex"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
             
             {/* Mobile menu for authenticated users */}
             <Sheet>
