@@ -84,6 +84,18 @@ export default function GroupPlanning() {
     }
   }, [groupsError, groupsLoading, toast]);
 
+  // Handle join parameter from shared WhatsApp link
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinCode = urlParams.get('join');
+    if (joinCode && user) {
+      setInviteCode(joinCode.toUpperCase());
+      setJoinDialogOpen(true);
+      // Clean up URL
+      window.history.replaceState({}, '', '/groups');
+    }
+  }, [user]);
+
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (data: typeof formData) => {

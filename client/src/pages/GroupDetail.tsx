@@ -34,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SiWhatsapp } from "react-icons/si";
 import type { EventGroup, EventGroupMember, User, GroupPoll, GroupPollOption, GroupPollVote, GroupItineraryItem, GroupExpense } from "@shared/schema";
 
 type GroupMemberWithUser = EventGroupMember & { user: User };
@@ -116,6 +117,29 @@ export default function GroupDetail() {
     }
   };
 
+  const shareViaWhatsApp = () => {
+    if (!group) return;
+    
+    const joinUrl = `${window.location.origin}/groups?join=${group.inviteCode}`;
+    const eventDate = group.eventDate ? format(new Date(group.eventDate), 'PPP') : 'TBD';
+    const location = group.locationPreference || 'TBD';
+    
+    const message = `🎉 You're invited to join our group planning on Myzymo!
+
+📋 *${group.name}*
+${group.eventType ? `🏷️ ${group.eventType.replace(/_/g, ' ')}` : ''}
+📅 ${eventDate}
+📍 ${location}
+
+👉 Join with code: *${group.inviteCode}*
+Or click: ${joinUrl}
+
+Let's plan together! 🎊`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   if (authLoading || groupLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-background to-amber-50 dark:from-background dark:via-background dark:to-background">
@@ -169,16 +193,30 @@ export default function GroupDetail() {
           
           <div className="flex items-center gap-2">
             {group.inviteCode && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyInviteCode}
-                className="gap-2"
-                data-testid="button-copy-invite"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    data-testid="button-share-menu"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={shareViaWhatsApp} data-testid="button-share-whatsapp">
+                    <SiWhatsapp className="w-4 h-4 mr-2 text-green-500" />
+                    Share via WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={copyInviteCode} data-testid="button-copy-invite">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Invite Code
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             
             {(isAdmin || isCreator) && (
