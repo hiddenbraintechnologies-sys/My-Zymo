@@ -32,6 +32,7 @@ type GroupWithDetails = EventGroup & {
 
 const EVENT_TYPES = [
   { value: "college_reunion", label: "College Reunion" },
+  { value: "school_reunion", label: "School Reunion" },
   { value: "birthday_party", label: "Birthday Party" },
   { value: "wedding", label: "Wedding" },
   { value: "anniversary", label: "Anniversary" },
