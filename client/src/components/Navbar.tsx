@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Moon, Sun, LogOut } from "lucide-react";
+import { Menu, Moon, Sun, LogOut, LayoutDashboard, CalendarDays, Store, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import {
@@ -31,6 +31,14 @@ export default function Navbar() {
     { label: "Vendors", href: "/vendor/login" },
   ];
 
+  // Authenticated user navigation links
+  const authNavLinks = [
+    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Events", href: "/events", icon: CalendarDays },
+    { label: "Vendors", href: "/vendors", icon: Store },
+    { label: "Profile", href: "/profile", icon: User },
+  ];
+
   // If user is authenticated, logo should link to dashboard, otherwise to home
   const logoHref = user ? "/dashboard" : "/";
 
@@ -40,43 +48,77 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
         <Link href={logoHref} data-testid="link-home">
           <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
-            <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
-            <span className="font-heading font-bold text-xl">Myzymo</span>
+            <img src={logoUrl} alt="Myzymo" className="w-10 h-10 flex-shrink-0" />
+            <span className="font-heading font-bold text-xl hidden sm:inline">Myzymo</span>
           </div>
         </Link>
         
         {/* Show different navigation based on authentication */}
         {user ? (
           // Authenticated user navigation
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" data-testid="link-dashboard">
-              <Button variant="ghost">Dashboard</Button>
-            </Link>
-            <Link href="/events" data-testid="link-events">
-              <Button variant="ghost">Events</Button>
-            </Link>
-            <Link href="/vendors" data-testid="link-vendors">
-              <Button variant="ghost">Vendors</Button>
-            </Link>
-            <Link href="/profile" data-testid="link-profile">
-              <Button variant="ghost">Profile</Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <span className="text-sm" data-testid="text-user-name">
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* Desktop navigation - hidden on mobile */}
+            <div className="hidden md:flex items-center gap-2">
+              {authNavLinks.map((link) => (
+                <Link key={link.label} href={link.href} data-testid={`link-${link.label.toLowerCase()}`}>
+                  <Button variant="ghost">{link.label}</Button>
+                </Link>
+              ))}
+            </div>
+            
+            {/* User info and logout - visible on all screens */}
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm truncate max-w-[120px]" data-testid="text-user-name">
                 {user.firstName} {user.lastName}
               </span>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleLogout}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
             </div>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleLogout}
+              data-testid="button-logout"
+              className="hidden sm:flex"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+            
+            {/* Mobile menu for authenticated users */}
+            <Sheet>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon" data-testid="button-auth-menu">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <div className="flex flex-col gap-4 mt-8">
+                  <div className="text-lg font-medium text-muted-foreground mb-2">
+                    Hi, {user.firstName}!
+                  </div>
+                  {authNavLinks.map((link) => (
+                    <Link key={link.label} href={link.href}>
+                      <div className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2">
+                        <link.icon className="w-5 h-5" />
+                        {link.label}
+                      </div>
+                    </Link>
+                  ))}
+                  <div className="border-t pt-4 mt-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Log Out
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         ) : (
           // Landing page navigation
