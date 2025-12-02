@@ -49,50 +49,18 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2 relative">
-        {/* Logo - Left on desktop, Center on mobile */}
-        <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
-          <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
-            <img src={logoUrl} alt="Myzymo" className="w-10 h-10 flex-shrink-0" />
-            <span className="font-heading font-bold text-xl">Myzymo</span>
-          </div>
-        </Link>
-        
         {/* Show different navigation based on authentication */}
         {user ? (
           // Authenticated user navigation
-          <div className="flex items-center gap-2 md:gap-4 ml-auto">
-            {/* Desktop navigation - hidden on mobile */}
-            <div className="hidden md:flex items-center gap-2">
-              {authNavLinks.map((link) => (
-                <Link key={link.label} href={link.href} data-testid={`link-${link.label.toLowerCase()}`}>
-                  <Button variant="ghost">{link.label}</Button>
-                </Link>
-              ))}
-            </div>
-            
-            {/* User info and logout - visible on desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              <span className="text-sm truncate max-w-[120px]" data-testid="text-user-name">
-                {user.firstName} {user.lastName}
-              </span>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleLogout}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {/* Mobile menu for authenticated users */}
+          <>
+            {/* Mobile menu button - Left side on mobile */}
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon" data-testid="button-auth-menu">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent>
+              <SheetContent side="left">
                 <div className="flex flex-col gap-4 mt-8">
                   <div className="text-lg font-medium text-muted-foreground mb-2">
                     Hi, {user.firstName}!
@@ -118,10 +86,53 @@ export default function Navbar() {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
+            
+            {/* Logo - Left on desktop, Center on mobile */}
+            <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
+              <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
+                <img src={logoUrl} alt="Myzymo" className="w-10 h-10 flex-shrink-0" />
+                <span className="font-heading font-bold text-xl">Myzymo</span>
+              </div>
+            </Link>
+            
+            {/* Desktop navigation - hidden on mobile */}
+            <div className="hidden md:flex items-center gap-2 md:gap-4 ml-auto">
+              {authNavLinks.map((link) => (
+                <Link key={link.label} href={link.href} data-testid={`link-${link.label.toLowerCase()}`}>
+                  <Button variant="ghost">{link.label}</Button>
+                </Link>
+              ))}
+              
+              {/* User info and logout - visible on desktop */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm truncate max-w-[120px]" data-testid="text-user-name">
+                  {user.firstName} {user.lastName}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleLogout}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Empty spacer for mobile to balance the centered logo */}
+            <div className="w-9 md:hidden" />
+          </>
         ) : (
           // Landing page navigation
           <>
+            {/* Logo - Left on desktop, Center on mobile */}
+            <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
+              <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
+                <img src={logoUrl} alt="Myzymo" className="w-10 h-10 flex-shrink-0" />
+                <span className="font-heading font-bold text-xl">Myzymo</span>
+              </div>
+            </Link>
+            
             <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               {landingNavLinks.map((link) => (
                 <a 
