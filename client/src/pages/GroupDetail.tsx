@@ -306,11 +306,25 @@ Looking forward to planning together!`;
               </div>
               
               {group.inviteCode && (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
+                <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center min-w-[180px]">
                   <div className="text-sm text-white/70 mb-1">Invite Code</div>
-                  <div className="font-mono text-2xl font-bold tracking-widest" data-testid="text-invite-code">
+                  <div className="font-mono text-2xl font-bold tracking-widest mb-2" data-testid="text-invite-code">
                     {group.inviteCode}
                   </div>
+                  <button
+                    onClick={() => {
+                      const joinUrl = `${window.location.origin}/groups?join=${group.inviteCode}`;
+                      navigator.clipboard.writeText(joinUrl);
+                      toast({
+                        title: "Link copied!",
+                        description: "Invite link copied to clipboard",
+                      });
+                    }}
+                    className="text-xs text-white/60 hover:text-white underline underline-offset-2 transition-colors cursor-pointer"
+                    data-testid="button-copy-invite-link"
+                  >
+                    Copy invite link
+                  </button>
                 </div>
               )}
             </div>
