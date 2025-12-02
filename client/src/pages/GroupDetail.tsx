@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { 
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee,
-  Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail,
+  Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail, Link2,
   ChevronRight, Share2, QrCode, Copy, LogOut, Sparkles, Clock, Target,
   Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle
 } from "lucide-react";
@@ -113,6 +113,17 @@ export default function GroupDetail() {
       toast({
         title: "Invite code copied!",
         description: `Share "${group.inviteCode}" with others.`,
+      });
+    }
+  };
+
+  const copyInviteLink = () => {
+    if (group?.inviteCode) {
+      const joinUrl = `${window.location.origin}/groups?join=${group.inviteCode}`;
+      navigator.clipboard.writeText(joinUrl);
+      toast({
+        title: "Link copied!",
+        description: "Invite link copied to clipboard",
       });
     }
   };
@@ -241,6 +252,10 @@ Looking forward to planning together!`;
                     Share via Email
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={copyInviteLink} data-testid="button-copy-link">
+                    <Link2 className="w-4 h-4 mr-2" />
+                    Copy Link
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={copyInviteCode} data-testid="button-copy-invite">
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Invite Code
