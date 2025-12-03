@@ -110,10 +110,6 @@ export default function Messages() {
   // Group settings state
   const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
-  
-  // New conversation dialog state
-  const [newConversationOpen, setNewConversationOpen] = useState(false);
-  const [userSearchQuery, setUserSearchQuery] = useState("");
 
   // WebRTC for video/audio calls
   const {
