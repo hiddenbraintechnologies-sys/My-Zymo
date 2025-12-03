@@ -56,8 +56,8 @@ export default function Navbar() {
           {user ? (
             // Authenticated user navigation
             <>
-              {/* Logo - Center on mobile, Left on desktop */}
-              <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
+              {/* Logo - Left aligned on all screen sizes */}
+              <Link href={logoHref} data-testid="link-home">
                 <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
                   <img src={logoUrl} alt="Myzymo" className="w-14 h-14 flex-shrink-0" />
                   <span className="font-heading font-bold text-xl">Myzymo</span>
@@ -89,7 +89,7 @@ export default function Navbar() {
               </div>
               
               {/* Logout button on mobile - right side */}
-              <div className="md:hidden">
+              <div className="md:hidden ml-auto">
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -103,8 +103,8 @@ export default function Navbar() {
           ) : (
             // Landing page navigation
             <>
-              {/* Logo - Left on desktop, Center on mobile */}
-              <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
+              {/* Logo - Left aligned on all screen sizes */}
+              <Link href={logoHref} data-testid="link-home">
                 <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
                   <img src={logoUrl} alt="Myzymo" className="w-14 h-14 flex-shrink-0" />
                   <span className="font-heading font-bold text-xl">Myzymo</span>
@@ -119,7 +119,7 @@ export default function Navbar() {
                 <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-how-it-works">How It Works</a>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-auto">
                 <Button
                   variant="ghost"
                   size="icon"
