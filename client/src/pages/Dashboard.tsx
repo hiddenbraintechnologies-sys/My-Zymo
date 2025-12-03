@@ -193,7 +193,7 @@ export default function Dashboard() {
               <div>
                 <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-white">
                   <Sparkles className="w-7 h-7" />
-                  Welcome back, {user.firstName}!
+                  Welcome {user.firstName}
                 </h1>
                 <p className="text-white/80 text-base md:text-lg">Create and share your celebrations with friends and family</p>
               </div>
