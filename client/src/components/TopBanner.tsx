@@ -1,33 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, X, Users, MessageCircle, Wallet, Store } from "lucide-react";
+import { Sparkles, ArrowRight, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 export default function TopBanner() {
   const [, setLocation] = useLocation();
   const [isVisible, setIsVisible] = useState(true);
-  const { user } = useAuth();
-  const [location] = useLocation();
 
-  // Don't show banner on admin pages
-  const isAdminPage = location.startsWith('/admin') || location.startsWith('/vendor');
-  
   const handleClose = () => {
     setIsVisible(false);
-    // Store preference in session storage
-    sessionStorage.setItem('topBannerClosed', 'true');
   };
 
-  useEffect(() => {
-    // Check if banner was closed this session
-    const wasClosed = sessionStorage.getItem('topBannerClosed');
-    if (wasClosed) {
-      setIsVisible(false);
-    }
-  }, []);
-
-  if (!isVisible || isAdminPage) return null;
+  if (!isVisible) return null;
 
   return (
     <div className="relative bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 dark:from-orange-950/30 dark:via-amber-950/30 dark:to-orange-950/30 border-b-4 border-primary/30 overflow-hidden">
@@ -49,58 +33,56 @@ export default function TopBanner() {
         <X className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
       </button>
 
-      <div className="relative max-w-7xl mx-auto px-4 py-6 md:py-10">
+      <div className="relative max-w-7xl mx-auto px-4 py-8 md:py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left flex-1">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-primary animate-pulse" />
               <span className="text-sm font-semibold text-primary uppercase tracking-wider">
-                Plan Your Perfect Gathering
+                Join Thousands Celebrating
               </span>
             </div>
-            <h2 className="font-heading font-bold text-2xl md:text-3xl lg:text-4xl mb-3 bg-gradient-to-r from-primary via-orange-600 to-primary bg-clip-text text-transparent">
-              From college reunions to birthday bashes
+            <h2 className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl mb-3 bg-gradient-to-r from-primary via-orange-600 to-primary bg-clip-text text-transparent">
+              Start Planning Your Perfect Event
             </h2>
-            <p className="text-sm md:text-base text-muted-foreground max-w-2xl">
-              Organize unforgettable celebrations with ease - your one-stop platform for all social gatherings
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl">
+              From reunions to weddings, birthdays to festivals - create unforgettable celebrations with your loved ones
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-4">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-500 text-white font-semibold text-base md:text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
-              data-testid="button-top-banner-cta"
-              onClick={() => setLocation(user ? '/events/create' : '/signup')}
+              className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-500 text-white font-semibold text-lg px-10 py-7 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+              data-testid="button-top-banner-signup"
+              onClick={() => setLocation('/signup')}
             >
-              {user ? 'Create Event' : 'Get Started Free'}
+              Create Free Account
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            {!user && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                No credit card required
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              No credit card required • Free forever
+            </p>
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-primary/20">
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 text-sm">
+        <div className="mt-8 pt-6 border-t border-primary/20">
+          <div className="flex flex-wrap justify-center md:justify-start gap-6 md:gap-8 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="w-5 h-5 text-primary" />
+              <span className="text-2xl">🎉</span>
               <span>Group Planning</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <MessageCircle className="w-5 h-5 text-primary" />
+              <span className="text-2xl">💬</span>
               <span>Real-time Chat</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Wallet className="w-5 h-5 text-primary" />
+              <span className="text-2xl">💰</span>
               <span>Split Expenses</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Store className="w-5 h-5 text-primary" />
+              <span className="text-2xl">🎪</span>
               <span>Book Vendors</span>
             </div>
           </div>
