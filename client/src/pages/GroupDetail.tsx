@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -477,27 +478,32 @@ Looking forward to planning together!`;
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
-        {/* Group Header Banner */}
+        {/* Group Header Banner - Uses hero image by default like Dashboard */}
         <div 
-          className={`relative overflow-hidden rounded-2xl p-6 md:p-8 text-white shadow-xl mb-6 ${
-            group.bannerImageUrl ? "" : getBannerStyles(group.themeColor).gradientClass
-          }`}
-          style={
-            group.bannerImageUrl 
-              ? { backgroundImage: `url(${group.bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-              : group.themeColor?.startsWith("#") 
-                ? { backgroundColor: group.themeColor }
-                : undefined
-          }
+          className="relative overflow-hidden rounded-2xl p-6 md:p-8 text-white shadow-xl mb-6"
         >
-          {/* Dark overlay for custom banner images */}
-          {group.bannerImageUrl && (
-            <div className="absolute inset-0 bg-black/40" />
+          {/* Background image layer */}
+          {group.bannerImageUrl ? (
+            <img 
+              src={group.bannerImageUrl} 
+              alt="Group banner" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : group.themeColor ? (
+            <div 
+              className={`absolute inset-0 ${group.themeColor.startsWith("#") ? "" : getBannerStyles(group.themeColor).gradientClass}`}
+              style={group.themeColor.startsWith("#") ? { backgroundColor: group.themeColor } : undefined}
+            />
+          ) : (
+            <img 
+              src={heroImage} 
+              alt="Celebration" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
           )}
-          {/* Pattern overlay for color backgrounds */}
-          {!group.bannerImageUrl && (
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-          )}
+          
+          {/* Dark overlay for all backgrounds */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
           
           <div className="relative">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
