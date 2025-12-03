@@ -286,4 +286,20 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Safe area for iOS devices - bottom navigation */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Add bottom padding to main content when bottom nav is visible on mobile */
+  .has-bottom-nav {
+    padding-bottom: 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .has-bottom-nav {
+      padding-bottom: 0;
+    }
+  }
 }

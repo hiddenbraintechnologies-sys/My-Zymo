@@ -162,7 +162,7 @@ export default function CreateEvent() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-24 md:pb-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Event Type Selector - for AI suggestions */}

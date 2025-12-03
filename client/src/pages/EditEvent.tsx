@@ -119,7 +119,7 @@ export default function EditEvent() {
             <Skeleton className="h-6 w-32" />
           </div>
         </header>
-        <main className="max-w-2xl mx-auto px-4 py-8">
+        <main className="max-w-2xl mx-auto px-4 py-8 pb-24 md:pb-8">
           <div className="space-y-6">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-32 w-full" />
@@ -160,7 +160,7 @@ export default function EditEvent() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-24 md:pb-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField

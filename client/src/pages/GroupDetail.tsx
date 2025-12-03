@@ -476,7 +476,7 @@ Looking forward to planning together!`;
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
         {/* Group Header Banner */}
         <div 
           className={`relative overflow-hidden rounded-2xl p-6 md:p-8 text-white shadow-xl mb-6 ${

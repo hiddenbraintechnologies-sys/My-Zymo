@@ -176,7 +176,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
         {/* Welcome Banner - Warm Cream Design */}
         <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50/80 to-orange-50 dark:from-orange-950/20 dark:via-amber-950/15 dark:to-orange-950/20 border border-orange-100 dark:border-orange-900/30 p-8 shadow-sm">
           <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
