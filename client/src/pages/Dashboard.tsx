@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, MessageSquare, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import QuoteDialog from "@/components/QuoteDialog";
+import FloatingChat from "@/components/FloatingChat";
 
 type EventFilter = "private" | "public";
 
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [eventFilter, setEventFilter] = useState<EventFilter>("private");
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   
   const { data: privateEvents, isLoading: isLoadingPrivate } = useQuery<Event[]>({
     queryKey: ["/api/events/private"],
@@ -288,6 +290,27 @@ export default function Dashboard() {
               </CardTitle>
               <CardDescription className="text-emerald-600 dark:text-emerald-300">
                 AI-powered instant cost estimate
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card 
+            className="hover-elevate cursor-pointer border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-100 via-indigo-50 to-blue-200 dark:from-blue-950/20 dark:to-indigo-950/20 shadow-lg hover:shadow-xl transition-all" 
+            onClick={() => setShowChat(true)} 
+            data-testid="card-quick-action-chat"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-3 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-xl shadow-md">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <Badge className="bg-blue-400 text-white">Chat</Badge>
+              </div>
+              <CardTitle className="text-xl font-bold text-blue-700 dark:text-blue-100">
+                Event Chats
+              </CardTitle>
+              <CardDescription className="text-blue-600 dark:text-blue-300">
+                Chat with event participants
               </CardDescription>
             </CardHeader>
           </Card>
@@ -593,6 +616,9 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Chat - Only shown on Dashboard */}
+      {showChat && <FloatingChat />}
     </div>
   );
 }
