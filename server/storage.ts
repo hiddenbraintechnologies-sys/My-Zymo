@@ -263,15 +263,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    // Check if user exists before insert
-    const existingUser = userData.email ? await this.getUserByEmail(userData.email) : null;
+    // Check if user exists before insert (by id first, then by email)
+    let existingUser = userData.id ? await this.getUser(userData.id) : null;
+    if (!existingUser && userData.email) {
+      existingUser = await this.getUserByEmail(userData.email);
+    }
     const isNewUser = !existingUser;
     
     const [user] = await db
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
-        target: users.email,
+        target: users.id,
         set: {
           // Only update auth-related fields, preserve user's profile data
           email: userData.email,
