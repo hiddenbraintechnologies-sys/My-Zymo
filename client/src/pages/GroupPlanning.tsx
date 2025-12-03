@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -18,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee,
   Vote, ClipboardList, UserCog,
-  ChevronRight, Share2, Copy, LogOut, Sparkles, Target
+  ChevronRight, Share2, Copy, LogOut, Sparkles, Target, Pencil
 } from "lucide-react";
 import type { EventGroup, EventGroupMember, User } from "@shared/schema";
 
@@ -54,7 +55,39 @@ export default function GroupPlanning() {
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [bannerEditOpen, setBannerEditOpen] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
+  
+  // Banner customization state
+  const [bannerData, setBannerData] = useState({
+    title: "Group Planning",
+    subtitle: "Collaborate with friends and family to plan perfect events",
+  });
+  const [tempBannerData, setTempBannerData] = useState(bannerData);
+
+  // Load saved banner data from localStorage
+  useEffect(() => {
+    const savedBanner = localStorage.getItem("groupPlanningBanner");
+    if (savedBanner) {
+      try {
+        const parsed = JSON.parse(savedBanner);
+        setBannerData(parsed);
+        setTempBannerData(parsed);
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  const handleSaveBanner = () => {
+    setBannerData(tempBannerData);
+    localStorage.setItem("groupPlanningBanner", JSON.stringify(tempBannerData));
+    setBannerEditOpen(false);
+    toast({
+      title: "Banner updated!",
+      description: "Your custom banner has been saved.",
+    });
+  };
   
   // Create group form state
   const [formData, setFormData] = useState({
@@ -236,21 +269,29 @@ export default function GroupPlanning() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
-        {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 p-6 md:p-8 text-white shadow-xl mb-8">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur">
-                <Users className="w-8 h-8" />
+        {/* Hero Banner - Matching Home Page Style */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
+          <img 
+            src={heroImage} 
+            alt="Celebration" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
+          <div className="relative z-10 p-4 md:p-8 min-h-[120px] md:min-h-[180px] flex items-center">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur">
+                  <Users className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 flex items-center gap-2 text-white" data-testid="text-banner-title">
+                    {bannerData.title}
+                  </h1>
+                  <p className="text-white/80 text-sm md:text-lg" data-testid="text-banner-subtitle">{bannerData.subtitle}</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-heading font-bold">Group Planning</h1>
-                <p className="text-white/80 mt-1">Collaborate with friends and family to plan perfect events</p>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-3">
+              
+              <div className="flex flex-wrap gap-3 self-start md:self-auto">
               {/* Join Group Button */}
               <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
                 <DialogTrigger asChild>
@@ -409,29 +450,103 @@ export default function GroupPlanning() {
                   </form>
                 </DialogContent>
               </Dialog>
+
+              {/* Edit Banner Button */}
+              <Dialog open={bannerEditOpen} onOpenChange={(open) => {
+                setBannerEditOpen(open);
+                if (open) {
+                  setTempBannerData(bannerData);
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                    data-testid="button-edit-banner"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Pencil className="w-5 h-5 text-orange-500" />
+                      Customize Banner
+                    </DialogTitle>
+                    <DialogDescription>
+                      Personalize the banner title and subtitle
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title">Banner Title</Label>
+                      <Input
+                        id="banner-title"
+                        placeholder="e.g., Group Planning"
+                        value={tempBannerData.title}
+                        onChange={(e) => setTempBannerData({ ...tempBannerData, title: e.target.value })}
+                        data-testid="input-banner-title"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="banner-subtitle">Banner Subtitle</Label>
+                      <Textarea
+                        id="banner-subtitle"
+                        placeholder="e.g., Collaborate with friends and family"
+                        value={tempBannerData.subtitle}
+                        onChange={(e) => setTempBannerData({ ...tempBannerData, subtitle: e.target.value })}
+                        className="resize-none"
+                        rows={2}
+                        data-testid="input-banner-subtitle"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => {
+                          setTempBannerData({ title: "Group Planning", subtitle: "Collaborate with friends and family to plan perfect events" });
+                        }}
+                        data-testid="button-reset-banner"
+                      >
+                        Reset to Default
+                      </Button>
+                      <Button 
+                        className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                        onClick={handleSaveBanner}
+                        data-testid="button-save-banner"
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
+          </div>
           </div>
           
           {/* Stats Row */}
           {groups && groups.length > 0 && (
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+            <div className="relative z-10 px-4 md:px-8 pb-4 md:pb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-white">
                 <div className="text-2xl font-bold">{groups.length}</div>
                 <div className="text-white/70 text-sm">Active Groups</div>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-white">
                 <div className="text-2xl font-bold">
                   {groups.reduce((sum, g) => sum + (g.memberCount || 0), 0)}
                 </div>
                 <div className="text-white/70 text-sm">Total Members</div>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-white">
                 <div className="text-2xl font-bold">
                   {groups.filter(g => g.status === "planning").length}
                 </div>
                 <div className="text-white/70 text-sm">In Planning</div>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-white">
                 <div className="text-2xl font-bold">
                   {groups.filter(g => new Date(g.eventDate!) > new Date()).length}
                 </div>
