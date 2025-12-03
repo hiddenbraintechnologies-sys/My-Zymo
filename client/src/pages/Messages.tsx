@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card } from "@/components/ui/card";
@@ -73,6 +73,7 @@ export default function Messages() {
   const wsRef = useRef<WebSocket | null>(null);
   const selectedUserIdRef = useRef<string | null>(null);
   const selectedGroupIdRef = useRef<string | null>(null);
+  const markedAsReadRef = useRef<Set<string>>(new Set());
   
   // File upload state
   const [isUploading, setIsUploading] = useState(false);
@@ -151,23 +152,32 @@ export default function Messages() {
     enabled: !!selectedGroupId && activeTab === "groups",
   });
 
+  const prevMessagesRef = useRef<string>("");
+  const prevGroupMessagesRef = useRef<string>("");
+
   useEffect(() => {
-    if (selectedMessages.length > 0) {
+    const messagesKey = JSON.stringify(selectedMessages.map(m => m.id));
+    if (messagesKey !== prevMessagesRef.current) {
+      prevMessagesRef.current = messagesKey;
       setMessages(selectedMessages);
     }
   }, [selectedMessages]);
 
   useEffect(() => {
-    if (selectedGroupMessages.length > 0) {
+    const groupMessagesKey = JSON.stringify(selectedGroupMessages.map(m => m.id));
+    if (groupMessagesKey !== prevGroupMessagesRef.current) {
+      prevGroupMessagesRef.current = groupMessagesKey;
       setGroupMessages(selectedGroupMessages);
-    } else {
-      setGroupMessages([]);
     }
   }, [selectedGroupMessages]);
 
-  useEffect(() => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, groupMessages]);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, groupMessages.length, scrollToBottom]);
 
   // Mark messages as read when selecting a conversation
   const markAsReadMutation = useMutation({
@@ -181,8 +191,12 @@ export default function Messages() {
 
   useEffect(() => {
     if (selectedUserId && activeTab === "direct") {
-      markAsReadMutation.mutate(selectedUserId);
+      if (!markedAsReadRef.current.has(selectedUserId)) {
+        markedAsReadRef.current.add(selectedUserId);
+        markAsReadMutation.mutate(selectedUserId);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId, activeTab]);
 
   // Create group chat mutation
