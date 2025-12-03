@@ -24,6 +24,7 @@ import VendorSignup from "@/pages/VendorSignup";
 import VendorDashboard from "@/pages/VendorDashboard";
 import GroupPlanning from "@/pages/GroupPlanning";
 import GroupDetail from "@/pages/GroupDetail";
+import Chat from "@/pages/Chat";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/messages/:userId" component={Messages} />
       <Route path="/messages" component={Messages} />
+      <Route path="/chat" component={Chat} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/users" component={UserManagement} />
       <Route path="/admin/events" component={EventManagement} />
