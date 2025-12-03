@@ -88,8 +88,8 @@ export default function Navbar() {
                 </div>
               </div>
               
-              {/* Logout button on mobile - right side */}
-              <div className="md:hidden ml-auto">
+              {/* Logout button on mobile - centered */}
+              <div className="md:hidden absolute left-1/2 -translate-x-1/2">
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -119,7 +119,20 @@ export default function Navbar() {
                 <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-how-it-works">How It Works</a>
               </div>
               
-              <div className="flex items-center gap-2 ml-auto">
+              {/* Theme toggle - centered on mobile */}
+              <div className="md:hidden absolute left-1/2 -translate-x-1/2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsDark(!isDark)}
+                  data-testid="button-theme-toggle-mobile"
+                >
+                  {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </Button>
+              </div>
+              
+              {/* Desktop right side buttons */}
+              <div className="hidden md:flex items-center gap-2 ml-auto">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -129,17 +142,14 @@ export default function Navbar() {
                   {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </Button>
                 
-                {/* Login button - hidden on mobile (mobile uses bottom nav) */}
-                <div className="hidden md:flex items-center gap-2">
-                  <Link href="/login">
-                    <Button 
-                      variant="ghost" 
-                      data-testid="button-login"
-                    >
-                      Log In
-                    </Button>
-                  </Link>
-                </div>
+                <Link href="/login">
+                  <Button 
+                    variant="ghost" 
+                    data-testid="button-login"
+                  >
+                    Log In
+                  </Button>
+                </Link>
               </div>
             </>
           )}
