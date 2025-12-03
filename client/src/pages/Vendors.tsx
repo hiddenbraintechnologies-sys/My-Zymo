@@ -40,20 +40,20 @@ export default function Vendors() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Hero Banner - Hero Image Design */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl h-40 md:h-48 shadow-xl">
+        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
             alt="Celebration" 
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          <div className="relative z-10 h-full flex items-center p-8">
+          <div className="relative z-10 p-4 md:p-8">
             <div>
-              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-2 text-white">
-                <MapPin className="w-8 h-8" />
+              <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 flex items-center gap-2 text-white">
+                <MapPin className="w-6 h-6 md:w-8 md:h-8" />
                 Vendor Marketplace
               </h1>
-              <p className="text-white/80 text-lg">Find and book trusted vendors for your events</p>
+              <p className="text-white/80 text-sm md:text-lg">Find and book trusted vendors for your events</p>
             </div>
           </div>
         </div>

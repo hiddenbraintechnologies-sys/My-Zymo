@@ -80,35 +80,37 @@ export default function Events() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Hero Banner - Hero Image Design */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl h-40 md:h-48 shadow-xl">
+        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
             alt="Celebration" 
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          <div className="relative z-10 h-full flex items-center justify-between p-8">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-2 text-white">
-                <Sparkles className="w-8 h-8" />
-                Discover Events
-              </h1>
-              <p className="text-white/80 text-lg">
-                {eventFilter === "public" 
-                  ? "Browse exciting public celebrations and gatherings" 
-                  : "Manage your personal events and celebrations"}
-              </p>
+          <div className="relative z-10 p-4 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div>
+                <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 flex items-center gap-2 text-white">
+                  <Sparkles className="w-6 h-6 md:w-8 md:h-8" />
+                  Discover Events
+                </h1>
+                <p className="text-white/80 text-sm md:text-lg">
+                  {eventFilter === "public" 
+                    ? "Browse exciting public celebrations and gatherings" 
+                    : "Manage your personal events and celebrations"}
+                </p>
+              </div>
+              {user && (
+                <Button 
+                  onClick={() => setLocation("/events/create")} 
+                  data-testid="button-create-event"
+                  className="bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30 self-start md:self-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Event
+                </Button>
+              )}
             </div>
-            {user && (
-              <Button 
-                onClick={() => setLocation("/events/create")} 
-                data-testid="button-create-event"
-                className="bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Event
-              </Button>
-            )}
           </div>
         </div>
 

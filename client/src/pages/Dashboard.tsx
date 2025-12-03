@@ -181,30 +181,30 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
         {/* Welcome Banner - Hero Image Design */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl h-48 md:h-56 shadow-xl">
+        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
             alt="Celebration" 
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          <div className="relative z-10 h-full flex flex-col justify-center p-8">
-            <div className="flex items-center justify-between flex-wrap gap-4 w-full">
+          <div className="relative z-10 p-4 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
               <div>
-                <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-white">
-                  <Sparkles className="w-7 h-7" />
+                <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 flex items-center gap-2 md:gap-3 text-white">
+                  <Sparkles className="w-5 h-5 md:w-7 md:h-7" />
                   Welcome {user.firstName}
                 </h1>
-                <p className="text-white/80 text-base md:text-lg">Create and share your celebrations with friends and family</p>
+                <p className="text-white/80 text-sm md:text-lg">Create and share your celebrations with friends and family</p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-4 min-w-[90px]">
-                  <div className="text-2xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
-                  <div className="text-xs md:text-sm text-white/80">My Events</div>
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 min-w-[70px] md:min-w-[90px]">
+                  <div className="text-xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
+                  <div className="text-xs text-white/80">My Events</div>
                 </div>
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-4 min-w-[90px]">
-                  <div className="text-2xl md:text-3xl font-bold text-white">{followedPublicEvents?.length || 0}</div>
-                  <div className="text-xs md:text-sm text-white/80">Followed</div>
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 min-w-[70px] md:min-w-[90px]">
+                  <div className="text-xl md:text-3xl font-bold text-white">{followedPublicEvents?.length || 0}</div>
+                  <div className="text-xs text-white/80">Followed</div>
                 </div>
               </div>
             </div>
