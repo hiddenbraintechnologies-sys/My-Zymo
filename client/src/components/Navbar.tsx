@@ -87,18 +87,6 @@ export default function Navbar() {
                   </Button>
                 </div>
               </div>
-              
-              {/* Logout button on mobile - centered */}
-              <div className="md:hidden absolute left-1/2 -translate-x-1/2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={handleLogout}
-                  data-testid="button-logout-mobile"
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
-              </div>
             </>
           ) : (
             // Landing page navigation

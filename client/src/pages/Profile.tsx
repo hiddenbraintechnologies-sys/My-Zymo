@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateProfileSchema, type UpdateProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload } from "lucide-react";
+import { User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload, LogOut } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useEffect, useState, useRef } from "react";
 
@@ -602,6 +602,30 @@ export default function Profile() {
             </div>
           </form>
         </Form>
+
+        {/* Logout Section - More prominent on mobile */}
+        <Card className="mt-6 border-destructive/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </CardTitle>
+            <CardDescription>
+              Log out of your Myzymo account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="destructive"
+              onClick={() => window.location.href = "/api/logout"}
+              className="w-full md:w-auto"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
