@@ -270,6 +270,21 @@ export class DatabaseStorage implements IStorage {
     }
     const isNewUser = !existingUser;
     
+    // If user exists by email but with different ID, update existing user instead
+    if (existingUser && existingUser.id !== userData.id) {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          firstName: userData.firstName || existingUser.firstName,
+          lastName: userData.lastName || existingUser.lastName,
+          profileImageUrl: userData.profileImageUrl || existingUser.profileImageUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      return sanitizeUser(updatedUser);
+    }
+    
     const [user] = await db
       .insert(users)
       .values(userData)

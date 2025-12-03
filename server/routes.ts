@@ -2348,6 +2348,63 @@ Return your response as a JSON object with this exact structure:
     }
   });
 
+  // Get event group messages
+  app.get('/api/groups/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = req.params.id;
+      
+      // Verify user is a member
+      const isMember = await storage.isUserEventGroupMember(groupId, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const messages = await storage.getEventGroupMessages(groupId);
+      res.json(messages);
+    } catch (error: any) {
+      console.error('Error fetching group messages:', error);
+      res.status(500).json({ message: error.message || 'Failed to fetch messages' });
+    }
+  });
+
+  // Send a message to event group
+  app.post('/api/groups/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = req.params.id;
+      
+      // Verify user is a member
+      const isMember = await storage.isUserEventGroupMember(groupId, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
+      const { content, fileUrl, fileName, fileSize, fileType, messageType } = req.body;
+      
+      if (!content && !fileUrl) {
+        return res.status(400).json({ message: 'Message content or file is required' });
+      }
+      
+      const message = await storage.createEventGroupMessage({
+        groupId,
+        senderId: req.user.id,
+        content,
+        fileUrl,
+        fileName,
+        fileSize,
+        fileType,
+        messageType: messageType || 'text',
+      });
+      
+      // Get sender info for response
+      const sender = await storage.getUser(req.user.id);
+      
+      res.status(201).json({ ...message, sender });
+    } catch (error: any) {
+      console.error('Error sending group message:', error);
+      res.status(500).json({ message: error.message || 'Failed to send message' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time chat - blueprint: javascript_websocket
@@ -2771,6 +2828,164 @@ Return your response as a JSON object with this exact structure:
             const memberWs = userConnections.get(member.userId);
             if (memberWs && memberWs.readyState === WebSocket.OPEN) {
               memberWs.send(messageData);
+            }
+          }
+        } else if (message.type === 'event-group-message' && message.groupId && (message.content || message.fileUrl)) {
+          // Send message to an event planning group with optional file attachments
+          const groupId = message.groupId;
+          
+          // Verify user is a member of the event group
+          const isMember = await storage.isUserEventGroupMember(groupId, authenticatedUserId);
+          if (!isMember) {
+            ws.send(JSON.stringify({ type: 'error', message: 'You are not a member of this event group' }));
+            return;
+          }
+          
+          // Save message to database
+          const savedMessage = await storage.createEventGroupMessage({
+            groupId,
+            senderId: authenticatedUserId,
+            content: message.content || '',
+            fileUrl: message.fileUrl || null,
+            fileName: message.fileName || null,
+            fileSize: message.fileSize || null,
+            fileType: message.fileType || null,
+            messageType: message.messageType || 'text',
+          });
+          
+          // Get sender info
+          const sender = await storage.getUser(authenticatedUserId);
+          
+          // Broadcast to all event group members
+          const messageData = JSON.stringify({
+            type: 'event-group-message',
+            groupId,
+            message: {
+              ...savedMessage,
+              sender,
+            },
+          });
+          
+          // Get all event group members and send to those who are online
+          const members = await storage.getEventGroupMembers(groupId);
+          for (const member of members) {
+            const memberWs = userConnections.get(member.userId);
+            if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+              memberWs.send(messageData);
+            }
+          }
+        } else if (message.type === 'group-call-offer' && message.groupId) {
+          // WebRTC group call: send offer to all group members
+          const groupId = message.groupId;
+          const caller = await storage.getUser(authenticatedUserId);
+          
+          // Get all group members and notify them
+          const members = await storage.getGroupChatMembers(groupId);
+          for (const member of members) {
+            if (member.userId !== authenticatedUserId) {
+              const memberWs = userConnections.get(member.userId);
+              if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+                memberWs.send(JSON.stringify({
+                  type: 'group-call-offer',
+                  groupId,
+                  callerId: authenticatedUserId,
+                  caller,
+                  callType: message.callType,
+                  offer: message.offer,
+                }));
+              }
+            }
+          }
+        } else if (message.type === 'group-call-answer' && message.groupId && message.targetId) {
+          // WebRTC group call answer
+          const targetWs = userConnections.get(message.targetId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'group-call-answer',
+              groupId: message.groupId,
+              answererId: authenticatedUserId,
+              answer: message.answer,
+            }));
+          }
+        } else if (message.type === 'group-call-ice-candidate' && message.groupId && message.targetId) {
+          // WebRTC group call ICE candidate
+          const targetWs = userConnections.get(message.targetId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'group-call-ice-candidate',
+              groupId: message.groupId,
+              senderId: authenticatedUserId,
+              candidate: message.candidate,
+            }));
+          }
+        } else if (message.type === 'group-call-end' && message.groupId) {
+          // End group call - notify all members
+          const members = await storage.getGroupChatMembers(message.groupId);
+          for (const member of members) {
+            if (member.userId !== authenticatedUserId) {
+              const memberWs = userConnections.get(member.userId);
+              if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+                memberWs.send(JSON.stringify({
+                  type: 'group-call-ended',
+                  groupId: message.groupId,
+                  senderId: authenticatedUserId,
+                }));
+              }
+            }
+          }
+        } else if (message.type === 'event-group-call-offer' && message.groupId) {
+          // WebRTC event group call
+          const groupId = message.groupId;
+          const caller = await storage.getUser(authenticatedUserId);
+          
+          const members = await storage.getEventGroupMembers(groupId);
+          for (const member of members) {
+            if (member.userId !== authenticatedUserId) {
+              const memberWs = userConnections.get(member.userId);
+              if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+                memberWs.send(JSON.stringify({
+                  type: 'event-group-call-offer',
+                  groupId,
+                  callerId: authenticatedUserId,
+                  caller,
+                  callType: message.callType,
+                  offer: message.offer,
+                }));
+              }
+            }
+          }
+        } else if (message.type === 'event-group-call-answer' && message.groupId && message.targetId) {
+          const targetWs = userConnections.get(message.targetId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'event-group-call-answer',
+              groupId: message.groupId,
+              answererId: authenticatedUserId,
+              answer: message.answer,
+            }));
+          }
+        } else if (message.type === 'event-group-call-ice-candidate' && message.groupId && message.targetId) {
+          const targetWs = userConnections.get(message.targetId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'event-group-call-ice-candidate',
+              groupId: message.groupId,
+              senderId: authenticatedUserId,
+              candidate: message.candidate,
+            }));
+          }
+        } else if (message.type === 'event-group-call-end' && message.groupId) {
+          const members = await storage.getEventGroupMembers(message.groupId);
+          for (const member of members) {
+            if (member.userId !== authenticatedUserId) {
+              const memberWs = userConnections.get(member.userId);
+              if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+                memberWs.send(JSON.stringify({
+                  type: 'event-group-call-ended',
+                  groupId: message.groupId,
+                  senderId: authenticatedUserId,
+                }));
+              }
             }
           }
         }

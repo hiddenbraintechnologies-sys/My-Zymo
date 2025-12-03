@@ -12,16 +12,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
-import type { DirectMessage, User, GroupChat, GroupMessage, GroupChatMember } from "@shared/schema";
+import type { DirectMessage, User, GroupChat, GroupMessage, GroupChatMember, EventGroup, EventGroupMessage } from "@shared/schema";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { IncomingCallModal } from "@/components/IncomingCallModal";
 import { ActiveCallDialog } from "@/components/ActiveCallDialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useToast } from "@/hooks/use-toast";
+import { GroupCallDialog } from "@/components/GroupCallDialog";
 
 type ConversationListItem = {
   userId: string;
@@ -56,24 +57,46 @@ type GroupMemberWithUser = GroupChatMember & {
   user: User;
 };
 
+type EventGroupWithDetails = EventGroup & {
+  members: { userId: string; user: User }[];
+  createdBy?: User;
+};
+
+type EventGroupMessageWithUser = EventGroupMessage & {
+  sender: User;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  fileType?: string | null;
+};
+
 export default function Messages() {
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
   const [, params] = useRoute("/messages/:userId");
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<"direct" | "groups">("direct");
+  const [activeTab, setActiveTab] = useState<"direct" | "groups" | "events">("direct");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(params?.userId || null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedEventGroupId, setSelectedEventGroupId] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
   const [messages, setMessages] = useState<DirectMessageWithUser[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessageWithUser[]>([]);
+  const [eventGroupMessages, setEventGroupMessages] = useState<EventGroupMessageWithUser[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const selectedUserIdRef = useRef<string | null>(null);
   const selectedGroupIdRef = useRef<string | null>(null);
+  const selectedEventGroupIdRef = useRef<string | null>(null);
   const markedAsReadRef = useRef<Set<string>>(new Set());
+  
+  // Group call state
+  const [groupCallActive, setGroupCallActive] = useState(false);
+  const [groupCallType, setGroupCallType] = useState<"audio" | "video">("audio");
+  const [groupCallGroupId, setGroupCallGroupId] = useState<string | null>(null);
+  const [groupCallIsEventGroup, setGroupCallIsEventGroup] = useState(false);
   
   // File upload state
   const [isUploading, setIsUploading] = useState(false);
@@ -113,6 +136,10 @@ export default function Messages() {
     queryKey: ["/api/group-chats"],
   });
 
+  const { data: eventGroups = [], isLoading: eventGroupsLoading } = useQuery<EventGroupWithDetails[]>({
+    queryKey: ["/api/groups"],
+  });
+
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
@@ -137,6 +164,10 @@ export default function Messages() {
     selectedGroupIdRef.current = selectedGroupId;
   }, [selectedGroupId]);
 
+  useEffect(() => {
+    selectedEventGroupIdRef.current = selectedEventGroupId;
+  }, [selectedEventGroupId]);
+
   const { data: selectedMessages = [], isLoading: messagesLoading } = useQuery<DirectMessageWithUser[]>({
     queryKey: ["/api/direct-messages", selectedUserId],
     enabled: !!selectedUserId && activeTab === "direct",
@@ -152,8 +183,14 @@ export default function Messages() {
     enabled: !!selectedGroupId && activeTab === "groups",
   });
 
+  const { data: selectedEventGroupMessages = [], isLoading: eventGroupMessagesLoading } = useQuery<EventGroupMessageWithUser[]>({
+    queryKey: ["/api/groups", selectedEventGroupId, "messages"],
+    enabled: !!selectedEventGroupId && activeTab === "events",
+  });
+
   const prevMessagesRef = useRef<string>("");
   const prevGroupMessagesRef = useRef<string>("");
+  const prevEventGroupMessagesRef = useRef<string>("");
 
   useEffect(() => {
     const messagesKey = JSON.stringify(selectedMessages.map(m => m.id));
@@ -171,13 +208,21 @@ export default function Messages() {
     }
   }, [selectedGroupMessages]);
 
+  useEffect(() => {
+    const eventGroupMessagesKey = JSON.stringify(selectedEventGroupMessages.map(m => m.id));
+    if (eventGroupMessagesKey !== prevEventGroupMessagesRef.current) {
+      prevEventGroupMessagesRef.current = eventGroupMessagesKey;
+      setEventGroupMessages(selectedEventGroupMessages);
+    }
+  }, [selectedEventGroupMessages]);
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages.length, groupMessages.length, scrollToBottom]);
+  }, [messages.length, groupMessages.length, eventGroupMessages.length, scrollToBottom]);
 
   // Mark messages as read when selecting a conversation
   const markAsReadMutation = useMutation({
@@ -281,6 +326,15 @@ export default function Messages() {
         }
         
         queryClient.invalidateQueries({ queryKey: ["/api/group-chats"] });
+      } else if (data.type === "event-group-message") {
+        const newMessage = data.message as EventGroupMessageWithUser;
+        const currentSelectedEventGroupId = selectedEventGroupIdRef.current;
+        
+        if (currentSelectedEventGroupId === data.groupId) {
+          setEventGroupMessages((prev) => [...prev, newMessage]);
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       }
     };
 
@@ -309,6 +363,14 @@ export default function Messages() {
         JSON.stringify({
           type: "group-message",
           groupId: selectedGroupId,
+          content: messageContent.trim(),
+        })
+      );
+    } else if (activeTab === "events" && selectedEventGroupId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "event-group-message",
+          groupId: selectedEventGroupId,
           content: messageContent.trim(),
         })
       );
@@ -374,6 +436,18 @@ export default function Messages() {
         JSON.stringify({
           type: "group-message",
           groupId: selectedGroupId,
+          content: "",
+          fileUrl: file.objectPath,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+        })
+      );
+    } else if (activeTab === "events" && selectedEventGroupId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "event-group-message",
+          groupId: selectedEventGroupId,
           content: "",
           fileUrl: file.objectPath,
           fileName: file.name,
@@ -499,11 +573,16 @@ export default function Messages() {
           {/* Conversations List */}
           <Card className="md:col-span-1 p-4">
             <Tabs value={activeTab} onValueChange={(v) => {
-              setActiveTab(v as "direct" | "groups");
+              setActiveTab(v as "direct" | "groups" | "events");
               if (v === "direct") {
                 setSelectedGroupId(null);
-              } else {
+                setSelectedEventGroupId(null);
+              } else if (v === "groups") {
                 setSelectedUserId(null);
+                setSelectedEventGroupId(null);
+              } else if (v === "events") {
+                setSelectedUserId(null);
+                setSelectedGroupId(null);
               }
             }}>
               <TabsList className="w-full mb-4">
@@ -514,6 +593,10 @@ export default function Messages() {
                 <TabsTrigger value="groups" className="flex-1 gap-2" data-testid="tab-group-chats">
                   <Users className="h-4 w-4" />
                   Groups
+                </TabsTrigger>
+                <TabsTrigger value="events" className="flex-1 gap-2" data-testid="tab-event-groups">
+                  <Calendar className="h-4 w-4" />
+                  Events
                 </TabsTrigger>
               </TabsList>
 
@@ -711,14 +794,68 @@ export default function Messages() {
                   </div>
                 )}
               </TabsContent>
+
+              <TabsContent value="events" className="mt-0">
+                {eventGroupsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : eventGroups.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">
+                    No event groups yet. Join an event to start planning!
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {eventGroups.map((group) => (
+                      <button
+                        key={group.id}
+                        onClick={() => {
+                          setSelectedEventGroupId(group.id);
+                          setSelectedGroupId(null);
+                          setSelectedUserId(null);
+                        }}
+                        className={`w-full p-3 rounded-md text-left transition-colors hover-elevate active-elevate-2 ${
+                          selectedEventGroupId === group.id
+                            ? "bg-accent"
+                            : "bg-transparent"
+                        }`}
+                        data-testid={`button-event-group-${group.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                            <Calendar className="h-5 w-5" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium truncate">
+                                {group.name}
+                              </p>
+                              <Badge variant="secondary" className="text-xs">
+                                {group.members?.length || 0}
+                              </Badge>
+                            </div>
+                            
+                            {group.description ? (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {group.description}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
             </Tabs>
           </Card>
 
           {/* Chat Area */}
-          <Card className={`md:col-span-2 p-4 flex flex-col ${(selectedUserId || selectedGroupId) ? 'h-[600px]' : 'min-h-[200px]'}`}>
-            {!selectedUserId && !selectedGroupId ? (
+          <Card className={`md:col-span-2 p-4 flex flex-col ${(selectedUserId || selectedGroupId || selectedEventGroupId) ? 'h-[600px]' : 'min-h-[200px]'}`}>
+            {!selectedUserId && !selectedGroupId && !selectedEventGroupId ? (
               <div className="flex items-start justify-center pt-8 text-muted-foreground">
-                Select a conversation or group to start messaging
+                Select a conversation, group, or event to start messaging
               </div>
             ) : activeTab === "direct" && selectedUserId ? (
               <>
@@ -900,6 +1037,34 @@ export default function Messages() {
                       </p>
                     </div>
                     <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setGroupCallGroupId(selectedGroupId);
+                          setGroupCallType("audio");
+                          setGroupCallIsEventGroup(false);
+                          setGroupCallActive(true);
+                        }}
+                        variant="ghost"
+                        size="icon"
+                        title="Group audio call"
+                        data-testid="button-group-audio-call"
+                      >
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setGroupCallGroupId(selectedGroupId);
+                          setGroupCallType("video");
+                          setGroupCallIsEventGroup(false);
+                          setGroupCallActive(true);
+                        }}
+                        variant="ghost"
+                        size="icon"
+                        title="Group video call"
+                        data-testid="button-group-video-call"
+                      >
+                        <Video className="h-5 w-5" />
+                      </Button>
                       {isGroupAdmin && (
                         <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
                           <DialogTrigger asChild>
@@ -1109,6 +1274,152 @@ export default function Messages() {
                   </Button>
                 </div>
               </>
+            ) : activeTab === "events" && selectedEventGroupId ? (
+              <>
+                {/* Chat Header - Event Group */}
+                <div className="border-b pb-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold" data-testid="text-event-group-name">
+                        {eventGroups.find(g => g.id === selectedEventGroupId)?.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {eventGroups.find(g => g.id === selectedEventGroupId)?.members?.length || 0} members
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setGroupCallGroupId(selectedEventGroupId);
+                          setGroupCallType("audio");
+                          setGroupCallIsEventGroup(true);
+                          setGroupCallActive(true);
+                        }}
+                        variant="ghost"
+                        size="icon"
+                        title="Group audio call"
+                        data-testid="button-event-group-audio-call"
+                      >
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setGroupCallGroupId(selectedEventGroupId);
+                          setGroupCallType("video");
+                          setGroupCallIsEventGroup(true);
+                          setGroupCallActive(true);
+                        }}
+                        variant="ghost"
+                        size="icon"
+                        title="Group video call"
+                        data-testid="button-event-group-video-call"
+                      >
+                        <Video className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages - Event Group */}
+                <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+                  {eventGroupMessagesLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : eventGroupMessages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      No messages yet. Start planning your event!
+                    </div>
+                  ) : (
+                    eventGroupMessages.map((msg) => {
+                      const isCurrentUser = msg.senderId === currentUser.id;
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          data-testid={`event-group-message-${msg.id}`}
+                        >
+                          <div className={`flex items-end gap-2 max-w-[70%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                            {!isCurrentUser && (
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={msg.sender?.profileImageUrl || undefined} />
+                                <AvatarFallback className="text-xs">
+                                  {msg.sender?.firstName?.[0]}{msg.sender?.lastName?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+                            <div
+                              className={`rounded-lg p-3 ${
+                                isCurrentUser
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              {!isCurrentUser && (
+                                <p className="text-xs font-medium mb-1 opacity-70">
+                                  {msg.sender?.firstName} {msg.sender?.lastName}
+                                </p>
+                              )}
+                              {msg.content && <p className="text-sm break-words">{msg.content}</p>}
+                              {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
+                              <p className="text-xs opacity-70 mt-1">
+                                {new Date(msg.createdAt).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input - Event Group */}
+                <div className="flex gap-2">
+                  <ObjectUploader
+                    onGetUploadParameters={handleGetUploadParameters}
+                    onComplete={handleFileUploadComplete}
+                    onError={handleFileUploadError}
+                    maxFileSize={10485760}
+                    disabled={isUploading}
+                    isUploading={isUploading}
+                    buttonVariant="ghost"
+                    buttonSize="icon"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-4 w-4" />
+                    )}
+                  </ObjectUploader>
+                  <Input
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    data-testid="input-event-group-message"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!messageContent.trim()}
+                    size="icon"
+                    data-testid="button-send-event-group-message"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
             ) : null}
           </Card>
         </div>
@@ -1135,6 +1446,28 @@ export default function Messages() {
           remoteStream={remoteStream}
           remoteName={`${selectedConversation.user.firstName} ${selectedConversation.user.lastName}`}
           onEndCall={endCall}
+        />
+      )}
+
+      {/* Group Call Dialog */}
+      {groupCallActive && groupCallGroupId && (
+        <GroupCallDialog
+          open={groupCallActive}
+          groupName={
+            groupCallIsEventGroup
+              ? eventGroups.find(g => g.id === groupCallGroupId)?.name || "Event Group"
+              : groupChats.find(g => g.id === groupCallGroupId)?.name || "Group"
+          }
+          callType={groupCallType}
+          memberCount={
+            groupCallIsEventGroup
+              ? eventGroups.find(g => g.id === groupCallGroupId)?.members?.length || 0
+              : groupChats.find(g => g.id === groupCallGroupId)?.memberCount || 0
+          }
+          onClose={() => {
+            setGroupCallActive(false);
+            setGroupCallGroupId(null);
+          }}
         />
       )}
     </div>
