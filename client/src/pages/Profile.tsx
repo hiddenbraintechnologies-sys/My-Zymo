@@ -16,6 +16,7 @@ import { updateProfileSchema, type UpdateProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload, LogOut } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { useEffect, useState, useRef } from "react";
 
 export default function Profile() {
@@ -196,15 +197,22 @@ export default function Profile() {
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
-        {/* Hero Banner */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 p-8 text-white shadow-xl">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
-          <div className="relative z-10">
-            <h1 className="text-4xl font-heading font-bold mb-2 flex items-center gap-2" data-testid="text-page-title">
-              <UserIcon className="w-8 h-8" />
-              My Profile
-            </h1>
-            <p className="text-white/90 text-lg">Complete your profile to help friends recognize you at reunions and events</p>
+        {/* Hero Banner - Hero Image Design */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl h-40 md:h-48 shadow-xl">
+          <img 
+            src={heroImage} 
+            alt="Celebration" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
+          <div className="relative z-10 h-full flex items-center p-8">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-2 text-white" data-testid="text-page-title">
+                <UserIcon className="w-8 h-8" />
+                My Profile
+              </h1>
+              <p className="text-white/80 text-lg">Complete your profile to help friends recognize you at reunions and events</p>
+            </div>
           </div>
         </div>
 

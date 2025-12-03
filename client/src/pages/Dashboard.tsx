@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Plus, Share2, Link as LinkIcon, MessageCircle, MessageSquare, Mail, Edit, Trash2, Download, UserPlus, UserMinus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
+import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -179,24 +180,32 @@ export default function Dashboard() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
-        {/* Welcome Banner - Warm Cream Design */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50/80 to-orange-50 dark:from-orange-950/20 dark:via-amber-950/15 dark:to-orange-950/20 border border-orange-100 dark:border-orange-900/30 p-8 shadow-sm">
-          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-foreground">
-                <Sparkles className="w-7 h-7 text-orange-500" />
-                Welcome back, {user.firstName}!
-              </h1>
-              <p className="text-muted-foreground text-base md:text-lg">Create and share your celebrations with friends and family</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-4 min-w-[90px] shadow-sm">
-                <div className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{privateEvents?.length || 0}</div>
-                <div className="text-xs md:text-sm text-orange-600/80 dark:text-orange-400/80">My Events</div>
+        {/* Welcome Banner - Hero Image Design */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl h-48 md:h-56 shadow-xl">
+          <img 
+            src={heroImage} 
+            alt="Celebration" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
+          <div className="relative z-10 h-full flex items-center p-8">
+            <div className="flex items-center justify-between flex-wrap gap-4 w-full">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-white">
+                  <Sparkles className="w-7 h-7" />
+                  Welcome back, {user.firstName}!
+                </h1>
+                <p className="text-white/80 text-base md:text-lg">Create and share your celebrations with friends and family</p>
               </div>
-              <div className="text-center bg-white dark:bg-card border border-orange-200 dark:border-orange-800 rounded-xl p-4 min-w-[90px] shadow-sm">
-                <div className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{followedPublicEvents?.length || 0}</div>
-                <div className="text-xs md:text-sm text-orange-600/80 dark:text-orange-400/80">Followed</div>
+              <div className="flex items-center gap-3">
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-4 min-w-[90px]">
+                  <div className="text-2xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
+                  <div className="text-xs md:text-sm text-white/80">My Events</div>
+                </div>
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-4 min-w-[90px]">
+                  <div className="text-2xl md:text-3xl font-bold text-white">{followedPublicEvents?.length || 0}</div>
+                  <div className="text-xs md:text-sm text-white/80">Followed</div>
+                </div>
               </div>
             </div>
           </div>
