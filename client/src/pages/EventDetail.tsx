@@ -164,34 +164,37 @@ export default function EventDetail() {
           </Card>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div>
-                <h1 className="text-4xl font-heading font-bold mb-2" data-testid="text-event-name">
+                <h1 className="text-2xl md:text-4xl font-heading font-bold mb-2" data-testid="text-event-name">
                   {event.title}
                 </h1>
                 {event.description && (
-                  <p className="text-muted-foreground" data-testid="text-event-description">
+                  <p className="text-muted-foreground text-sm md:text-base" data-testid="text-event-description">
                     {event.description}
                   </p>
                 )}
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleCopyLink}
                   data-testid="button-copy-link"
+                  className="flex-1 md:flex-none"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
                   Invite Link
                 </Button>
                 <Button
+                  size="sm"
                   onClick={handleWhatsAppShare}
-                  className="bg-[#25D366] hover:bg-[#20BA5A] text-white"
+                  className="bg-[#25D366] hover:bg-[#20BA5A] text-white flex-1 md:flex-none"
                   data-testid="button-whatsapp-share"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Invite on WhatsApp
+                  WhatsApp
                 </Button>
               </div>
             </div>
@@ -310,8 +313,8 @@ export default function EventDetail() {
             {(!user || (user && event?.hasJoined === false)) && (
               <Alert className="border-primary bg-primary/5" data-testid="alert-join-event">
                 <UserPlus className="h-4 w-4" />
-                <AlertDescription className="flex items-center justify-between">
-                  <span>
+                <AlertDescription className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <span className="text-sm md:text-base">
                     {user 
                       ? "You've been invited to this event! Join to see all details and participate in chats."
                       : "Log in to join this event and access all features including chats, expenses, and vendor bookings."}
@@ -320,6 +323,7 @@ export default function EventDetail() {
                     onClick={() => user ? joinMutation.mutate() : window.location.href = "/api/login"}
                     disabled={!!user && joinMutation.isPending}
                     data-testid="button-join-event"
+                    className="w-full md:w-auto flex-shrink-0"
                   >
                     {user 
                       ? (joinMutation.isPending ? "Joining..." : "Join Event")
