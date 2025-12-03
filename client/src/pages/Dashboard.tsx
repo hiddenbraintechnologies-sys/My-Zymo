@@ -88,7 +88,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Action Cards - Vibrant and Colorful */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card 
             className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setCreateEventDialogOpen(true)} 
@@ -155,31 +155,25 @@ export default function Dashboard() {
             </CardHeader>
           </Card>
 
-          <Card 
-            className="hover-elevate cursor-pointer border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 dark:from-emerald-950/20 dark:to-teal-950/20 shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setQuoteDialogOpen(true)} 
-            data-testid="card-quick-action-quote"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl shadow-md">
-                  <IndianRupee className="w-6 h-6 text-white" />
-                </div>
-                <Badge className="bg-emerald-400 text-white">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  AI
-                </Badge>
-              </div>
-              <CardTitle className="text-xl font-bold text-emerald-700 dark:text-emerald-100">
-                Get Free Quote
-              </CardTitle>
-              <CardDescription className="text-emerald-600 dark:text-emerald-300">
-                AI-powered instant cost estimate
-              </CardDescription>
-            </CardHeader>
-          </Card>
         </div>
       </main>
+
+      {/* Floating Free Quote Button - Cute FAB */}
+      <button
+        onClick={() => setQuoteDialogOpen(true)}
+        data-testid="fab-free-quote"
+        className="fixed right-4 md:right-8 bottom-24 md:bottom-8 z-40 group flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+      >
+        <div className="relative">
+          <IndianRupee className="w-5 h-5" />
+          <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-yellow-300 animate-pulse" />
+        </div>
+        <span className="font-semibold text-sm whitespace-nowrap">Free Quote</span>
+        <Badge className="bg-white/20 text-white text-xs px-2 py-0.5 hidden sm:flex items-center gap-1">
+          <Sparkles className="w-2.5 h-2.5" />
+          AI
+        </Badge>
+      </button>
 
       <QuoteDialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen} />
 
