@@ -64,7 +64,7 @@ export default function VendorLogin() {
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
             <div className="relative">
-              <img src={logoUrl} alt="Myzymo" className="w-20 h-20" />
+              <img src={logoUrl} alt="Myzymo" className="w-24 h-24" />
               <div className="absolute -bottom-2 -right-2 bg-primary rounded-full p-2">
                 <Store className="h-4 w-4 text-primary-foreground" />
               </div>

@@ -398,7 +398,7 @@ Looking forward to planning together!`;
             </Link>
             <Link href="/dashboard" data-testid="link-home">
               <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
-                <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
+                <img src={logoUrl} alt="Myzymo" className="w-12 h-12" />
               </div>
             </Link>
           </div>

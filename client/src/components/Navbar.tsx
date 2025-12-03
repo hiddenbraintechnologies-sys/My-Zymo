@@ -90,7 +90,7 @@ export default function Navbar() {
             {/* Logo - Left on desktop, Center on mobile */}
             <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
               <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
-                <img src={logoUrl} alt="Myzymo" className="w-12 h-12 flex-shrink-0" />
+                <img src={logoUrl} alt="Myzymo" className="w-14 h-14 flex-shrink-0" />
                 <span className="font-heading font-bold text-xl">Myzymo</span>
               </div>
             </Link>
@@ -128,7 +128,7 @@ export default function Navbar() {
             {/* Logo - Left on desktop, Center on mobile */}
             <Link href={logoHref} data-testid="link-home" className="md:relative absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0">
               <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
-                <img src={logoUrl} alt="Myzymo" className="w-12 h-12 flex-shrink-0" />
+                <img src={logoUrl} alt="Myzymo" className="w-14 h-14 flex-shrink-0" />
                 <span className="font-heading font-bold text-xl">Myzymo</span>
               </div>
             </Link>

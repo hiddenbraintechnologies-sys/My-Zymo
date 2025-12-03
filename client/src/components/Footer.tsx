@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src={logoUrl} alt="Myzymo" className="w-8 h-8" />
+              <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
               <span className="font-heading font-bold text-xl">Myzymo</span>
             </div>
             <p className="text-sm text-muted-foreground">

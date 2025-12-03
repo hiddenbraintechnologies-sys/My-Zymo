@@ -38,7 +38,7 @@ export default function Vendors() {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" data-testid="link-home">
             <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
-              <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
+              <img src={logoUrl} alt="Myzymo" className="w-12 h-12" />
               <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Myzymo</span>
             </div>
           </Link>
