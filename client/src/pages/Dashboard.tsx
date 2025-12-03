@@ -59,7 +59,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <Navbar />
-
       <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
         {/* Welcome Banner - Hero Image Design */}
         <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
@@ -78,7 +77,7 @@ export default function Dashboard() {
                 </h1>
                 <p className="text-white/80 text-sm md:text-lg">Create and share your celebrations with friends and family</p>
               </div>
-              <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-2 md:gap-3 text-center">
                 <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 min-w-[60px] md:min-w-[85px]">
                   <div className="text-xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
                   <div className="text-xs text-white/80">My Events</div>
@@ -166,7 +165,6 @@ export default function Dashboard() {
 
         </div>
       </main>
-
       {/* Floating Free Quote Button - Cute FAB */}
       <button
         onClick={() => setQuoteDialogOpen(true)}
@@ -183,9 +181,7 @@ export default function Dashboard() {
           AI
         </Badge>
       </button>
-
       <QuoteDialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen} />
-
       <Dialog open={createEventDialogOpen} onOpenChange={setCreateEventDialogOpen}>
         <DialogContent className="sm:max-w-lg" data-testid="dialog-create-event-type">
           <DialogHeader>
