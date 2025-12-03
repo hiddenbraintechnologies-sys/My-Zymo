@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { Link, useLocation, useRoute } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Share2, LogOut, MessageCircle, DollarSign, Package, UserPlus, Image, Download, X, Sparkles, Palette } from "lucide-react";
+import { Calendar, MapPin, Users, Share2, MessageCircle, DollarSign, Package, UserPlus, Image, Download, Sparkles, Palette } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import type { Event, User, EventParticipant } from "@shared/schema";
-import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -22,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { InvitationCardRenderer, isTemplateCard } from "@/components/InvitationCardRenderer";
+import Navbar from "@/components/Navbar";
 
 // Full event detail for authenticated users
 type EventDetail = Event & {
@@ -96,10 +96,6 @@ export default function EventDetail() {
     },
   });
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
-
   const handleWhatsAppShare = () => {
     if (!event) {
       toast({
@@ -150,61 +146,10 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" data-testid="link-home">
-            <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
-              <img src={logoUrl} alt="Myzymo" className="w-12 h-12" />
-              <span className="font-heading font-bold text-xl">Myzymo</span>
-            </div>
-          </Link>
-          
-          {user ? (
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" data-testid="link-dashboard">
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-              <Link href="/events" data-testid="link-events">
-                <Button variant="ghost">Events</Button>
-              </Link>
-              <Link href="/vendors" data-testid="link-vendors">
-                <Button variant="ghost">Vendors</Button>
-              </Link>
-              <Link href="/profile" data-testid="link-profile">
-                <Button variant="ghost">Profile</Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <span className="text-sm" data-testid="text-user-name">
-                  {user.firstName} {user.lastName}
-                </span>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={handleLogout}
-                  data-testid="button-logout"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <Link href="/get-quote" data-testid="link-get-quote">
-                <Button variant="ghost">Get Quote</Button>
-              </Link>
-              <Button 
-                onClick={() => window.location.href = "/api/login"}
-                data-testid="button-login"
-              >
-                Log In
-              </Button>
-            </div>
-          )}
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
+      <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
         {isLoading ? (
           <div className="space-y-6">
             <Skeleton className="h-12 w-64" />
