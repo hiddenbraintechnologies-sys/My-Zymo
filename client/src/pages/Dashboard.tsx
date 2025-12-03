@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, MessageSquare, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -18,14 +17,12 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import QuoteDialog from "@/components/QuoteDialog";
-import FloatingChat from "@/components/FloatingChat";
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   
   const { data: privateEvents } = useQuery<Event[]>({
     queryKey: ["/api/events/private"],
@@ -181,28 +178,6 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
           </Card>
-
-          <Card 
-            className="hover-elevate cursor-pointer border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-100 via-indigo-50 to-blue-200 dark:from-blue-950/20 dark:to-indigo-950/20 shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setShowChat(true)} 
-            data-testid="card-quick-action-chat"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-xl shadow-md">
-                  <MessageSquare className="w-6 h-6 text-white" />
-                </div>
-                <Badge className="bg-blue-400 text-white">Chat</Badge>
-              </div>
-              <CardTitle className="text-xl font-bold text-blue-700 dark:text-blue-100">
-                Event Chats
-              </CardTitle>
-              <CardDescription className="text-blue-600 dark:text-blue-300">
-                Chat with event participants
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
         </div>
       </main>
 
@@ -291,9 +266,6 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Floating Chat - Only shown on Dashboard */}
-      {showChat && <FloatingChat />}
     </div>
   );
 }
