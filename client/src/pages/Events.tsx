@@ -18,6 +18,7 @@ import type { Event } from "@shared/schema";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { useState, useMemo } from "react";
+import Navbar from "@/components/Navbar";
 
 type EventFilter = "public" | "my-events";
 type SortOption = "date-asc" | "date-desc" | "title-asc" | "title-desc";
@@ -73,58 +74,8 @@ export default function Events() {
   }, [displayEvents, sortOption]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-background to-amber-50 dark:from-background dark:via-background dark:to-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href={user ? "/dashboard" : "/"} data-testid="link-home">
-            <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1 -ml-2">
-              <img src={logoUrl} alt="Myzymo" className="w-12 h-12" />
-              <span className="font-heading font-bold text-xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Myzymo</span>
-            </div>
-          </Link>
-          
-          {user ? (
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" data-testid="link-dashboard">
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-              <Link href="/events" data-testid="link-events">
-                <Button variant="ghost">Events</Button>
-              </Link>
-              <Link href="/vendors" data-testid="link-vendors">
-                <Button variant="ghost">Vendors</Button>
-              </Link>
-              <Link href="/profile" data-testid="link-profile">
-                <Button variant="ghost">Profile</Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium" data-testid="text-user-name">
-                  {user.firstName} {user.lastName}
-                </span>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={handleLogout}
-                  data-testid="button-logout"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost">Home</Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="default" data-testid="button-login">
-                  Log In
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-background to-amber-50 dark:from-background dark:via-background dark:to-background pb-20 md:pb-0">
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Hero Banner */}

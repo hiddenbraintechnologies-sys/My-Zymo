@@ -1,12 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Moon, Sun, LogOut, LayoutDashboard, CalendarDays, Store, User } from "lucide-react";
+import { Moon, Sun, LogOut, LayoutDashboard, CalendarDays, Store, User, Home, Sparkles, HelpCircle, LogIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -26,10 +21,10 @@ export default function Navbar() {
 
   // Landing page navigation links (for non-authenticated users)
   const landingNavLinks = [
-    { label: "Events", href: "/events" },
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Vendors", href: "/vendor/login" },
+    { label: "Home", href: "/", icon: Home },
+    { label: "Events", href: "/events", icon: CalendarDays },
+    { label: "Features", href: "#features", icon: Sparkles },
+    { label: "Login", href: "/login", icon: LogIn },
   ];
 
   // Authenticated user navigation links
@@ -116,17 +111,12 @@ export default function Navbar() {
                 </div>
               </Link>
               
+              {/* Desktop navigation - hidden on mobile (mobile uses bottom nav) */}
               <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-                {landingNavLinks.map((link) => (
-                  <a 
-                    key={link.label}
-                    href={link.href}
-                    className="text-sm font-medium hover:text-primary transition-colors"
-                    data-testid={`link-nav-${link.label.toLowerCase().replace(' ', '-')}`}
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                <a href="/" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-home">Home</a>
+                <a href="/events" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-events">Events</a>
+                <a href="#features" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-features">Features</a>
+                <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-how-it-works">How It Works</a>
               </div>
               
               <div className="flex items-center gap-2">
@@ -139,6 +129,7 @@ export default function Navbar() {
                   {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </Button>
                 
+                {/* Login button - hidden on mobile (mobile uses bottom nav) */}
                 <div className="hidden md:flex items-center gap-2">
                   <Link href="/login">
                     <Button 
@@ -149,70 +140,53 @@ export default function Navbar() {
                     </Button>
                   </Link>
                 </div>
-                
-                <Sheet>
-                  <SheetTrigger asChild className="md:hidden">
-                    <Button variant="ghost" size="icon" data-testid="button-menu">
-                      <Menu className="w-5 h-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <div className="flex flex-col gap-4 mt-8">
-                      {landingNavLinks.map((link) => (
-                        <a 
-                          key={link.label}
-                          href={link.href}
-                          className="text-lg font-medium hover:text-primary transition-colors"
-                        >
-                          {link.label}
-                        </a>
-                      ))}
-                      <div className="flex flex-col gap-2 mt-4">
-                        <Link href="/login">
-                          <Button 
-                            variant="outline" 
-                            className="w-full"
-                          >
-                            Log In
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </SheetContent>
-                </Sheet>
               </div>
             </>
           )}
         </div>
       </nav>
 
-      {/* Bottom Navigation Bar - Mobile only for authenticated users */}
-      {user && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t safe-area-bottom">
-          <div className="flex items-center justify-around h-16 px-2">
-            {authNavLinks.map((link) => {
-              const active = isActive(link.href);
-              return (
-                <Link key={link.label} href={link.href}>
-                  <button
-                    className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px] ${
-                      active 
-                        ? "text-primary" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                    data-testid={`nav-bottom-${link.label.toLowerCase()}`}
-                  >
-                    <link.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
-                    <span className={`text-xs font-medium ${active ? "text-primary" : ""}`}>
-                      {link.label}
-                    </span>
-                  </button>
-                </Link>
-              );
-            })}
-          </div>
+      {/* Bottom Navigation Bar - Mobile only for all users */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t safe-area-bottom">
+        <div className="flex items-center justify-around h-16 px-2">
+          {(user ? authNavLinks : landingNavLinks).map((link) => {
+            const active = isActive(link.href);
+            return link.href.startsWith('#') ? (
+              <a 
+                key={link.label} 
+                href={link.href}
+                className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px] ${
+                  active 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid={`nav-bottom-${link.label.toLowerCase()}`}
+              >
+                <link.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
+                <span className={`text-xs font-medium ${active ? "text-primary" : ""}`}>
+                  {link.label}
+                </span>
+              </a>
+            ) : (
+              <Link key={link.label} href={link.href}>
+                <button
+                  className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px] ${
+                    active 
+                      ? "text-primary" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  data-testid={`nav-bottom-${link.label.toLowerCase()}`}
+                >
+                  <link.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
+                  <span className={`text-xs font-medium ${active ? "text-primary" : ""}`}>
+                    {link.label}
+                  </span>
+                </button>
+              </Link>
+            );
+          })}
         </div>
-      )}
+      </div>
     </>
   );
 }
