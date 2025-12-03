@@ -77,16 +77,16 @@ export default function Dashboard() {
                 </h1>
                 <p className="text-white/80 text-sm md:text-lg">Create and share your celebrations with friends and family</p>
               </div>
-              <div className="flex items-center gap-2 md:gap-3 text-center">
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 min-w-[60px] md:min-w-[85px]">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px]">
                   <div className="text-xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
                   <div className="text-xs text-white/80">My Events</div>
                 </div>
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 min-w-[60px] md:min-w-[85px]">
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px]">
                   <div className="text-xl md:text-3xl font-bold text-white">{publicEvents?.length || 0}</div>
                   <div className="text-xs text-white/80">Public</div>
                 </div>
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 min-w-[60px] md:min-w-[85px]">
+                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px]">
                   <div className="text-xl md:text-3xl font-bold text-white">{followedPublicEvents?.length || 0}</div>
                   <div className="text-xs text-white/80">Followed</div>
                 </div>
