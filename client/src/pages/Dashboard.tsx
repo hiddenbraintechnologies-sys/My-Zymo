@@ -188,7 +188,7 @@ export default function Dashboard() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          <div className="relative z-10 h-full flex items-center p-8">
+          <div className="relative z-10 h-full flex flex-col justify-center p-8">
             <div className="flex items-center justify-between flex-wrap gap-4 w-full">
               <div>
                 <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2 flex items-center gap-3 text-white">
