@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, LogOut, LayoutDashboard, CalendarDays, Store, User, Home, Sparkles, HelpCircle, LogIn } from "lucide-react";
+import { Moon, Sun, LogOut, LayoutDashboard, CalendarDays, MessageSquare, User, Home, Sparkles, LogIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
@@ -31,7 +31,7 @@ export default function Navbar() {
   const authNavLinks = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Events", href: "/events", icon: CalendarDays },
-    { label: "Vendors", href: "/vendors", icon: Store },
+    { label: "Chat", href: "/chat", icon: MessageSquare },
     { label: "Profile", href: "/profile", icon: User },
   ];
 
