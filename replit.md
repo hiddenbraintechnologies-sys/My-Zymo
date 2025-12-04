@@ -62,6 +62,19 @@ Myzymo includes a comprehensive set of features:
 *   **Event Management:** Event creators can edit and delete their events, with backend authorization ensuring security.
 *   **Event Member Export:** Creators can download complete member details as JSON files for their events.
 *   **Chat System:** Real-time WebSocket-based chat with emoji support and message persistence, always visible on the dashboard with warm celebration-themed styling.
+*   **Online/Offline Presence Tracking:** Real-time user status indicators showing who's online:
+    *   Database fields (is_online, last_seen) track user presence state
+    *   WebSocket broadcasts presence updates to all connected users when status changes
+    *   OnlineIndicator component shows green dots next to online user avatars
+    *   useOnlinePresence hook manages frontend presence state
+    *   Multi-connection reference counting ensures users stay online when multiple tabs open
+    *   API endpoint `/api/online-users` for fetching online status on page load
+*   **Browser Push Notifications:** Notifications for new messages:
+    *   Web Notifications API integration for browser notifications
+    *   useNotifications hook manages permission requests and notification display
+    *   Notifications shown when tab is not focused (document.hidden)
+    *   Click-to-focus functionality on notification interaction
+    *   Graceful degradation for browsers without notification support
 *   **Group Chat System:** Full-featured group messaging with:
     *   Create groups with custom names and descriptions
     *   Add/remove members from groups
