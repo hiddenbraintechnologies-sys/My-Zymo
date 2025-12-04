@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar, Share2, Copy, Check, Link } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar, Share2, Copy, Check, Link, ExternalLink } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
@@ -1627,17 +1628,20 @@ export default function Messages() {
                 ? "Share this link with someone to let them start a chat with you."
                 : "Share this link to invite someone to join this group chat."}
             </p>
+            
+            {/* Invite Link Input with Copy */}
             <div className="flex items-center gap-2">
               <Input
                 value={inviteLink}
                 readOnly
-                className="flex-1"
+                className="flex-1 text-sm"
                 data-testid="input-invite-link"
               />
               <Button
                 onClick={handleCopyInvite}
                 variant="outline"
                 size="icon"
+                title="Copy link"
                 data-testid="button-copy-invite"
               >
                 {copiedInvite ? (
@@ -1647,13 +1651,55 @@ export default function Messages() {
                 )}
               </Button>
             </div>
-            <div className="flex flex-col gap-2">
-              <p className="text-xs text-muted-foreground">
-                This invite link expires in 24 hours.
-              </p>
+            
+            <p className="text-xs text-muted-foreground">
+              This invite link expires in 24 hours.
+            </p>
+
+            {/* Share Options */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Share via:</p>
+              
+              {/* WhatsApp Share */}
               <Button 
                 onClick={() => {
-                  if (navigator.share) {
+                  const message = inviteType === "direct" 
+                    ? `Hey! Chat with me on Myzymo: ${inviteLink}` 
+                    : `Hey! Join our group chat on Myzymo: ${inviteLink}`;
+                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                  window.open(whatsappUrl, '_blank');
+                }}
+                className="w-full gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white"
+                data-testid="button-share-whatsapp"
+              >
+                <SiWhatsapp className="h-5 w-5" />
+                Share on WhatsApp
+              </Button>
+              
+              {/* Copy Link Button */}
+              <Button 
+                onClick={handleCopyInvite}
+                variant="outline"
+                className="w-full gap-2"
+                data-testid="button-copy-link-full"
+              >
+                {copiedInvite ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-500" />
+                    Link Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
+              
+              {/* Native Share (Mobile) */}
+              {typeof navigator !== 'undefined' && 'share' in navigator && (
+                <Button 
+                  onClick={() => {
                     navigator.share({
                       title: inviteType === "direct" ? "Chat with me on Myzymo" : "Join my group on Myzymo",
                       text: inviteType === "direct" 
@@ -1661,16 +1707,15 @@ export default function Messages() {
                         : "Click this link to join our group chat!",
                       url: inviteLink,
                     });
-                  } else {
-                    handleCopyInvite();
-                  }
-                }}
-                className="w-full gap-2"
-                data-testid="button-share-invite"
-              >
-                <Share2 className="h-4 w-4" />
-                Share Link
-              </Button>
+                  }}
+                  variant="secondary"
+                  className="w-full gap-2"
+                  data-testid="button-share-native"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  More Share Options
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
