@@ -1223,9 +1223,9 @@ export default function Messages() {
                           className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
                           data-testid={`message-${msg.id}`}
                         >
-                          <div className={`flex items-end gap-1 ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                          <div className={`flex items-end gap-1 max-w-[85%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
                             <div
-                              className={`max-w-[70%] rounded-lg p-3 ${
+                              className={`min-w-[60px] rounded-lg p-3 ${
                                 isCurrentUser
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-muted"
@@ -1553,9 +1553,9 @@ export default function Messages() {
                           className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
                           data-testid={`group-message-${msg.id}`}
                         >
-                          <div className={`flex items-end gap-2 max-w-[70%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                          <div className={`flex items-end gap-2 max-w-[85%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
                             {!isCurrentUser && (
-                              <Avatar className="h-6 w-6">
+                              <Avatar className="h-6 w-6 flex-shrink-0">
                                 <AvatarImage src={msg.sender?.profileImageUrl || undefined} />
                                 <AvatarFallback className="text-xs">
                                   {msg.sender?.firstName?.[0]}{msg.sender?.lastName?.[0]}
@@ -1563,7 +1563,7 @@ export default function Messages() {
                               </Avatar>
                             )}
                             <div
-                              className={`rounded-lg p-3 ${
+                              className={`min-w-[60px] rounded-lg p-3 ${
                                 isCurrentUser
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-muted"
@@ -1754,9 +1754,9 @@ export default function Messages() {
                           className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
                           data-testid={`event-group-message-${msg.id}`}
                         >
-                          <div className={`flex items-end gap-2 max-w-[70%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                          <div className={`flex items-end gap-2 max-w-[85%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
                             {!isCurrentUser && (
-                              <Avatar className="h-6 w-6">
+                              <Avatar className="h-6 w-6 flex-shrink-0">
                                 <AvatarImage src={msg.sender?.profileImageUrl || undefined} />
                                 <AvatarFallback className="text-xs">
                                   {msg.sender?.firstName?.[0]}{msg.sender?.lastName?.[0]}
@@ -1764,7 +1764,7 @@ export default function Messages() {
                               </Avatar>
                             )}
                             <div
-                              className={`rounded-lg p-3 ${
+                              className={`min-w-[60px] rounded-lg p-3 ${
                                 isCurrentUser
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-muted"
