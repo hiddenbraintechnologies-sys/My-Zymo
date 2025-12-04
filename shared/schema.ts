@@ -41,6 +41,11 @@ export const users = pgTable("users", {
   currentCity: varchar("current_city"),
   profession: varchar("profession"),
   company: varchar("company"),
+  
+  // Online presence fields
+  isOnline: boolean("is_online").notNull().default(false),
+  lastSeen: timestamp("last_seen"),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

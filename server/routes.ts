@@ -722,6 +722,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch conversations" });
     }
   });
+
+  // Get online status for users
+  app.post('/api/users/online-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { userIds } = req.body;
+      if (!userIds || !Array.isArray(userIds)) {
+        return res.status(400).json({ message: "userIds array is required" });
+      }
+      const onlineUserIds = await storage.getOnlineUsers(userIds);
+      res.json({ onlineUsers: onlineUserIds });
+    } catch (error) {
+      console.error("Error fetching online status:", error);
+      res.status(500).json({ message: "Failed to fetch online status" });
+    }
+  });
   
   // Get messages with a specific user
   app.get('/api/direct-messages/:otherUserId', isAuthenticated, async (req: any, res) => {
@@ -2659,14 +2674,52 @@ Return your response as a JSON object with this exact structure:
   const eventConnections = new Map<string, Set<WebSocket>>();
   // Track active users per event: Map<eventId, Map<userId, WebSocket>>
   const eventActiveUsers = new Map<string, Map<string, WebSocket>>();
-  // Track user connections for direct messages: Map<userId, WebSocket>
+  // Track all user connections for direct messages: Map<userId, Set<WebSocket>>
+  // Using Set to support multiple connections per user (multiple tabs/devices)
+  const userConnectionSets = new Map<string, Set<WebSocket>>();
+  // Legacy single connection reference for backwards compatibility
   const userConnections = new Map<string, WebSocket>();
   // Track group chat connections: Map<groupId, Set<WebSocket>>
   const groupConnections = new Map<string, Set<WebSocket>>();
   // Track user group memberships for message delivery: Map<groupId, Map<userId, WebSocket>>
   const groupActiveUsers = new Map<string, Map<string, WebSocket>>();
+  
+  // Helper to add user connection with reference counting
+  const addUserConnection = (userId: string, ws: WebSocket): boolean => {
+    if (!userConnectionSets.has(userId)) {
+      userConnectionSets.set(userId, new Set());
+    }
+    const connections = userConnectionSets.get(userId)!;
+    const wasEmpty = connections.size === 0;
+    connections.add(ws);
+    // Update legacy single connection reference
+    userConnections.set(userId, ws);
+    return wasEmpty; // Returns true if this is the first connection
+  };
+  
+  // Helper to remove user connection with reference counting
+  const removeUserConnection = (userId: string, ws: WebSocket): boolean => {
+    const connections = userConnectionSets.get(userId);
+    if (!connections) return true;
+    
+    connections.delete(ws);
+    const isEmpty = connections.size === 0;
+    
+    if (isEmpty) {
+      userConnectionSets.delete(userId);
+      userConnections.delete(userId);
+    } else {
+      // Update legacy reference to another active connection
+      const remaining = connections.values().next().value;
+      if (remaining) {
+        userConnections.set(userId, remaining);
+      }
+    }
+    
+    return isEmpty; // Returns true if no more connections remain
+  };
 
-  // Helper to broadcast presence updates
+  // Helper to broadcast presence updates to event chat
   const broadcastPresence = async (eventId: string) => {
     const activeUsers = eventActiveUsers.get(eventId);
     if (!activeUsers) return;
@@ -2687,13 +2740,39 @@ Return your response as a JSON object with this exact structure:
     }
   };
 
-  wss.on('connection', (ws, req: IncomingMessage) => {
+  // Helper to broadcast global user online status to all connected users
+  const broadcastGlobalPresence = async (userId: string, isOnline: boolean) => {
+    const presenceData = JSON.stringify({
+      type: 'user-presence',
+      userId,
+      isOnline,
+    });
+    
+    // Send to all connected users
+    userConnections.forEach((ws, connectedUserId) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(presenceData);
+      }
+    });
+  };
+
+  wss.on('connection', async (ws, req: IncomingMessage) => {
     let currentEventId: string | null = null;
     // Get authenticated userId from session verification
     const authenticatedUserId = (req as any).authenticatedUserId as string;
     
-    // Register user connection for direct messages
-    userConnections.set(authenticatedUserId, ws);
+    // Register user connection with reference counting
+    const isFirstConnection = addUserConnection(authenticatedUserId, ws);
+    
+    // Only set user online and broadcast if this is their first connection
+    if (isFirstConnection) {
+      try {
+        await storage.setUserOnline(authenticatedUserId);
+        await broadcastGlobalPresence(authenticatedUserId, true);
+      } catch (error) {
+        console.error('Error setting user online:', error);
+      }
+    }
 
     ws.on('message', async (data) => {
       try {
@@ -3176,8 +3255,18 @@ Return your response as a JSON object with this exact structure:
     });
 
     ws.on('close', async () => {
-      // Remove user connection for direct messages
-      userConnections.delete(authenticatedUserId);
+      // Remove user connection with reference counting
+      const isLastConnection = removeUserConnection(authenticatedUserId, ws);
+      
+      // Only set user offline and broadcast if this was their last connection
+      if (isLastConnection) {
+        try {
+          await storage.setUserOffline(authenticatedUserId);
+          await broadcastGlobalPresence(authenticatedUserId, false);
+        } catch (error) {
+          console.error('Error setting user offline:', error);
+        }
+      }
       
       // Remove connection from all rooms
       if (currentEventId) {

@@ -23,6 +23,9 @@ import { ActiveCallDialog } from "@/components/ActiveCallDialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useToast } from "@/hooks/use-toast";
 import { GroupCallDialog } from "@/components/GroupCallDialog";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
+import { AvatarWithOnlineIndicator, OnlineIndicator } from "@/components/OnlineIndicator";
 
 type ConversationListItem = {
   userId: string;
@@ -134,6 +137,9 @@ export default function Messages() {
     recipientId: selectedUserId,
   });
 
+  // Notifications for browser push notifications
+  const { permission: notificationPermission, requestPermission, showMessageNotification } = useNotifications();
+
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<ConversationListItem[]>({
     queryKey: ["/api/direct-messages/conversations"],
   });
@@ -149,6 +155,22 @@ export default function Messages() {
   const { data: allUsers = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
+
+  // Get all user IDs for online presence tracking
+  const conversationUserIds = conversations.map(c => c.userId);
+  
+  // Online presence tracking
+  const { isUserOnline } = useOnlinePresence({
+    userIds: conversationUserIds,
+    wsRef,
+  });
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if (notificationPermission === 'default') {
+      requestPermission();
+    }
+  }, [notificationPermission, requestPermission]);
 
   // Update selectedUserId when URL parameter changes
   useEffect(() => {
@@ -376,6 +398,18 @@ export default function Messages() {
           }
         }
         
+        // Show notification for incoming messages from others
+        if (newMessage.senderId !== currentUser?.id) {
+          const senderName = `${newMessage.sender?.firstName || ''} ${newMessage.sender?.lastName || ''}`.trim() || 'Someone';
+          showMessageNotification(
+            senderName,
+            newMessage.content || 'Sent a file',
+            'direct',
+            undefined,
+            () => setLocation(`/messages/${newMessage.senderId}`)
+          );
+        }
+        
         queryClient.invalidateQueries({ queryKey: ["/api/direct-messages/conversations"] });
       } else if (data.type === "group-message") {
         const newMessage = data.message as GroupMessageWithUser;
@@ -385,6 +419,18 @@ export default function Messages() {
           setGroupMessages((prev) => [...prev, newMessage]);
         }
         
+        // Show notification for group messages from others
+        if (newMessage.senderId !== currentUser?.id) {
+          const senderName = `${newMessage.sender?.firstName || ''} ${newMessage.sender?.lastName || ''}`.trim() || 'Someone';
+          const groupChat = groupChats.find(g => g.id === data.groupId);
+          showMessageNotification(
+            senderName,
+            newMessage.content || 'Sent a file',
+            'group',
+            groupChat?.name || 'Group Chat'
+          );
+        }
+        
         queryClient.invalidateQueries({ queryKey: ["/api/group-chats"] });
       } else if (data.type === "event-group-message") {
         const newMessage = data.message as EventGroupMessageWithUser;
@@ -392,6 +438,18 @@ export default function Messages() {
         
         if (currentSelectedEventGroupId === data.groupId) {
           setEventGroupMessages((prev) => [...prev, newMessage]);
+        }
+        
+        // Show notification for event group messages from others
+        if (newMessage.senderId !== currentUser?.id) {
+          const senderName = `${newMessage.sender?.firstName || ''} ${newMessage.sender?.lastName || ''}`.trim() || 'Someone';
+          const eventGroup = eventGroups.find(g => g.id === data.groupId);
+          showMessageNotification(
+            senderName,
+            newMessage.content || 'Sent a file',
+            'event',
+            eventGroup?.name || 'Event Group'
+          );
         }
         
         queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
@@ -703,12 +761,14 @@ export default function Messages() {
                         data-testid={`button-conversation-${conv.userId}`}
                       >
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={conv.user.profileImageUrl || undefined} />
-                            <AvatarFallback>
-                              {conv.user.firstName?.[0]}{conv.user.lastName?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
+                          <AvatarWithOnlineIndicator isOnline={isUserOnline(conv.userId)} size="md">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={conv.user.profileImageUrl || undefined} />
+                              <AvatarFallback>
+                                {conv.user.firstName?.[0]}{conv.user.lastName?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                          </AvatarWithOnlineIndicator>
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
@@ -938,22 +998,27 @@ export default function Messages() {
                 {/* Chat Header - Direct Messages */}
                 <div className="border-b pb-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={selectedConversation?.user.profileImageUrl || undefined} />
-                      <AvatarFallback>
-                        {selectedConversation?.user.firstName?.[0]}
-                        {selectedConversation?.user.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AvatarWithOnlineIndicator isOnline={isUserOnline(selectedUserId)} size="md">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={selectedConversation?.user.profileImageUrl || undefined} />
+                        <AvatarFallback>
+                          {selectedConversation?.user.firstName?.[0]}
+                          {selectedConversation?.user.lastName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    </AvatarWithOnlineIndicator>
                     <div className="flex-1">
                       <h3 className="font-semibold" data-testid="text-chat-recipient-name">
                         {selectedConversation?.user.firstName} {selectedConversation?.user.lastName}
                       </h3>
-                      {selectedConversation?.user.profession && (
-                        <p className="text-sm text-muted-foreground">
-                          {selectedConversation.user.profession}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <OnlineIndicator isOnline={isUserOnline(selectedUserId)} size="sm" showLabel />
+                        {selectedConversation?.user.profession && (
+                          <span className="text-sm text-muted-foreground">
+                            &bull; {selectedConversation.user.profession}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button

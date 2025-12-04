@@ -35,7 +35,7 @@ import {
   type EventFeedback, type InsertEventFeedback,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { sanitizeUser } from "@shared/sanitize";
 
 export interface IStorage {
@@ -50,6 +50,11 @@ export interface IStorage {
   updateUserProfile(userId: string, profileData: Partial<User>): Promise<User>;
   updateUserRole(userId: string, role: string): Promise<User | undefined>;
   deleteUser(userId: string): Promise<void>;
+  
+  // User presence methods
+  setUserOnline(userId: string): Promise<void>;
+  setUserOffline(userId: string): Promise<void>;
+  getOnlineUsers(userIds?: string[]): Promise<string[]>;
   
   // Social auth methods
   findUserByProviderId(provider: string, providerId: string): Promise<User | undefined>;
@@ -426,6 +431,39 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     await db.delete(users).where(eq(users.id, userId));
+  }
+
+  // User presence methods
+  async setUserOnline(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ isOnline: true, lastSeen: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async setUserOffline(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ isOnline: false, lastSeen: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  async getOnlineUsers(userIds?: string[]): Promise<string[]> {
+    if (userIds && userIds.length > 0) {
+      const result = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(
+          eq(users.isOnline, true),
+          inArray(users.id, userIds)
+        ));
+      return result.map(r => r.id);
+    }
+    const result = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.isOnline, true));
+    return result.map(r => r.id);
   }
 
   // Event methods
