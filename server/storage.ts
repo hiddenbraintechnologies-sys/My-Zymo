@@ -1,7 +1,7 @@
 import { 
   users, events, eventParticipants, messages, directMessages, expenses, expenseSplits, vendors, bookings,
   aiConversations, aiMessages, quotes, userFollowedEvents,
-  groupChats, groupChatMembers, groupMessages,
+  groupChats, groupChatMembers, groupMessages, chatInvites,
   eventGroups, eventGroupMembers, groupInvitations, groupPolls, groupPollOptions, groupPollVotes,
   groupItineraryItems, eventPhotos, vendorShortlist, eventGroupMessages, groupExpenses, groupExpenseSplits, eventFeedback,
   type User, type UpsertUser,
@@ -12,6 +12,7 @@ import {
   type GroupChat, type InsertGroupChat,
   type GroupChatMember, type InsertGroupChatMember,
   type GroupMessage, type InsertGroupMessage,
+  type ChatInvite, type InsertChatInvite,
   type Expense, type InsertExpense,
   type ExpenseSplit, type InsertExpenseSplit,
   type Vendor, type InsertVendor,
@@ -105,6 +106,13 @@ export interface IStorage {
   // Group Message methods
   getGroupMessages(groupId: string): Promise<(GroupMessage & { sender: User })[]>;
   createGroupMessage(message: InsertGroupMessage): Promise<GroupMessage>;
+  
+  // Chat Invite methods
+  createChatInvite(invite: InsertChatInvite): Promise<ChatInvite>;
+  getChatInviteByCode(code: string): Promise<(ChatInvite & { creator: User }) | undefined>;
+  getUserChatInvites(userId: string): Promise<ChatInvite[]>;
+  useChatInvite(code: string): Promise<ChatInvite | undefined>;
+  deactivateChatInvite(id: string): Promise<void>;
   
   // Expense methods
   getEventExpenses(eventId: string): Promise<(Expense & { paidBy: User, splits: (ExpenseSplit & { user: User })[] })[]>;
@@ -957,6 +965,84 @@ export class DatabaseStorage implements IStorage {
       .where(eq(groupChats.id, message.groupId));
     
     return result;
+  }
+
+  // Chat Invite methods
+  async createChatInvite(invite: InsertChatInvite): Promise<ChatInvite> {
+    const [result] = await db.insert(chatInvites).values(invite).returning();
+    return result;
+  }
+
+  async getChatInviteByCode(code: string): Promise<(ChatInvite & { creator: User }) | undefined> {
+    const [invite] = await db
+      .select()
+      .from(chatInvites)
+      .where(eq(chatInvites.inviteCode, code))
+      .limit(1);
+    
+    if (!invite) return undefined;
+    
+    const [creator] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, invite.creatorId))
+      .limit(1);
+    
+    return {
+      ...invite,
+      creator: sanitizeUser(creator),
+    };
+  }
+
+  async getUserChatInvites(userId: string): Promise<ChatInvite[]> {
+    return db
+      .select()
+      .from(chatInvites)
+      .where(eq(chatInvites.creatorId, userId))
+      .orderBy(desc(chatInvites.createdAt));
+  }
+
+  async useChatInvite(code: string): Promise<ChatInvite | undefined> {
+    const [invite] = await db
+      .select()
+      .from(chatInvites)
+      .where(eq(chatInvites.inviteCode, code))
+      .limit(1);
+    
+    if (!invite || !invite.isActive) return undefined;
+    
+    // Check expiry
+    if (invite.expiresAt && new Date() > invite.expiresAt) {
+      await db
+        .update(chatInvites)
+        .set({ isActive: false })
+        .where(eq(chatInvites.id, invite.id));
+      return undefined;
+    }
+    
+    // Check max uses
+    if (invite.maxUses && invite.useCount >= invite.maxUses) {
+      await db
+        .update(chatInvites)
+        .set({ isActive: false })
+        .where(eq(chatInvites.id, invite.id));
+      return undefined;
+    }
+    
+    // Increment use count
+    await db
+      .update(chatInvites)
+      .set({ useCount: invite.useCount + 1 })
+      .where(eq(chatInvites.id, invite.id));
+    
+    return { ...invite, useCount: invite.useCount + 1 };
+  }
+
+  async deactivateChatInvite(id: string): Promise<void> {
+    await db
+      .update(chatInvites)
+      .set({ isActive: false })
+      .where(eq(chatInvites.id, id));
   }
 
   // Expense methods

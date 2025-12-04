@@ -232,6 +232,41 @@ export const groupMessagesRelations = relations(groupMessages, ({ one }) => ({
   }),
 }));
 
+// Chat Invites table - for sharing chat invite links
+export const chatInvites = pgTable("chat_invites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  inviteCode: varchar("invite_code").notNull().unique(),
+  inviteType: text("invite_type").notNull(), // 'direct' for direct message, 'group' for group chat
+  creatorId: varchar("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  groupChatId: varchar("group_chat_id").references(() => groupChats.id, { onDelete: "cascade" }), // Only for group invites
+  message: text("message"), // Optional custom message for the invite
+  expiresAt: timestamp("expires_at"),
+  maxUses: integer("max_uses"), // Optional limit on how many times the invite can be used
+  useCount: integer("use_count").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const chatInvitesRelations = relations(chatInvites, ({ one }) => ({
+  creator: one(users, {
+    fields: [chatInvites.creatorId],
+    references: [users.id],
+  }),
+  groupChat: one(groupChats, {
+    fields: [chatInvites.groupChatId],
+    references: [groupChats.id],
+  }),
+}));
+
+export const insertChatInviteSchema = createInsertSchema(chatInvites).omit({
+  id: true,
+  createdAt: true,
+  useCount: true,
+});
+
+export type InsertChatInvite = z.infer<typeof insertChatInviteSchema>;
+export type ChatInvite = typeof chatInvites.$inferSelect;
+
 // Expenses table
 export const expenses = pgTable("expenses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

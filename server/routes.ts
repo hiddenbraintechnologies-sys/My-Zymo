@@ -1129,6 +1129,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === Chat Invite APIs ===
+  
+  // Create a chat invite link
+  app.post('/api/chat-invites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { inviteType, groupChatId, message, expiresIn, maxUses } = req.body;
+      
+      if (!inviteType || !['direct', 'group'].includes(inviteType)) {
+        return res.status(400).json({ message: "Invalid invite type" });
+      }
+      
+      // For group invites, verify user is a member
+      if (inviteType === 'group' && groupChatId) {
+        const isMember = await storage.isUserGroupMember(groupChatId, userId);
+        if (!isMember) {
+          return res.status(403).json({ message: "You must be a member of the group to create an invite" });
+        }
+      }
+      
+      // Generate unique invite code
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      // Calculate expiry date if provided
+      let expiresAt: Date | null = null;
+      if (expiresIn) {
+        expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + expiresIn);
+      }
+      
+      const invite = await storage.createChatInvite({
+        inviteCode,
+        inviteType,
+        creatorId: userId,
+        groupChatId: groupChatId || null,
+        message: message || null,
+        expiresAt,
+        maxUses: maxUses || null,
+        isActive: true,
+      });
+      
+      res.status(201).json(invite);
+    } catch (error) {
+      console.error("Error creating chat invite:", error);
+      res.status(500).json({ message: "Failed to create chat invite" });
+    }
+  });
+  
+  // Get chat invite by code (public endpoint for invite preview)
+  app.get('/api/chat-invites/:code', async (req: any, res) => {
+    try {
+      const invite = await storage.getChatInviteByCode(req.params.code);
+      
+      if (!invite) {
+        return res.status(404).json({ message: "Invite not found or expired" });
+      }
+      
+      if (!invite.isActive) {
+        return res.status(410).json({ message: "This invite is no longer active" });
+      }
+      
+      // Check expiry
+      if (invite.expiresAt && new Date() > invite.expiresAt) {
+        return res.status(410).json({ message: "This invite has expired" });
+      }
+      
+      // Check max uses
+      if (invite.maxUses && invite.useCount >= invite.maxUses) {
+        return res.status(410).json({ message: "This invite has reached its maximum uses" });
+      }
+      
+      // Return invite info (safe to show publicly)
+      res.json({
+        inviteCode: invite.inviteCode,
+        inviteType: invite.inviteType,
+        message: invite.message,
+        creator: {
+          id: invite.creator.id,
+          firstName: invite.creator.firstName,
+          lastName: invite.creator.lastName,
+          profileImageUrl: invite.creator.profileImageUrl,
+        },
+        groupChatId: invite.groupChatId,
+      });
+    } catch (error) {
+      console.error("Error fetching chat invite:", error);
+      res.status(500).json({ message: "Failed to fetch chat invite" });
+    }
+  });
+  
+  // Accept/use a chat invite
+  app.post('/api/chat-invites/:code/accept', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const code = req.params.code;
+      
+      const invite = await storage.getChatInviteByCode(code);
+      
+      if (!invite) {
+        return res.status(404).json({ message: "Invite not found" });
+      }
+      
+      // Use the invite (validates and increments count)
+      const usedInvite = await storage.useChatInvite(code);
+      if (!usedInvite) {
+        return res.status(410).json({ message: "This invite is no longer valid" });
+      }
+      
+      // For direct message invites, just return the creator info
+      if (invite.inviteType === 'direct') {
+        return res.json({
+          type: 'direct',
+          userId: invite.creatorId,
+          user: invite.creator,
+          message: invite.message,
+        });
+      }
+      
+      // For group invites, add user to the group
+      if (invite.inviteType === 'group' && invite.groupChatId) {
+        // Check if already a member
+        const isMember = await storage.isUserGroupMember(invite.groupChatId, userId);
+        if (!isMember) {
+          await storage.addGroupChatMember({
+            groupId: invite.groupChatId,
+            userId,
+            role: 'member',
+          });
+        }
+        
+        const groupChat = await storage.getGroupChat(invite.groupChatId);
+        return res.json({
+          type: 'group',
+          groupId: invite.groupChatId,
+          groupChat,
+          message: invite.message,
+        });
+      }
+      
+      res.status(400).json({ message: "Invalid invite type" });
+    } catch (error) {
+      console.error("Error accepting chat invite:", error);
+      res.status(500).json({ message: "Failed to accept chat invite" });
+    }
+  });
+  
+  // Get user's chat invites
+  app.get('/api/my-chat-invites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const invites = await storage.getUserChatInvites(userId);
+      res.json(invites);
+    } catch (error) {
+      console.error("Error fetching user's chat invites:", error);
+      res.status(500).json({ message: "Failed to fetch chat invites" });
+    }
+  });
+  
+  // Deactivate a chat invite
+  app.delete('/api/chat-invites/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const invites = await storage.getUserChatInvites(userId);
+      const invite = invites.find(i => i.id === req.params.id);
+      
+      if (!invite) {
+        return res.status(404).json({ message: "Invite not found or you don't have permission" });
+      }
+      
+      await storage.deactivateChatInvite(req.params.id);
+      res.json({ message: "Invite deactivated" });
+    } catch (error) {
+      console.error("Error deactivating chat invite:", error);
+      res.status(500).json({ message: "Failed to deactivate chat invite" });
+    }
+  });
+
   // === AI Assistant APIs ===
   
   // Get user's conversations

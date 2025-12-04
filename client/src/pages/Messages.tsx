@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar, Share2, Copy, Check, Link } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
@@ -110,6 +110,12 @@ export default function Messages() {
   // Group settings state
   const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
+  
+  // Chat invite state
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
+  const [inviteType, setInviteType] = useState<"direct" | "group">("direct");
+  const [copiedInvite, setCopiedInvite] = useState(false);
 
   // WebRTC for video/audio calls
   const {
@@ -284,6 +290,60 @@ export default function Messages() {
       setGroupSettingsOpen(false);
     },
   });
+
+  // Create chat invite mutation
+  const createInviteMutation = useMutation({
+    mutationFn: async (data: { inviteType: "direct" | "group"; groupChatId?: string; message?: string; expiresIn?: number }) => {
+      const res = await apiRequest("/api/chat-invites", "POST", data);
+      return await res.json();
+    },
+    onSuccess: (invite) => {
+      const baseUrl = window.location.origin;
+      const link = `${baseUrl}/chat-invite/${invite.inviteCode}`;
+      setInviteLink(link);
+      setInviteDialogOpen(true);
+      toast({
+        title: "Invite link created",
+        description: "Share this link to invite someone to chat",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create invite",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle creating a chat invite
+  const handleCreateInvite = (type: "direct" | "group") => {
+    setInviteType(type);
+    if (type === "group" && selectedGroupId) {
+      createInviteMutation.mutate({ inviteType: "group", groupChatId: selectedGroupId, expiresIn: 24 });
+    } else {
+      createInviteMutation.mutate({ inviteType: "direct", expiresIn: 24 });
+    }
+  };
+
+  // Copy invite link to clipboard
+  const handleCopyInvite = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopiedInvite(true);
+      toast({
+        title: "Copied!",
+        description: "Invite link copied to clipboard",
+      });
+      setTimeout(() => setCopiedInvite(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the link manually",
+        variant: "destructive",
+      });
+    }
+  };
 
   // WebSocket connection - only depends on currentUser to prevent reconnections
   useEffect(() => {
@@ -601,6 +661,22 @@ export default function Messages() {
               </TabsList>
 
               <TabsContent value="direct" className="mt-0">
+                {/* Share Chat Invite Button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full mb-4 gap-2" 
+                  onClick={() => handleCreateInvite("direct")}
+                  disabled={createInviteMutation.isPending}
+                  data-testid="button-share-chat-invite"
+                >
+                  {createInviteMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Share2 className="h-4 w-4" />
+                  )}
+                  Share Chat Invite
+                </Button>
+                
                 {conversationsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -1470,6 +1546,70 @@ export default function Messages() {
           }}
         />
       )}
+
+      {/* Chat Invite Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link className="h-5 w-5" />
+              {inviteType === "direct" ? "Share Chat Invite" : "Share Group Invite"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              {inviteType === "direct" 
+                ? "Share this link with someone to let them start a chat with you."
+                : "Share this link to invite someone to join this group chat."}
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                value={inviteLink}
+                readOnly
+                className="flex-1"
+                data-testid="input-invite-link"
+              />
+              <Button
+                onClick={handleCopyInvite}
+                variant="outline"
+                size="icon"
+                data-testid="button-copy-invite"
+              >
+                {copiedInvite ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-muted-foreground">
+                This invite link expires in 24 hours.
+              </p>
+              <Button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: inviteType === "direct" ? "Chat with me on Myzymo" : "Join my group on Myzymo",
+                      text: inviteType === "direct" 
+                        ? "Click this link to start chatting with me!" 
+                        : "Click this link to join our group chat!",
+                      url: inviteLink,
+                    });
+                  } else {
+                    handleCopyInvite();
+                  }
+                }}
+                className="w-full gap-2"
+                data-testid="button-share-invite"
+              >
+                <Share2 className="h-4 w-4" />
+                Share Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
