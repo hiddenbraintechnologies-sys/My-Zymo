@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar, Share2, Copy, Check, Link, ExternalLink } from "lucide-react";
+import { Send, Loader2, Sparkles, Phone, Video, Mail, Users, Plus, UserPlus, LogOut, Settings, Paperclip, File, Image, Download, Calendar, Share2, Copy, Check, Link, ExternalLink, Pencil, Trash2, X } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoute, useLocation } from "wouter";
@@ -120,6 +120,11 @@ export default function Messages() {
   const [inviteLink, setInviteLink] = useState("");
   const [inviteType, setInviteType] = useState<"direct" | "group">("direct");
   const [copiedInvite, setCopiedInvite] = useState(false);
+
+  // Message editing state
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingMessageContent, setEditingMessageContent] = useState("");
+  const [editingMessageType, setEditingMessageType] = useState<"direct" | "group" | "event" | null>(null);
 
   // WebRTC for video/audio calls
   const {
@@ -511,6 +516,142 @@ export default function Messages() {
     },
   });
 
+  // Edit message mutations
+  const editDirectMessageMutation = useMutation({
+    mutationFn: async ({ messageId, content }: { messageId: string; content: string }) => {
+      const res = await apiRequest(`/api/direct-messages/${messageId}`, "PATCH", { content });
+      return await res.json();
+    },
+    onSuccess: (updatedMessage) => {
+      setMessages(prev => prev.map(msg => 
+        msg.id === updatedMessage.id ? { ...msg, content: updatedMessage.content, isEdited: true, editedAt: updatedMessage.editedAt } : msg
+      ));
+      setEditingMessageId(null);
+      setEditingMessageContent("");
+      setEditingMessageType(null);
+      toast({ title: "Message edited", description: "Your message has been updated" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to edit message", variant: "destructive" });
+    },
+  });
+
+  const editGroupMessageMutation = useMutation({
+    mutationFn: async ({ groupId, messageId, content }: { groupId: string; messageId: string; content: string }) => {
+      const res = await apiRequest(`/api/group-chats/${groupId}/messages/${messageId}`, "PATCH", { content });
+      return await res.json();
+    },
+    onSuccess: (updatedMessage) => {
+      setGroupMessages(prev => prev.map(msg => 
+        msg.id === updatedMessage.id ? { ...msg, content: updatedMessage.content, isEdited: true, editedAt: updatedMessage.editedAt } : msg
+      ));
+      setEditingMessageId(null);
+      setEditingMessageContent("");
+      setEditingMessageType(null);
+      toast({ title: "Message edited", description: "Your message has been updated" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to edit message", variant: "destructive" });
+    },
+  });
+
+  const editEventGroupMessageMutation = useMutation({
+    mutationFn: async ({ groupId, messageId, content }: { groupId: string; messageId: string; content: string }) => {
+      const res = await apiRequest(`/api/groups/${groupId}/messages/${messageId}`, "PATCH", { content });
+      return await res.json();
+    },
+    onSuccess: (updatedMessage) => {
+      setEventGroupMessages(prev => prev.map(msg => 
+        msg.id === updatedMessage.id ? { ...msg, content: updatedMessage.content, isEdited: true, editedAt: updatedMessage.editedAt } : msg
+      ));
+      setEditingMessageId(null);
+      setEditingMessageContent("");
+      setEditingMessageType(null);
+      toast({ title: "Message edited", description: "Your message has been updated" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to edit message", variant: "destructive" });
+    },
+  });
+
+  // Delete message mutations
+  const deleteDirectMessageMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      await apiRequest(`/api/direct-messages/${messageId}`, "DELETE");
+      return messageId;
+    },
+    onSuccess: (deletedId) => {
+      setMessages(prev => prev.filter(msg => msg.id !== deletedId));
+      toast({ title: "Message deleted", description: "Your message has been removed" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete message", variant: "destructive" });
+    },
+  });
+
+  const deleteGroupMessageMutation = useMutation({
+    mutationFn: async ({ groupId, messageId }: { groupId: string; messageId: string }) => {
+      await apiRequest(`/api/group-chats/${groupId}/messages/${messageId}`, "DELETE");
+      return messageId;
+    },
+    onSuccess: (deletedId) => {
+      setGroupMessages(prev => prev.filter(msg => msg.id !== deletedId));
+      toast({ title: "Message deleted", description: "Your message has been removed" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete message", variant: "destructive" });
+    },
+  });
+
+  const deleteEventGroupMessageMutation = useMutation({
+    mutationFn: async ({ groupId, messageId }: { groupId: string; messageId: string }) => {
+      await apiRequest(`/api/groups/${groupId}/messages/${messageId}`, "DELETE");
+      return messageId;
+    },
+    onSuccess: (deletedId) => {
+      setEventGroupMessages(prev => prev.filter(msg => msg.id !== deletedId));
+      toast({ title: "Message deleted", description: "Your message has been removed" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete message", variant: "destructive" });
+    },
+  });
+
+  // Handle edit and delete actions
+  const handleStartEdit = (messageId: string, content: string, type: "direct" | "group" | "event") => {
+    setEditingMessageId(messageId);
+    setEditingMessageContent(content);
+    setEditingMessageType(type);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingMessageContent("");
+    setEditingMessageType(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingMessageId || !editingMessageContent.trim()) return;
+    
+    if (editingMessageType === "direct") {
+      editDirectMessageMutation.mutate({ messageId: editingMessageId, content: editingMessageContent.trim() });
+    } else if (editingMessageType === "group" && selectedGroupId) {
+      editGroupMessageMutation.mutate({ groupId: selectedGroupId, messageId: editingMessageId, content: editingMessageContent.trim() });
+    } else if (editingMessageType === "event" && selectedEventGroupId) {
+      editEventGroupMessageMutation.mutate({ groupId: selectedEventGroupId, messageId: editingMessageId, content: editingMessageContent.trim() });
+    }
+  };
+
+  const handleDeleteMessage = (messageId: string, type: "direct" | "group" | "event") => {
+    if (type === "direct") {
+      deleteDirectMessageMutation.mutate(messageId);
+    } else if (type === "group" && selectedGroupId) {
+      deleteGroupMessageMutation.mutate({ groupId: selectedGroupId, messageId });
+    } else if (type === "event" && selectedEventGroupId) {
+      deleteEventGroupMessageMutation.mutate({ groupId: selectedEventGroupId, messageId });
+    }
+  };
+
   const handleGetSuggestions = () => {
     if (!selectedUserId) return;
     getSuggestionsMutation.mutate(selectedUserId);
@@ -693,6 +834,7 @@ export default function Messages() {
           <Card className="md:col-span-1 p-4">
             <Tabs value={activeTab} onValueChange={(v) => {
               setActiveTab(v as "direct" | "groups" | "events");
+              handleCancelEdit();
               if (v === "direct") {
                 setSelectedGroupId(null);
                 setSelectedEventGroupId(null);
@@ -762,6 +904,7 @@ export default function Messages() {
                       <button
                         key={conv.userId}
                         onClick={() => {
+                          handleCancelEdit();
                           setSelectedUserId(conv.userId);
                           setSelectedGroupId(null);
                           setLocation(`/messages/${conv.userId}`);
@@ -902,6 +1045,7 @@ export default function Messages() {
                       <button
                         key={group.id}
                         onClick={() => {
+                          handleCancelEdit();
                           setSelectedGroupId(group.id);
                           setSelectedUserId(null);
                         }}
@@ -959,6 +1103,7 @@ export default function Messages() {
                       <button
                         key={group.id}
                         onClick={() => {
+                          handleCancelEdit();
                           setSelectedEventGroupId(group.id);
                           setSelectedGroupId(null);
                           setSelectedUserId(null);
@@ -1071,27 +1216,84 @@ export default function Messages() {
                   ) : (
                     messages.map((msg) => {
                       const isCurrentUser = msg.senderId === currentUser.id;
+                      const isEditing = editingMessageId === msg.id;
                       return (
                         <div
                           key={msg.id}
-                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
                           data-testid={`message-${msg.id}`}
                         >
-                          <div
-                            className={`max-w-[70%] rounded-lg p-3 ${
-                              isCurrentUser
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
-                            }`}
-                          >
-                            {msg.content && <p className="text-sm break-words">{msg.content}</p>}
-                            {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
-                            <p className="text-xs opacity-70 mt-1">
-                              {new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
+                          <div className={`flex items-end gap-1 ${isCurrentUser ? "flex-row-reverse" : ""}`}>
+                            <div
+                              className={`max-w-[70%] rounded-lg p-3 ${
+                                isCurrentUser
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              {isEditing ? (
+                                <div className="space-y-2">
+                                  <Input
+                                    value={editingMessageContent}
+                                    onChange={(e) => setEditingMessageContent(e.target.value)}
+                                    className="bg-background text-foreground"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleSaveEdit();
+                                      if (e.key === "Escape") handleCancelEdit();
+                                    }}
+                                    data-testid="input-edit-message"
+                                  />
+                                  <div className="flex gap-1 justify-end">
+                                    <Button size="sm" variant="ghost" onClick={handleCancelEdit} data-testid="button-cancel-edit">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                    <Button size="sm" onClick={handleSaveEdit} disabled={editDirectMessageMutation.isPending} data-testid="button-save-edit">
+                                      {editDirectMessageMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  {msg.content && <p className="text-sm break-words">{msg.content}</p>}
+                                  {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <p className="text-xs opacity-70">
+                                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </p>
+                                    {msg.isEdited && <span className="text-xs opacity-50">(edited)</span>}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            {isCurrentUser && !isEditing && (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6"
+                                  onClick={() => handleStartEdit(msg.id, msg.content, "direct")}
+                                  title="Edit message"
+                                  data-testid={`button-edit-message-${msg.id}`}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteMessage(msg.id, "direct")}
+                                  disabled={deleteDirectMessageMutation.isPending}
+                                  title="Delete message"
+                                  data-testid={`button-delete-message-${msg.id}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1344,10 +1546,11 @@ export default function Messages() {
                   ) : (
                     groupMessages.map((msg) => {
                       const isCurrentUser = msg.senderId === currentUser.id;
+                      const isEditing = editingMessageId === msg.id;
                       return (
                         <div
                           key={msg.id}
-                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
                           data-testid={`group-message-${msg.id}`}
                         >
                           <div className={`flex items-end gap-2 max-w-[70%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
@@ -1371,15 +1574,69 @@ export default function Messages() {
                                   {msg.sender?.firstName} {msg.sender?.lastName}
                                 </p>
                               )}
-                              {msg.content && <p className="text-sm break-words">{msg.content}</p>}
-                              {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
-                              <p className="text-xs opacity-70 mt-1">
-                                {new Date(msg.createdAt).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
+                              {isEditing ? (
+                                <div className="space-y-2">
+                                  <Input
+                                    value={editingMessageContent}
+                                    onChange={(e) => setEditingMessageContent(e.target.value)}
+                                    className="bg-background text-foreground"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleSaveEdit();
+                                      if (e.key === "Escape") handleCancelEdit();
+                                    }}
+                                    data-testid="input-edit-group-message"
+                                  />
+                                  <div className="flex gap-1 justify-end">
+                                    <Button size="sm" variant="ghost" onClick={handleCancelEdit} data-testid="button-cancel-edit-group">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                    <Button size="sm" onClick={handleSaveEdit} disabled={editGroupMessageMutation.isPending} data-testid="button-save-edit-group">
+                                      {editGroupMessageMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  {msg.content && <p className="text-sm break-words">{msg.content}</p>}
+                                  {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <p className="text-xs opacity-70">
+                                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </p>
+                                    {msg.isEdited && <span className="text-xs opacity-50">(edited)</span>}
+                                  </div>
+                                </>
+                              )}
                             </div>
+                            {isCurrentUser && !isEditing && (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6"
+                                  onClick={() => handleStartEdit(msg.id, msg.content, "group")}
+                                  title="Edit message"
+                                  data-testid={`button-edit-group-message-${msg.id}`}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteMessage(msg.id, "group")}
+                                  disabled={deleteGroupMessageMutation.isPending}
+                                  title="Delete message"
+                                  data-testid={`button-delete-group-message-${msg.id}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1490,10 +1747,11 @@ export default function Messages() {
                   ) : (
                     eventGroupMessages.map((msg) => {
                       const isCurrentUser = msg.senderId === currentUser.id;
+                      const isEditing = editingMessageId === msg.id;
                       return (
                         <div
                           key={msg.id}
-                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} group`}
                           data-testid={`event-group-message-${msg.id}`}
                         >
                           <div className={`flex items-end gap-2 max-w-[70%] ${isCurrentUser ? "flex-row-reverse" : ""}`}>
@@ -1517,15 +1775,69 @@ export default function Messages() {
                                   {msg.sender?.firstName} {msg.sender?.lastName}
                                 </p>
                               )}
-                              {msg.content && <p className="text-sm break-words">{msg.content}</p>}
-                              {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
-                              <p className="text-xs opacity-70 mt-1">
-                                {new Date(msg.createdAt).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
+                              {isEditing ? (
+                                <div className="space-y-2">
+                                  <Input
+                                    value={editingMessageContent}
+                                    onChange={(e) => setEditingMessageContent(e.target.value)}
+                                    className="bg-background text-foreground"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleSaveEdit();
+                                      if (e.key === "Escape") handleCancelEdit();
+                                    }}
+                                    data-testid="input-edit-event-message"
+                                  />
+                                  <div className="flex gap-1 justify-end">
+                                    <Button size="sm" variant="ghost" onClick={handleCancelEdit} data-testid="button-cancel-edit-event">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                    <Button size="sm" onClick={handleSaveEdit} disabled={editEventGroupMessageMutation.isPending} data-testid="button-save-edit-event">
+                                      {editEventGroupMessageMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  {msg.content && <p className="text-sm break-words">{msg.content}</p>}
+                                  {renderFileAttachment(msg.fileUrl, msg.fileName, msg.fileSize, msg.fileType, isCurrentUser)}
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <p className="text-xs opacity-70">
+                                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </p>
+                                    {msg.isEdited && <span className="text-xs opacity-50">(edited)</span>}
+                                  </div>
+                                </>
+                              )}
                             </div>
+                            {isCurrentUser && !isEditing && (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6"
+                                  onClick={() => handleStartEdit(msg.id, msg.content, "event")}
+                                  title="Edit message"
+                                  data-testid={`button-edit-event-message-${msg.id}`}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteMessage(msg.id, "event")}
+                                  disabled={deleteEventGroupMessageMutation.isPending}
+                                  title="Delete message"
+                                  data-testid={`button-delete-event-message-${msg.id}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

@@ -773,6 +773,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Edit a direct message (only the sender can edit)
+  app.patch('/api/direct-messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const messageId = req.params.id;
+      const { content } = req.body;
+      
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+      
+      // Get the message and verify ownership
+      const message = await storage.getDirectMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      if (message.senderId !== userId) {
+        return res.status(403).json({ message: "You can only edit your own messages" });
+      }
+      
+      const updatedMessage = await storage.updateDirectMessage(messageId, content.trim());
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Error editing direct message:", error);
+      res.status(500).json({ message: "Failed to edit message" });
+    }
+  });
+
+  // Delete a direct message (only the sender can delete)
+  app.delete('/api/direct-messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const messageId = req.params.id;
+      
+      // Get the message and verify ownership
+      const message = await storage.getDirectMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      if (message.senderId !== userId) {
+        return res.status(403).json({ message: "You can only delete your own messages" });
+      }
+      
+      await storage.deleteDirectMessage(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting direct message:", error);
+      res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
   // Get AI-suggested replies for a conversation
   app.post('/api/direct-messages/:otherUserId/suggestions', isAuthenticated, async (req: any, res) => {
     try {
@@ -1141,6 +1194,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error sending group message:", error);
       res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // Edit a group message (only the sender can edit)
+  app.patch('/api/group-chats/:groupId/messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { groupId, id: messageId } = req.params;
+      const { content } = req.body;
+      
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+      
+      // Verify user is a group member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the message and verify ownership
+      const message = await storage.getGroupMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      if (message.senderId !== userId) {
+        return res.status(403).json({ message: "You can only edit your own messages" });
+      }
+      
+      const updatedMessage = await storage.updateGroupMessage(messageId, content.trim());
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Error editing group message:", error);
+      res.status(500).json({ message: "Failed to edit message" });
+    }
+  });
+
+  // Delete a group message (only the sender can delete)
+  app.delete('/api/group-chats/:groupId/messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { groupId, id: messageId } = req.params;
+      
+      // Verify user is a group member
+      const isMember = await storage.isUserGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the message and verify ownership
+      const message = await storage.getGroupMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      if (message.senderId !== userId) {
+        return res.status(403).json({ message: "You can only delete your own messages" });
+      }
+      
+      await storage.deleteGroupMessage(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting group message:", error);
+      res.status(500).json({ message: "Failed to delete message" });
     }
   });
 
@@ -2594,6 +2712,71 @@ Return your response as a JSON object with this exact structure:
     } catch (error: any) {
       console.error('Error sending group message:', error);
       res.status(500).json({ message: error.message || 'Failed to send message' });
+    }
+  });
+
+  // Edit an event group message (only the sender can edit)
+  app.patch('/api/groups/:groupId/messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { groupId, id: messageId } = req.params;
+      const { content } = req.body;
+      
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+      
+      // Verify user is a group member
+      const isMember = await storage.isUserEventGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the message and verify ownership
+      const message = await storage.getEventGroupMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      if (message.senderId !== userId) {
+        return res.status(403).json({ message: "You can only edit your own messages" });
+      }
+      
+      const updatedMessage = await storage.updateEventGroupMessage(messageId, content.trim());
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Error editing event group message:", error);
+      res.status(500).json({ message: "Failed to edit message" });
+    }
+  });
+
+  // Delete an event group message (only the sender can delete)
+  app.delete('/api/groups/:groupId/messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { groupId, id: messageId } = req.params;
+      
+      // Verify user is a group member
+      const isMember = await storage.isUserEventGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the message and verify ownership
+      const message = await storage.getEventGroupMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      if (message.senderId !== userId) {
+        return res.status(403).json({ message: "You can only delete your own messages" });
+      }
+      
+      await storage.deleteEventGroupMessage(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting event group message:", error);
+      res.status(500).json({ message: "Failed to delete message" });
     }
   });
 

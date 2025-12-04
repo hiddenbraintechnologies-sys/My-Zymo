@@ -62,6 +62,14 @@ Myzymo includes a comprehensive set of features:
 *   **Event Management:** Event creators can edit and delete their events, with backend authorization ensuring security.
 *   **Event Member Export:** Creators can download complete member details as JSON files for their events.
 *   **Chat System:** Real-time WebSocket-based chat with emoji support and message persistence, always visible on the dashboard with warm celebration-themed styling.
+*   **Message Editing and Deletion:** Users can edit or delete their own messages in all chat types:
+    *   Edit/delete buttons appear on hover for user's own messages
+    *   Inline edit mode with input field, save (Enter key), and cancel (Escape key) options
+    *   "(edited)" indicator displayed for edited messages with timestamp
+    *   Consistent UI across direct, group, and event chats
+    *   API endpoints for PATCH (edit) and DELETE operations on messages
+    *   Database columns (isEdited, editedAt) track edit history
+    *   Editing state is cleared when switching tabs or conversations
 *   **Online/Offline Presence Tracking:** Real-time user status indicators showing who's online:
     *   Database fields (is_online, last_seen) track user presence state
     *   WebSocket broadcasts presence updates to all connected users when status changes

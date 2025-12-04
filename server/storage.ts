@@ -93,6 +93,9 @@ export interface IStorage {
   getUserConversationsList(userId: string): Promise<{userId: string, user: User, lastMessage: DirectMessage | null, unreadCount: number}[]>;
   createDirectMessage(message: InsertDirectMessage): Promise<DirectMessage>;
   markDirectMessagesAsRead(userId: string, senderId: string): Promise<void>;
+  updateDirectMessage(id: string, content: string): Promise<DirectMessage | undefined>;
+  deleteDirectMessage(id: string): Promise<void>;
+  getDirectMessage(id: string): Promise<DirectMessage | undefined>;
   
   // Group Chat methods
   createGroupChat(groupChat: InsertGroupChat): Promise<GroupChat>;
@@ -111,6 +114,9 @@ export interface IStorage {
   // Group Message methods
   getGroupMessages(groupId: string): Promise<(GroupMessage & { sender: User })[]>;
   createGroupMessage(message: InsertGroupMessage): Promise<GroupMessage>;
+  updateGroupMessage(id: string, content: string): Promise<GroupMessage | undefined>;
+  deleteGroupMessage(id: string): Promise<void>;
+  getGroupMessage(id: string): Promise<GroupMessage | undefined>;
   
   // Chat Invite methods
   createChatInvite(invite: InsertChatInvite): Promise<ChatInvite>;
@@ -209,6 +215,9 @@ export interface IStorage {
   // Event Group Message methods
   getEventGroupMessages(groupId: string): Promise<(EventGroupMessage & { sender: User })[]>;
   createEventGroupMessage(message: InsertEventGroupMessage): Promise<EventGroupMessage>;
+  updateEventGroupMessage(id: string, content: string): Promise<EventGroupMessage | undefined>;
+  deleteEventGroupMessage(id: string): Promise<void>;
+  getEventGroupMessage(id: string): Promise<EventGroupMessage | undefined>;
   
   // Group Expense methods
   createGroupExpense(expense: InsertGroupExpense, splits: { userId: string; amount: string; percentage?: string }[]): Promise<GroupExpense>;
@@ -858,6 +867,24 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
+  async getDirectMessage(id: string): Promise<DirectMessage | undefined> {
+    const [message] = await db.select().from(directMessages).where(eq(directMessages.id, id));
+    return message || undefined;
+  }
+
+  async updateDirectMessage(id: string, content: string): Promise<DirectMessage | undefined> {
+    const [result] = await db
+      .update(directMessages)
+      .set({ content, isEdited: true, editedAt: new Date() })
+      .where(eq(directMessages.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteDirectMessage(id: string): Promise<void> {
+    await db.delete(directMessages).where(eq(directMessages.id, id));
+  }
+
   // Group Chat methods
   async createGroupChat(groupChatData: InsertGroupChat): Promise<GroupChat> {
     const [result] = await db.insert(groupChats).values(groupChatData).returning();
@@ -1003,6 +1030,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(groupChats.id, message.groupId));
     
     return result;
+  }
+
+  async getGroupMessage(id: string): Promise<GroupMessage | undefined> {
+    const [message] = await db.select().from(groupMessages).where(eq(groupMessages.id, id));
+    return message || undefined;
+  }
+
+  async updateGroupMessage(id: string, content: string): Promise<GroupMessage | undefined> {
+    const [result] = await db
+      .update(groupMessages)
+      .set({ content, isEdited: true, editedAt: new Date() })
+      .where(eq(groupMessages.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteGroupMessage(id: string): Promise<void> {
+    await db.delete(groupMessages).where(eq(groupMessages.id, id));
   }
 
   // Chat Invite methods
@@ -1634,6 +1679,24 @@ export class DatabaseStorage implements IStorage {
   async createEventGroupMessage(message: InsertEventGroupMessage): Promise<EventGroupMessage> {
     const [result] = await db.insert(eventGroupMessages).values(message).returning();
     return result;
+  }
+
+  async getEventGroupMessage(id: string): Promise<EventGroupMessage | undefined> {
+    const [message] = await db.select().from(eventGroupMessages).where(eq(eventGroupMessages.id, id));
+    return message || undefined;
+  }
+
+  async updateEventGroupMessage(id: string, content: string): Promise<EventGroupMessage | undefined> {
+    const [result] = await db
+      .update(eventGroupMessages)
+      .set({ content, isEdited: true, editedAt: new Date() })
+      .where(eq(eventGroupMessages.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteEventGroupMessage(id: string): Promise<void> {
+    await db.delete(eventGroupMessages).where(eq(eventGroupMessages.id, id));
   }
   
   // Group Expense methods
