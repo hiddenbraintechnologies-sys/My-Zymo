@@ -704,30 +704,30 @@ export default function Messages() {
                 setSelectedGroupId(null);
               }
             }}>
-              <TabsList className="grid w-full grid-cols-3 mb-4 p-1 h-auto">
+              <TabsList className="w-full mb-4">
                 <TabsTrigger 
                   value="direct" 
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium" 
+                  className="flex-1 gap-1" 
                   data-testid="tab-direct-messages"
                 >
-                  <Mail className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Direct</span>
+                  <Mail className="h-4 w-4" />
+                  Direct
                 </TabsTrigger>
                 <TabsTrigger 
                   value="groups" 
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium" 
+                  className="flex-1 gap-1" 
                   data-testid="tab-group-chats"
                 >
-                  <Users className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Groups</span>
+                  <Users className="h-4 w-4" />
+                  Groups
                 </TabsTrigger>
                 <TabsTrigger 
                   value="events" 
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium" 
+                  className="flex-1 gap-1" 
                   data-testid="tab-event-groups"
                 >
-                  <Calendar className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Events</span>
+                  <Calendar className="h-4 w-4" />
+                  Events
                 </TabsTrigger>
               </TabsList>
 
