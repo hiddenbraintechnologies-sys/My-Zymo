@@ -1270,7 +1270,7 @@ export default function Messages() {
                               )}
                             </div>
                             {isCurrentUser && !isEditing && (
-                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex gap-0.5 opacity-40 md:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                 <Button
                                   size="icon"
                                   variant="ghost"
@@ -1613,7 +1613,7 @@ export default function Messages() {
                               )}
                             </div>
                             {isCurrentUser && !isEditing && (
-                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex gap-0.5 opacity-40 md:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                 <Button
                                   size="icon"
                                   variant="ghost"
@@ -1814,12 +1814,12 @@ export default function Messages() {
                               )}
                             </div>
                             {isCurrentUser && !isEditing && (
-                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex gap-0.5 opacity-40 md:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                 <Button
                                   size="icon"
                                   variant="ghost"
                                   className="h-6 w-6"
-                                  onClick={() => handleStartEdit(msg.id, msg.content, "event")}
+                                  onClick={() => handleStartEdit(msg.id, msg.content || "", "event")}
                                   title="Edit message"
                                   data-testid={`button-edit-event-message-${msg.id}`}
                                 >

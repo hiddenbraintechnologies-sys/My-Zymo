@@ -29,12 +29,32 @@ export function useWebRTC({ ws, currentUserId, recipientId }: UseWebRTCProps) {
   const remoteUserIdRef = useRef<string | null>(null);
   const incomingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
 
-  // ICE servers configuration (using public STUN servers)
+  // ICE servers configuration (using public STUN and TURN servers)
   const iceServers: RTCConfiguration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
+      // Open Relay Project free TURN servers for NAT traversal
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
     ],
+    iceCandidatePoolSize: 10,
   };
 
   // Internal cleanup without sending WebSocket message
@@ -90,6 +110,7 @@ export function useWebRTC({ ws, currentUserId, recipientId }: UseWebRTCProps) {
 
     pc.onicecandidate = (event) => {
       if (event.candidate && ws && remoteUserIdRef.current) {
+        console.log("Sending ICE candidate:", event.candidate.type);
         ws.send(
           JSON.stringify({
             type: "call-ice-candidate",
@@ -100,12 +121,28 @@ export function useWebRTC({ ws, currentUserId, recipientId }: UseWebRTCProps) {
       }
     };
 
+    pc.onicegatheringstatechange = () => {
+      console.log("ICE gathering state:", pc.iceGatheringState);
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log("ICE connection state:", pc.iceConnectionState);
+      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+        setCallState("active");
+      } else if (pc.iceConnectionState === "failed") {
+        console.error("ICE connection failed");
+        endCall();
+      }
+    };
+
     pc.ontrack = (event) => {
+      console.log("Received remote track");
       remoteStreamRef.current = event.streams[0];
       setRemoteStream(event.streams[0]);
     };
 
     pc.onconnectionstatechange = () => {
+      console.log("Connection state:", pc.connectionState);
       if (pc.connectionState === "disconnected" || pc.connectionState === "failed") {
         endCall();
       }
