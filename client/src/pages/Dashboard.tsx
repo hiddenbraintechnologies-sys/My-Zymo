@@ -112,10 +112,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Action Cards - Vibrant and Colorful */}
+        {/* Quick Action Cards - Clean White Design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setCreateEventDialogOpen(true)} 
             data-testid="card-quick-action-create"
           >
@@ -126,17 +126,17 @@ export default function Dashboard() {
                 </div>
                 <Badge className="bg-orange-400 text-white">New</Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-orange-700 dark:text-orange-100">
+              <CardTitle className="text-xl font-bold">
                 Create Event
               </CardTitle>
-              <CardDescription className="text-orange-700 dark:text-orange-300">
+              <CardDescription>
                 Plan a new celebration or gathering
               </CardDescription>
             </CardHeader>
           </Card>
 
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-100 via-orange-50 to-amber-200 dark:from-amber-950/20 dark:to-orange-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/events")} 
             data-testid="card-quick-action-events"
           >
@@ -147,17 +147,17 @@ export default function Dashboard() {
                 </div>
                 <Badge className="bg-amber-400 text-amber-800">{privateEvents?.length || 0}</Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-amber-700 dark:text-amber-100">
+              <CardTitle className="text-xl font-bold">
                 My Events
               </CardTitle>
-              <CardDescription className="text-amber-600 dark:text-amber-300">
+              <CardDescription>
                 View and manage all your events
               </CardDescription>
             </CardHeader>
           </Card>
 
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-100 via-violet-50 to-purple-200 dark:from-purple-950/20 dark:to-violet-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/groups")} 
             data-testid="card-quick-action-groups"
           >
@@ -168,17 +168,17 @@ export default function Dashboard() {
                 </div>
                 <Badge className="bg-purple-400 text-white">{groups?.length || 0}</Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-purple-700 dark:text-purple-100">
+              <CardTitle className="text-xl font-bold">
                 Group Events
               </CardTitle>
-              <CardDescription className="text-purple-600 dark:text-purple-300">
+              <CardDescription>
                 Plan together with polls & expense tracking
               </CardDescription>
             </CardHeader>
           </Card>
 
           <Card 
-            className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-100 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
+            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/vendors")} 
             data-testid="card-quick-action-vendors"
           >
@@ -192,10 +192,10 @@ export default function Dashboard() {
                   Explore
                 </Badge>
               </div>
-              <CardTitle className="text-xl font-bold text-orange-700 dark:text-orange-100">
+              <CardTitle className="text-xl font-bold">
                 Find Vendors
               </CardTitle>
-              <CardDescription className="text-orange-600 dark:text-orange-300">
+              <CardDescription>
                 Discover venues, caterers, and more
               </CardDescription>
             </CardHeader>
