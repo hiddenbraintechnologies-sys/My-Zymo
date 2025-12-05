@@ -146,21 +146,25 @@ export default function Events() {
           )}
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Sort by:</span>
-            </div>
-            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-              <SelectTrigger className="w-[200px]" data-testid="select-sort">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-asc">Date (Earliest First)</SelectItem>
-                <SelectItem value="date-desc">Date (Latest First)</SelectItem>
-                <SelectItem value="title-asc">Title (A-Z)</SelectItem>
-                <SelectItem value="title-desc">Title (Z-A)</SelectItem>
-              </SelectContent>
-            </Select>
+            {eventFilter !== "group-events" && (
+              <>
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Sort by:</span>
+                </div>
+                <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+                  <SelectTrigger className="w-[200px]" data-testid="select-sort">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date-asc">Date (Earliest First)</SelectItem>
+                    <SelectItem value="date-desc">Date (Latest First)</SelectItem>
+                    <SelectItem value="title-asc">Title (A-Z)</SelectItem>
+                    <SelectItem value="title-desc">Title (Z-A)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
+            )}
             {eventFilter !== "group-events" && sortedEvents && sortedEvents.length > 0 && (
               <Badge variant="secondary" className="ml-auto">
                 <Users className="w-3 h-3 mr-1" />
