@@ -39,6 +39,16 @@ const EVENT_TYPES = [
   { value: "anniversary", label: "Anniversary" },
   { value: "family_gathering", label: "Family Gathering" },
   { value: "corporate_event", label: "Corporate Event" },
+  { value: "group_ride", label: "Group Ride" },
+  { value: "bike_rally", label: "Bike Rally" },
+  { value: "cycling_trip", label: "Cycling Trip" },
+  { value: "trekking", label: "Trekking" },
+  { value: "fitness_bootcamp", label: "Fitness Bootcamp" },
+  { value: "yoga_session", label: "Yoga Session" },
+  { value: "marathon_run", label: "Marathon / Run" },
+  { value: "sports_event", label: "Sports Event" },
+  { value: "gym_meetup", label: "Gym Meetup" },
+  { value: "adventure_trip", label: "Adventure Trip" },
   { value: "other", label: "Other" },
 ];
 

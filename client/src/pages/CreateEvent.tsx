@@ -44,6 +44,16 @@ const EVENT_TYPES = [
   "Eid Celebration",
   "Christmas Party",
   "New Year Party",
+  "Group Ride",
+  "Bike Rally",
+  "Cycling Trip",
+  "Trekking",
+  "Fitness Bootcamp",
+  "Yoga Session",
+  "Marathon/Run",
+  "Sports Event",
+  "Gym Meetup",
+  "Adventure Trip",
   "Other",
 ];
 

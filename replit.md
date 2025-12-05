@@ -2,7 +2,11 @@
 
 ## Overview
 
-Myzymo is a mobile-first web application for the Indian market, designed to streamline the planning and management of social gatherings like college reunions, birthday parties, and family events. It integrates event management, group communication, expense tracking, and a vendor marketplace into a single platform. Inspired by Instagram for visual engagement, WhatsApp for user experience, and Airbnb for event discovery, Myzymo aims to be the leading platform for social event planning in India, offering a comprehensive and celebration-focused experience.
+Myzymo is a mobile-first web application for the Indian market, designed to streamline the planning and management of social gatherings like college reunions, birthday parties, group rides, fitness activities, and family events. It integrates event management, group communication, expense tracking, and a vendor marketplace into a single platform. Inspired by Instagram for visual engagement, WhatsApp for user experience, and Airbnb for event discovery, Myzymo aims to be the leading platform for social event planning in India, offering a comprehensive and celebration-focused experience.
+
+**Key Highlighted Features:**
+- **Manage Events** (Most Popular): Create and manage all types of events including reunions, parties, group rides, fitness activities with dates, locations, and instant invitations
+- **Split Expenses** (Essential): Track expenses and split bills fairly among group members with settlement tracking and payment guidance
 
 ## User Preferences
 

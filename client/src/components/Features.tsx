@@ -1,36 +1,45 @@
-import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users } from "lucide-react";
+import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users, Star, Bike, Dumbbell } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const features = [
   {
     icon: Calendar,
-    title: "Event Planning",
-    description: "Create and manage events with ease. Set dates, locations, and invite your friends instantly.",
+    title: "Manage Events",
+    description: "Create and manage all types of events - reunions, parties, group rides, fitness activities, and more. Set dates, locations, and invite your group instantly.",
+    highlighted: true,
+    badge: "Most Popular",
+  },
+  {
+    icon: IndianRupee,
+    title: "Split Expenses",
+    description: "Track expenses and split bills fairly among group members. See who paid, who owes, and settle balances easily. No more awkward money conversations!",
+    highlighted: true,
+    badge: "Essential",
   },
   {
     icon: MessageCircle,
     title: "Group Chat",
     description: "Real-time messaging within your event group. Share updates, photos, and coordinate seamlessly.",
-  },
-  {
-    icon: IndianRupee,
-    title: "Expense Splitting",
-    description: "Track expenses and split bills fairly. Know exactly who owes what, no awkward conversations.",
-  },
-  {
-    icon: Store,
-    title: "Vendor Marketplace",
-    description: "Browse and book trusted vendors for venues, catering, photography, and decorations.",
-  },
-  {
-    icon: Bell,
-    title: "Smart Reminders",
-    description: "Never miss important updates. Get notifications for messages, payments, and event changes.",
+    highlighted: false,
   },
   {
     icon: Users,
     title: "Attendee Management",
     description: "See who's coming, track RSVPs, and manage your guest list all in one place.",
+    highlighted: false,
+  },
+  {
+    icon: Store,
+    title: "Vendor Marketplace",
+    description: "Browse and book trusted vendors for venues, catering, photography, and decorations.",
+    highlighted: false,
+  },
+  {
+    icon: Bell,
+    title: "Smart Reminders",
+    description: "Never miss important updates. Get notifications for messages, payments, and event changes.",
+    highlighted: false,
   },
 ];
 
@@ -47,13 +56,44 @@ export default function Features() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
+        {/* Highlighted Features - Top Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {features.filter(f => f.highlighted).map((feature, index) => (
+            <Card 
+              key={index} 
+              className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 shadow-lg"
+              data-testid={`card-feature-highlighted-${index}`}
+            >
+              {feature.badge && (
+                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  {feature.badge}
+                </Badge>
+              )}
+              <div className="flex flex-col gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center shadow-md">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-2xl mb-3 text-orange-700 dark:text-orange-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-orange-600/80 dark:text-orange-200/80 text-base leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Other Features */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.filter(f => !f.highlighted).map((feature, index) => (
             <Card 
               key={index} 
               className="p-6 hover-elevate cursor-pointer"
               data-testid={`card-feature-${index}`}
-              onClick={() => console.log(`Feature ${feature.title} clicked`)}
             >
               <div className="flex flex-col gap-4">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
