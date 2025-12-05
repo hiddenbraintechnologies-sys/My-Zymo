@@ -46,6 +46,10 @@ export const users = pgTable("users", {
   isOnline: boolean("is_online").notNull().default(false),
   lastSeen: timestamp("last_seen"),
   
+  // Event preferences for personalized experience
+  eventPreferences: text("event_preferences").array(), // ['group_planning', 'private_events', 'public_events']
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
