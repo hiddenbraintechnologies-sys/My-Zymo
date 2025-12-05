@@ -26,7 +26,7 @@ import {
   Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail, Link2,
   ChevronRight, Share2, QrCode, Copy, LogOut, Sparkles, Clock, Target,
   Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle, ImagePlus, Split,
-  Download, FileSpreadsheet, Send
+  Download, FileSpreadsheet, Send, Store, Utensils, Car, Camera, Music, PartyPopper
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -39,7 +39,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SiWhatsapp } from "react-icons/si";
-import type { EventGroup, EventGroupMember, User, GroupPoll, GroupPollOption, GroupPollVote, GroupItineraryItem, GroupExpense, GroupExpenseSplit } from "@shared/schema";
+import type { EventGroup, EventGroupMember, User, GroupPoll, GroupPollOption, GroupPollVote, GroupItineraryItem, GroupExpense, GroupExpenseSplit, Vendor } from "@shared/schema";
+import { ITINERARY_VENDOR_MAPPING } from "@shared/schema";
 
 type ExpenseWithSplits = GroupExpense & { 
   paidBy: User; 
@@ -1236,24 +1237,90 @@ function PollsTab({
   );
 }
 
+// Activity category options for itinerary
+const ACTIVITY_CATEGORIES = [
+  { value: "breakfast", label: "Breakfast", icon: Utensils, vendorCategory: "catering" },
+  { value: "lunch", label: "Lunch", icon: Utensils, vendorCategory: "catering" },
+  { value: "dinner", label: "Dinner", icon: Utensils, vendorCategory: "catering" },
+  { value: "snacks", label: "Snacks/Tea", icon: Utensils, vendorCategory: "catering" },
+  { value: "venue", label: "Venue/Meeting", icon: MapPin, vendorCategory: "venue" },
+  { value: "transport", label: "Transport/Ride", icon: Car, vendorCategory: "transport" },
+  { value: "photography", label: "Photography", icon: Camera, vendorCategory: "photography" },
+  { value: "decoration", label: "Decoration", icon: PartyPopper, vendorCategory: "decoration" },
+  { value: "entertainment", label: "Entertainment", icon: Music, vendorCategory: "entertainment" },
+  { value: "other", label: "Other", icon: ClipboardList, vendorCategory: null },
+];
+
+// Helper to get vendor category from itinerary item
+function getVendorCategoryFromItem(item: GroupItineraryItem): string | null {
+  // First check if item has explicit category
+  if (item.category) {
+    const cat = ACTIVITY_CATEGORIES.find(c => c.value === item.category);
+    if (cat?.vendorCategory) return cat.vendorCategory;
+  }
+  
+  // Try to infer from title
+  const titleLower = item.title.toLowerCase();
+  for (const [keyword, vendorCat] of Object.entries(ITINERARY_VENDOR_MAPPING)) {
+    if (titleLower.includes(keyword)) {
+      return vendorCat;
+    }
+  }
+  
+  return null;
+}
+
 // Itinerary Tab Component
 function ItineraryTab({ 
   groupId, 
   itinerary, 
-  isAdmin 
+  isAdmin,
+  groupLocation
 }: { 
   groupId: string; 
   itinerary?: GroupItineraryItem[];
   isAdmin: boolean;
+  groupLocation?: string;
 }) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [createItemOpen, setCreateItemOpen] = useState(false);
+  const [vendorDialogOpen, setVendorDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<GroupItineraryItem | null>(null);
   const [newItem, setNewItem] = useState({
     title: "",
     description: "",
+    category: "",
     startTime: "",
     endTime: "",
     location: "",
+  });
+
+  // Get vendors for selected category and location
+  const vendorCategory = selectedItem ? getVendorCategoryFromItem(selectedItem) : null;
+  const searchLocation = selectedItem?.location || groupLocation || "";
+  
+  const { data: vendors, isLoading: vendorsLoading } = useQuery<Vendor[]>({
+    queryKey: ["/api/vendors", { category: vendorCategory, location: searchLocation }],
+    enabled: vendorDialogOpen && !!vendorCategory,
+  });
+
+  const bookVendorMutation = useMutation({
+    mutationFn: async ({ itemId, vendorId }: { itemId: string; vendorId: string }) => {
+      const res = await apiRequest(`/api/groups/${groupId}/itinerary/${itemId}`, "PATCH", {
+        bookedVendorId: vendorId,
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "itinerary"] });
+      toast({ title: "Vendor booked!", description: "The vendor has been assigned to this activity." });
+      setVendorDialogOpen(false);
+      setSelectedItem(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to book vendor", variant: "destructive" });
+    },
   });
 
   const createItemMutation = useMutation({
@@ -1269,12 +1336,23 @@ function ItineraryTab({
       queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "itinerary"] });
       toast({ title: "Activity added!", description: "Your itinerary has been updated." });
       setCreateItemOpen(false);
-      setNewItem({ title: "", description: "", startTime: "", endTime: "", location: "" });
+      setNewItem({ title: "", description: "", category: "", startTime: "", endTime: "", location: "" });
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to add activity", variant: "destructive" });
     },
   });
+
+  const handleFindVendors = (item: GroupItineraryItem) => {
+    const vendorCat = getVendorCategoryFromItem(item);
+    if (vendorCat) {
+      setSelectedItem(item);
+      setVendorDialogOpen(true);
+    } else {
+      // Navigate to vendors page if no specific category
+      setLocation("/vendors");
+    }
+  };
 
   const sortedItinerary = itinerary?.sort((a, b) => 
     new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
@@ -1298,14 +1376,40 @@ function ItineraryTab({
                 <DialogDescription>Plan an activity for your event</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    placeholder="Activity name"
-                    value={newItem.title}
-                    onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                    data-testid="input-activity-title"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      placeholder="Activity name"
+                      value={newItem.title}
+                      onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
+                      data-testid="input-activity-title"
+                    />
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Select
+                      value={newItem.category}
+                      onValueChange={(value) => setNewItem({ ...newItem, category: value })}
+                    >
+                      <SelectTrigger data-testid="select-activity-category">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACTIVITY_CATEGORIES.map(cat => {
+                          const Icon = cat.icon;
+                          return (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              <div className="flex items-center gap-2">
+                                <Icon className="w-4 h-4" />
+                                {cat.label}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div>
                   <Label>Description</Label>
@@ -1365,37 +1469,65 @@ function ItineraryTab({
         <div className="relative">
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-orange-500 via-amber-500 to-orange-300" />
           <div className="space-y-4 ml-10">
-            {sortedItinerary.map((item, index) => (
-              <Card key={item.id} className="relative">
-                <div className="absolute -left-10 top-6 w-4 h-4 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 border-2 border-background" />
-                <CardContent className="p-4">
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{item.title}</h3>
-                      {item.description && (
-                        <p className="text-muted-foreground mt-1">{item.description}</p>
-                      )}
-                      <div className="flex flex-wrap gap-4 mt-3 text-sm">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          {format(new Date(item.startTime), "h:mm a")}
-                          {item.endTime && ` - ${format(new Date(item.endTime), "h:mm a")}`}
+            {sortedItinerary.map((item, index) => {
+              const itemVendorCategory = getVendorCategoryFromItem(item);
+              const categoryInfo = ACTIVITY_CATEGORIES.find(c => c.value === item.category);
+              const CategoryIcon = categoryInfo?.icon || ClipboardList;
+              
+              return (
+                <Card key={item.id} className="relative">
+                  <div className="absolute -left-10 top-6 w-4 h-4 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 border-2 border-background" />
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-lg">{item.title}</h3>
+                          {item.category && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <CategoryIcon className="w-3 h-3" />
+                              {categoryInfo?.label || item.category}
+                            </Badge>
+                          )}
                         </div>
-                        {item.location && (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            {item.location}
-                          </div>
+                        {item.description && (
+                          <p className="text-muted-foreground mt-1">{item.description}</p>
                         )}
+                        <div className="flex flex-wrap gap-4 mt-3 text-sm">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            {format(new Date(item.startTime), "h:mm a")}
+                            {item.endTime && ` - ${format(new Date(item.endTime), "h:mm a")}`}
+                          </div>
+                          {item.location && (
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <MapPin className="w-4 h-4" />
+                              {item.location}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Find Vendors Button */}
+                        <div className="mt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-800 dark:hover:bg-orange-950/30"
+                            onClick={() => handleFindVendors(item)}
+                            data-testid={`button-find-vendors-${item.id}`}
+                          >
+                            <Store className="w-4 h-4" />
+                            {itemVendorCategory ? `Find ${itemVendorCategory.charAt(0).toUpperCase() + itemVendorCategory.slice(1)}` : "Find Vendors"}
+                          </Button>
+                        </div>
                       </div>
+                      <Badge variant={item.status === "completed" ? "secondary" : "outline"} className="shrink-0">
+                        {item.status}
+                      </Badge>
                     </div>
-                    <Badge variant={item.status === "completed" ? "secondary" : "outline"} className="shrink-0">
-                      {item.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -1409,6 +1541,91 @@ function ItineraryTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Vendor Booking Dialog */}
+      <Dialog open={vendorDialogOpen} onOpenChange={setVendorDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Store className="w-5 h-5 text-orange-500" />
+              Find {vendorCategory ? vendorCategory.charAt(0).toUpperCase() + vendorCategory.slice(1) : "Vendors"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedItem && (
+                <span>
+                  For "{selectedItem.title}" 
+                  {searchLocation && ` in ${searchLocation}`}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 pr-4">
+            {vendorsLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            ) : vendors && vendors.length > 0 ? (
+              <div className="space-y-4">
+                {vendors.map(vendor => (
+                  <Card key={vendor.id} className="hover-elevate">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        {vendor.imageUrl && (
+                          <img 
+                            src={vendor.imageUrl} 
+                            alt={vendor.name}
+                            className="w-20 h-20 rounded-lg object-cover"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold">{vendor.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                            <span>{vendor.rating} ({vendor.reviewCount} reviews)</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{vendor.location}</span>
+                          </div>
+                          <div className="text-sm font-medium text-orange-600 mt-1">
+                            {vendor.priceRange}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-orange-500 to-amber-500 shrink-0"
+                          onClick={() => selectedItem && bookVendorMutation.mutate({ 
+                            itemId: selectedItem.id, 
+                            vendorId: vendor.id 
+                          })}
+                          disabled={bookVendorMutation.isPending}
+                          data-testid={`button-book-vendor-${vendor.id}`}
+                        >
+                          {bookVendorMutation.isPending ? "Booking..." : "Book"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Store className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">No Vendors Found</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  No {vendorCategory} vendors found {searchLocation && `in ${searchLocation}`}
+                </p>
+                <Button variant="outline" onClick={() => setLocation("/vendors")}>
+                  Browse All Vendors
+                </Button>
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
