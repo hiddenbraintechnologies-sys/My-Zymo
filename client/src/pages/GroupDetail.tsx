@@ -1302,6 +1302,14 @@ function ItineraryTab({
   
   const { data: vendors, isLoading: vendorsLoading } = useQuery<Vendor[]>({
     queryKey: ["/api/vendors", { category: vendorCategory, location: searchLocation }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (vendorCategory) params.set("category", vendorCategory);
+      if (searchLocation) params.set("location", searchLocation);
+      const res = await fetch(`/api/vendors?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch vendors");
+      return res.json();
+    },
     enabled: vendorDialogOpen && !!vendorCategory,
   });
 

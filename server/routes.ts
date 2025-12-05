@@ -2505,6 +2505,21 @@ Return your response as a JSON object with this exact structure:
         return res.status(403).json({ message: 'Not a member of this group' });
       }
       
+      // Verify the itinerary item belongs to this group
+      const existingItem = await storage.getGroupItinerary(req.params.id);
+      const itemBelongsToGroup = existingItem?.some(i => i.id === req.params.itemId);
+      if (!itemBelongsToGroup) {
+        return res.status(404).json({ message: 'Itinerary item not found in this group' });
+      }
+      
+      // If booking a vendor, verify the vendor exists
+      if (req.body.bookedVendorId) {
+        const vendor = await storage.getVendor(req.body.bookedVendorId);
+        if (!vendor) {
+          return res.status(400).json({ message: 'Vendor not found' });
+        }
+      }
+      
       const item = await storage.updateItineraryItem(req.params.itemId, req.body);
       if (!item) {
         return res.status(404).json({ message: 'Itinerary item not found' });
