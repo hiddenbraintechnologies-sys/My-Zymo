@@ -112,7 +112,10 @@ Myzymo includes a comprehensive set of features:
     *   Itinerary Builder with timeline-based activity planning
     *   Member Role Assignment (admin, treasurer, planner, venue_manager, food_manager, transport_manager)
     *   Expense Tracking with category-based spending and member contributions
-    *   **Auto Split Total Amount:** Quick expense splitting feature that automatically divides a total amount equally among all group members with live per-person calculation display
+    *   **Two-Step Expense Wizard:** Redesigned expense entry with intuitive two-step flow:
+        *   Step 1: Enter expense details (description, total amount with rupee icon, category, who paid)
+        *   Step 2: Choose split method with radio selection between Auto Split (equal division with live per-person calculation) or Manual Split (custom amounts per member with real-time validation ensuring totals match)
+        *   Manual split shows member avatars, names, individual input fields, and validates that splits sum to total amount
     *   Database tables: eventGroups, eventGroupMembers, groupPolls, groupPollOptions, groupPollVotes, groupMemberRoles, groupInvitations, groupItineraryItems, eventAttendance, eventPhotos, eventFeedback, groupExpenses, groupExpenseSplits
     *   Accessible via dedicated /groups route and Dashboard quick action card
 
