@@ -485,6 +485,13 @@ export const updateProfileSchema = z.object({
   currentCity: z.string().optional().nullable(),
   profession: z.string().optional().nullable(),
   company: z.string().optional().nullable(),
+  eventPreferences: z.array(z.enum(["group_planning", "private_events", "public_events"])).optional().nullable(),
+  onboardingCompleted: z.boolean().optional(),
+});
+
+export const updateEventPreferencesSchema = z.object({
+  eventPreferences: z.array(z.enum(["group_planning", "private_events", "public_events"])),
+  onboardingCompleted: z.boolean().optional(),
 });
 
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;

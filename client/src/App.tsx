@@ -34,7 +34,7 @@ import NotFound from "@/pages/not-found";
 // Universal post-auth redirect handler
 function PostAuthRedirectHandler() {
   const { user, isLoading: authLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -52,8 +52,17 @@ function PostAuthRedirectHandler() {
         setLocation(`/groups?join=${pendingCode}`);
         return;
       }
+      
+      // Check if new user needs onboarding (social login users)
+      // Only redirect if they're on the dashboard or login page and haven't completed onboarding
+      const isOnAuthPage = location === "/" || location === "/login" || location === "/signup";
+      const userWithOnboarding = user as { onboardingCompleted?: boolean };
+      if (isOnAuthPage && userWithOnboarding.onboardingCompleted === false) {
+        setLocation("/onboarding/preferences");
+        return;
+      }
     }
-  }, [user, authLoading, setLocation]);
+  }, [user, authLoading, location, setLocation]);
 
   return null;
 }

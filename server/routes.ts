@@ -33,6 +33,7 @@ import {
   insertExpenseSchema,
   insertBookingSchema,
   updateProfileSchema,
+  updateEventPreferencesSchema,
   insertQuoteSchema,
 } from "@shared/schema";
 import { db } from "./db";
@@ -140,19 +141,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/user/preferences', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { eventPreferences, onboardingCompleted } = req.body;
+      const validatedData = updateEventPreferencesSchema.parse(req.body);
       
       console.log('[Preferences Update] User ID:', userId);
-      console.log('[Preferences Update] Preferences:', eventPreferences);
+      console.log('[Preferences Update] Preferences:', validatedData.eventPreferences);
       
       const updatedUser = await storage.updateUserProfile(userId, {
-        eventPreferences: eventPreferences || [],
-        onboardingCompleted: onboardingCompleted ?? true,
+        eventPreferences: validatedData.eventPreferences,
+        onboardingCompleted: validatedData.onboardingCompleted ?? true,
       });
       
       res.json(sanitizeUser(updatedUser));
     } catch (error: any) {
       console.error("Error updating preferences:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid preferences data", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to update preferences" });
     }
   });
