@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
-import QuoteDialog from "@/components/QuoteDialog";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import groupRideImage from "@assets/generated_images/group_motorcycle_ride_adventure.png";
 import yogaImage from "@assets/generated_images/outdoor_yoga_fitness_session.png";
@@ -49,7 +49,7 @@ const heroSlides = [
 ];
 
 export default function Hero() {
-  const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -150,13 +150,13 @@ export default function Hero() {
           {slide.subtitle}
         </p>
         <Button
-          data-testid="button-get-quote"
+          data-testid="button-get-started"
           size="lg"
-          className="bg-primary/90 backdrop-blur-sm text-white border border-white/20 hover:bg-primary text-lg px-8 py-6 shadow-lg"
-          onClick={() => setQuoteDialogOpen(true)}
+          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-lg px-8 py-6 shadow-lg border-0"
+          onClick={() => setLocation("/login")}
         >
-          <Sparkles className="mr-2 h-5 w-5" />
-          Get a Free Quote
+          Get Started Free
+          <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
         
         {/* Slide Indicators */}
@@ -175,8 +175,6 @@ export default function Hero() {
           ))}
         </div>
       </div>
-
-      <QuoteDialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen} />
     </div>
   );
 }
