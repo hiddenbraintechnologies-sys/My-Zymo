@@ -25,8 +25,12 @@ import {
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee, Upload, Palette,
   Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail, Link2,
   ChevronRight, Share2, QrCode, Copy, LogOut, Sparkles, Clock, Target,
-  Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle, ImagePlus, Split
+  Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle, ImagePlus, Split,
+  Download, FileSpreadsheet, Send
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -620,7 +624,7 @@ Looking forward to planning together!`;
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-6">
-            <ExpensesTab groupId={groupId!} expenses={expenses} members={group.members} isAdmin={isAdmin || isCreator} />
+            <ExpensesTab groupId={groupId!} group={group} expenses={expenses} members={group.members} isAdmin={isAdmin || isCreator} />
           </TabsContent>
         </Tabs>
       </main>
@@ -1514,17 +1518,20 @@ function MembersTab({
 
 // Expenses Tab Component - Two-Step Wizard
 function ExpensesTab({ 
-  groupId, 
+  groupId,
+  group,
   expenses, 
   members, 
   isAdmin 
 }: { 
-  groupId: string; 
+  groupId: string;
+  group: GroupWithFullDetails;
   expenses?: GroupExpense[];
   members?: GroupMemberWithUser[];
   isAdmin: boolean;
 }) {
   const { toast } = useToast();
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [splitMethod, setSplitMethod] = useState<"auto" | "manual">("auto");
@@ -1634,6 +1641,111 @@ function ExpensesTab({
 
   const canProceedToStep2 = expenseData.description.trim() && expenseData.amount && parseFloat(expenseData.amount) > 0 && expenseData.paidById;
   const canSubmit = splitMethod === "auto" || isSplitValid;
+
+  const downloadPDF = () => {
+    if (!expenses || expenses.length === 0) {
+      toast({ title: "No expenses to export", variant: "destructive" });
+      return;
+    }
+
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.setTextColor(234, 88, 12);
+    doc.text("Myzymo", 14, 20);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(group.name, 14, 32);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Event Type: ${group.eventType || "N/A"}`, 14, 40);
+    doc.text(`Date: ${group.eventDate ? format(new Date(group.eventDate), "PP") : "TBD"}`, 14, 46);
+    doc.text(`Generated: ${format(new Date(), "PPpp")}`, 14, 52);
+
+    const tableData = expenses.map((expense, index) => {
+      const payer = members?.find(m => m.userId === expense.paidById);
+      return [
+        index + 1,
+        expense.description,
+        expense.category,
+        payer?.user?.firstName || "Unknown",
+        `₹${Number(expense.amount).toLocaleString("en-IN")}`
+      ];
+    });
+
+    tableData.push(["", "", "", "Total:", `₹${totalExpenses.toLocaleString("en-IN")}`]);
+
+    autoTable(doc, {
+      startY: 60,
+      head: [["SL No.", "Description", "Category", "Paid By", "Amount"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: { fillColor: [234, 88, 12], textColor: 255 },
+      footStyles: { fillColor: [245, 245, 245], fontStyle: "bold" },
+      styles: { fontSize: 10 },
+      columnStyles: {
+        0: { cellWidth: 15, halign: "center" },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 35 },
+        4: { cellWidth: 35, halign: "right" }
+      }
+    });
+
+    doc.save(`${group.name.replace(/\s+/g, "_")}_Expenses.pdf`);
+    toast({ title: "PDF downloaded successfully!" });
+  };
+
+  const downloadExcel = () => {
+    if (!expenses || expenses.length === 0) {
+      toast({ title: "No expenses to export", variant: "destructive" });
+      return;
+    }
+
+    const headerData = [
+      ["Myzymo - Expense Report"],
+      [`Event: ${group.name}`],
+      [`Type: ${group.eventType || "N/A"}`],
+      [`Date: ${group.eventDate ? format(new Date(group.eventDate), "PP") : "TBD"}`],
+      [`Generated: ${format(new Date(), "PPpp")}`],
+      [],
+      ["SL No.", "Description", "Category", "Paid By", "Amount (INR)"]
+    ];
+
+    const tableData = expenses.map((expense, index) => {
+      const payer = members?.find(m => m.userId === expense.paidById);
+      return [
+        index + 1,
+        expense.description,
+        expense.category,
+        payer?.user?.firstName || "Unknown",
+        Number(expense.amount)
+      ];
+    });
+
+    tableData.push(["", "", "", "Total:", totalExpenses]);
+
+    const ws = XLSX.utils.aoa_to_sheet([...headerData, ...tableData]);
+    
+    ws["!cols"] = [
+      { wch: 8 },
+      { wch: 40 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Expenses");
+    XLSX.writeFile(wb, `${group.name.replace(/\s+/g, "_")}_Expenses.xlsx`);
+    toast({ title: "Excel downloaded successfully!" });
+  };
+
+  const shareViaChat = async () => {
+    setShareDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -1890,38 +2002,92 @@ function ExpensesTab({
         ))}
       </div>
 
-      {/* Expense List */}
+      {/* Expense Table */}
       {expenses && expenses.length > 0 ? (
         <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <CardTitle className="text-lg">Expense Details</CardTitle>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={downloadPDF}
+                  data-testid="button-download-pdf"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={downloadExcel}
+                  data-testid="button-download-excel"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={shareViaChat}
+                  className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950"
+                  data-testid="button-share-expenses"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y">
-              {expenses.map(expense => {
-                const payer = members?.find(m => m.userId === expense.paidById);
-                return (
-                  <div key={expense.id} className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 flex items-center justify-center">
-                        <IndianRupee className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{expense.description}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Paid by {payer?.user?.firstName || "Unknown"} • {expense.category}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold flex items-center">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold w-16">SL No.</th>
+                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">Category</th>
+                    <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">Paid By</th>
+                    <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {expenses.map((expense, index) => {
+                    const payer = members?.find(m => m.userId === expense.paidById);
+                    return (
+                      <tr key={expense.id} className="hover:bg-muted/30 transition-colors" data-testid={`row-expense-${index + 1}`}>
+                        <td className="px-4 py-3 text-muted-foreground">{index + 1}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{expense.description}</div>
+                          <div className="text-xs text-muted-foreground md:hidden">
+                            {expense.category} • {payer?.user?.firstName || "Unknown"}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 capitalize hidden md:table-cell">{expense.category}</td>
+                        <td className="px-4 py-3 hidden md:table-cell">{payer?.user?.firstName || "Unknown"}</td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          <span className="flex items-center justify-end">
+                            <IndianRupee className="w-3 h-3" />
+                            {Number(expense.amount).toLocaleString("en-IN")}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30">
+                  <tr>
+                    <td colSpan={4} className="px-4 py-3 text-right font-bold">Total:</td>
+                    <td className="px-4 py-3 text-right font-bold text-lg">
+                      <span className="flex items-center justify-end text-orange-600">
                         <IndianRupee className="w-4 h-4" />
-                        {Number(expense.amount).toLocaleString("en-IN")}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(expense.createdAt!), "PP")}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                        {totalExpenses.toLocaleString("en-IN")}
+                      </span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </CardContent>
         </Card>
@@ -1936,6 +2102,68 @@ function ExpensesTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Share Expenses Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Expenses</DialogTitle>
+            <DialogDescription>
+              Share the expense report with group members via chat
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="font-semibold mb-2">{group.name} - Expense Report</div>
+              <div className="text-sm text-muted-foreground">
+                Total Expenses: ₹{totalExpenses.toLocaleString("en-IN")}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {expenses?.length || 0} items • {Object.keys(expensesByCategory).length} categories
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Share via</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    const text = `📊 *${group.name} - Expense Report*\n\n` +
+                      expenses?.map((e, i) => `${i + 1}. ${e.description}: ₹${Number(e.amount).toLocaleString("en-IN")}`).join("\n") +
+                      `\n\n💰 *Total: ₹${totalExpenses.toLocaleString("en-IN")}*`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                    window.open(whatsappUrl, "_blank");
+                    setShareDialogOpen(false);
+                    toast({ title: "Opening WhatsApp..." });
+                  }}
+                  data-testid="button-share-whatsapp"
+                >
+                  <SiWhatsapp className="w-4 h-4 mr-2 text-green-600" />
+                  WhatsApp
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    const text = `${group.name} - Expense Report\n\n` +
+                      expenses?.map((e, i) => `${i + 1}. ${e.description}: ₹${Number(e.amount).toLocaleString("en-IN")}`).join("\n") +
+                      `\n\nTotal: ₹${totalExpenses.toLocaleString("en-IN")}`;
+                    navigator.clipboard.writeText(text);
+                    setShareDialogOpen(false);
+                    toast({ title: "Copied to clipboard!" });
+                  }}
+                  data-testid="button-copy-expenses"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Text
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
