@@ -25,7 +25,7 @@ import {
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee, Upload, Palette,
   Settings, Vote, ClipboardList, UserCog, Image, MessageSquare, Mail, Link2,
   ChevronRight, Share2, QrCode, Copy, LogOut, Sparkles, Clock, Target,
-  Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle, ImagePlus
+  Check, X, Edit, Trash2, Crown, UserPlus, Star, MoreVertical, AlertCircle, ImagePlus, Split
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -1526,11 +1526,17 @@ function ExpensesTab({
 }) {
   const { toast } = useToast();
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
+  const [autoSplitOpen, setAutoSplitOpen] = useState(false);
   const [newExpense, setNewExpense] = useState({
     description: "",
     amount: "",
     category: "other",
     paidById: "",
+  });
+  const [autoSplitData, setAutoSplitData] = useState({
+    totalAmount: "",
+    description: "",
+    category: "other",
   });
 
   const addExpenseMutation = useMutation({
@@ -1565,6 +1571,43 @@ function ExpensesTab({
     },
   });
 
+  const autoSplitMutation = useMutation({
+    mutationFn: async (data: typeof autoSplitData) => {
+      const totalAmount = parseFloat(data.totalAmount);
+      const memberCount = members?.length || 1;
+      const splitAmount = Number((totalAmount / memberCount).toFixed(2));
+      
+      const splits = members?.map(member => ({
+        userId: member.userId,
+        amount: splitAmount.toString(),
+        isPayer: false,
+      })) || [];
+      
+      const res = await apiRequest(`/api/groups/${groupId}/expenses`, "POST", {
+        description: data.description || `Auto-split expense (₹${totalAmount.toLocaleString("en-IN")} ÷ ${memberCount})`,
+        amount: totalAmount,
+        category: data.category,
+        splitType: "equal",
+        splits: splits,
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "expenses"] });
+      const memberCount = members?.length || 1;
+      const perPerson = parseFloat(autoSplitData.totalAmount) / memberCount;
+      toast({ 
+        title: "Amount split successfully!", 
+        description: `₹${perPerson.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per person (${memberCount} members)` 
+      });
+      setAutoSplitOpen(false);
+      setAutoSplitData({ totalAmount: "", description: "", category: "other" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to split amount", variant: "destructive" });
+    },
+  });
+
   const totalExpenses = expenses?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
   const expensesByCategory = expenses?.reduce((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
@@ -1575,48 +1618,59 @@ function ExpensesTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-heading font-semibold">Expenses</h2>
-        <Dialog open={addExpenseOpen} onOpenChange={setAddExpenseOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-add-expense">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Expense</DialogTitle>
-              <DialogDescription>Record an expense for the group</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Description</Label>
-                <Input
-                  placeholder="What was this expense for?"
-                  value={newExpense.description}
-                  onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                  data-testid="input-expense-description"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          <Dialog open={autoSplitOpen} onOpenChange={setAutoSplitOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950" data-testid="button-auto-split">
+                <Split className="w-4 h-4 mr-2" />
+                Auto Split
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Auto Split Total Amount</DialogTitle>
+                <DialogDescription>
+                  Enter the total amount to split equally among all {members?.length || 0} group members
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div>
-                  <Label>Amount (INR)</Label>
+                  <Label>Total Amount (INR)</Label>
+                  <div className="relative">
+                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      className="pl-9"
+                      value={autoSplitData.totalAmount}
+                      onChange={(e) => setAutoSplitData({ ...autoSplitData, totalAmount: e.target.value })}
+                      data-testid="input-auto-split-amount"
+                    />
+                  </div>
+                  {autoSplitData.totalAmount && members && members.length > 0 && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Each member pays: <span className="font-semibold text-foreground">₹{(parseFloat(autoSplitData.totalAmount) / members.length).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Description (Optional)</Label>
                   <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={newExpense.amount}
-                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                    data-testid="input-expense-amount"
+                    placeholder="What is this expense for?"
+                    value={autoSplitData.description}
+                    onChange={(e) => setAutoSplitData({ ...autoSplitData, description: e.target.value })}
+                    data-testid="input-auto-split-description"
                   />
                 </div>
                 <div>
                   <Label>Category</Label>
                   <Select
-                    value={newExpense.category}
-                    onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
+                    value={autoSplitData.category}
+                    onValueChange={(value) => setAutoSplitData({ ...autoSplitData, category: value })}
                   >
-                    <SelectTrigger data-testid="select-expense-category">
+                    <SelectTrigger data-testid="select-auto-split-category">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1628,36 +1682,99 @@ function ExpensesTab({
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div>
-                <Label>Paid By</Label>
-                <Select
-                  value={newExpense.paidById}
-                  onValueChange={(value) => setNewExpense({ ...newExpense, paidById: value })}
+                <Button 
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500" 
+                  onClick={() => autoSplitMutation.mutate(autoSplitData)}
+                  disabled={autoSplitMutation.isPending || !autoSplitData.totalAmount || parseFloat(autoSplitData.totalAmount) <= 0 || !members?.length}
+                  data-testid="button-submit-auto-split"
                 >
-                  <SelectTrigger data-testid="select-expense-paid-by">
-                    <SelectValue placeholder="Select member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members?.map(member => (
-                      <SelectItem key={member.userId} value={member.userId}>
-                        {member.user?.firstName || member.user?.username}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {autoSplitMutation.isPending ? "Splitting..." : `Split Among ${members?.length || 0} Members`}
+                </Button>
               </div>
-              <Button 
-                className="w-full" 
-                onClick={() => addExpenseMutation.mutate(newExpense)}
-                disabled={addExpenseMutation.isPending || !newExpense.description.trim() || !newExpense.amount || !newExpense.paidById}
-                data-testid="button-submit-expense"
-              >
-                {addExpenseMutation.isPending ? "Adding..." : "Add Expense"}
+            </DialogContent>
+          </Dialog>
+          <Dialog open={addExpenseOpen} onOpenChange={setAddExpenseOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-add-expense">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Expense
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Expense</DialogTitle>
+                <DialogDescription>Record an expense for the group</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    placeholder="What was this expense for?"
+                    value={newExpense.description}
+                    onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                    data-testid="input-expense-description"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Amount (INR)</Label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                      data-testid="input-expense-amount"
+                    />
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Select
+                      value={newExpense.category}
+                      onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
+                    >
+                      <SelectTrigger data-testid="select-expense-category">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(cat => (
+                          <SelectItem key={cat} value={cat} className="capitalize">
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label>Paid By</Label>
+                  <Select
+                    value={newExpense.paidById}
+                    onValueChange={(value) => setNewExpense({ ...newExpense, paidById: value })}
+                  >
+                    <SelectTrigger data-testid="select-expense-paid-by">
+                      <SelectValue placeholder="Select member" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {members?.map(member => (
+                        <SelectItem key={member.userId} value={member.userId}>
+                          {member.user?.firstName || member.user?.username}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={() => addExpenseMutation.mutate(newExpense)}
+                  disabled={addExpenseMutation.isPending || !newExpense.description.trim() || !newExpense.amount || !newExpense.paidById}
+                  data-testid="button-submit-expense"
+                >
+                  {addExpenseMutation.isPending ? "Adding..." : "Add Expense"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Summary Cards */}

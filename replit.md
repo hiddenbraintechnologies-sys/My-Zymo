@@ -107,11 +107,12 @@ Myzymo includes a comprehensive set of features:
 *   **AI Event Title & Description Suggestions:** Assists event creation with culturally aware title and description suggestions using OpenAI GPT-5.
 *   **Group Planning System:** Comprehensive collaborative event planning with:
     *   Group creation wizard with event type, date, location, and budget settings
-    *   Invite code system for easy member onboarding
+    *   Invite code system for easy member onboarding with shareable links that persist through login
     *   Polls & Voting for group decision-making (venues, dates, activities)
     *   Itinerary Builder with timeline-based activity planning
     *   Member Role Assignment (admin, treasurer, planner, venue_manager, food_manager, transport_manager)
     *   Expense Tracking with category-based spending and member contributions
+    *   **Auto Split Total Amount:** Quick expense splitting feature that automatically divides a total amount equally among all group members with live per-person calculation display
     *   Database tables: eventGroups, eventGroupMembers, groupPolls, groupPollOptions, groupPollVotes, groupMemberRoles, groupInvitations, groupItineraryItems, eventAttendance, eventPhotos, eventFeedback, groupExpenses, groupExpenseSplits
     *   Accessible via dedicated /groups route and Dashboard quick action card
 
