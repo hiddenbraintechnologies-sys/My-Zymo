@@ -2041,30 +2041,6 @@ function ExpensesTab({
         </Dialog>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Total Expenses</div>
-            <div className="text-2xl font-bold flex items-center">
-              <IndianRupee className="w-5 h-5" />
-              {totalExpenses.toLocaleString("en-IN")}
-            </div>
-          </CardContent>
-        </Card>
-        {Object.entries(expensesByCategory).slice(0, 3).map(([category, amount]) => (
-          <Card key={category}>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground capitalize">{category}</div>
-              <div className="text-xl font-bold flex items-center">
-                <IndianRupee className="w-4 h-4" />
-                {Number(amount).toLocaleString("en-IN")}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
       {/* Expense Table */}
       {expenses && expenses.length > 0 ? (
         <Card>
