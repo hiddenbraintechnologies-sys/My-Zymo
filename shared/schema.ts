@@ -820,16 +820,59 @@ export const groupPollVotesRelations = relations(groupPollVotes, ({ one }) => ({
   }),
 }));
 
+// Itinerary category to vendor category mapping
+export const ITINERARY_VENDOR_MAPPING: Record<string, string> = {
+  // Food related
+  "breakfast": "catering",
+  "lunch": "catering",
+  "dinner": "catering",
+  "snacks": "catering",
+  "tea": "catering",
+  "food": "catering",
+  "catering": "catering",
+  // Venue related
+  "venue": "venue",
+  "ceremony": "venue",
+  "reception": "venue",
+  "meeting": "venue",
+  "conference": "venue",
+  // Transport related
+  "transport": "transport",
+  "travel": "transport",
+  "pickup": "transport",
+  "drop": "transport",
+  "ride": "transport",
+  // Photography related
+  "photography": "photography",
+  "photo": "photography",
+  "videography": "photography",
+  "video": "photography",
+  // Decoration related
+  "decoration": "decoration",
+  "decor": "decoration",
+  "setup": "decoration",
+  "flowers": "decoration",
+  // Entertainment
+  "entertainment": "entertainment",
+  "music": "entertainment",
+  "dj": "entertainment",
+  "band": "entertainment",
+  "games": "entertainment",
+  "activity": "entertainment",
+};
+
 // Group Itinerary Items table
 export const groupItineraryItems = pgTable("group_itinerary_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   groupId: varchar("group_id").notNull().references(() => eventGroups.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
+  category: text("category"), // breakfast, lunch, dinner, venue, transport, photography, decoration, entertainment, other
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   location: text("location"),
   assignedToId: varchar("assigned_to_id").references(() => users.id),
+  bookedVendorId: varchar("booked_vendor_id").references(() => vendors.id),
   status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, cancelled
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -844,6 +887,10 @@ export const groupItineraryItemsRelations = relations(groupItineraryItems, ({ on
   assignedTo: one(users, {
     fields: [groupItineraryItems.assignedToId],
     references: [users.id],
+  }),
+  bookedVendor: one(vendors, {
+    fields: [groupItineraryItems.bookedVendorId],
+    references: [vendors.id],
   }),
 }));
 
