@@ -129,9 +129,14 @@ export default function Dashboard() {
               <CardTitle className="text-xl font-bold">
                 Create Event
               </CardTitle>
-              <CardDescription>
-                Plan a new celebration or gathering
+              <CardDescription className="text-sm">
+                Start planning your next celebration - birthdays, weddings, anniversaries, or any special occasion
               </CardDescription>
+              <div className="flex flex-wrap gap-1 mt-2">
+                <Badge variant="outline" className="text-xs">Birthdays</Badge>
+                <Badge variant="outline" className="text-xs">Weddings</Badge>
+                <Badge variant="outline" className="text-xs">Parties</Badge>
+              </div>
             </CardHeader>
           </Card>
 
@@ -150,9 +155,14 @@ export default function Dashboard() {
               <CardTitle className="text-xl font-bold">
                 My Events
               </CardTitle>
-              <CardDescription>
-                View and manage all your events
+              <CardDescription className="text-sm">
+                View upcoming events, manage invitations, and track RSVPs for all your celebrations
               </CardDescription>
+              <div className="flex flex-wrap gap-1 mt-2">
+                <Badge variant="outline" className="text-xs">Private</Badge>
+                <Badge variant="outline" className="text-xs">Public</Badge>
+                <Badge variant="outline" className="text-xs">Invites</Badge>
+              </div>
             </CardHeader>
           </Card>
 
@@ -171,9 +181,14 @@ export default function Dashboard() {
               <CardTitle className="text-xl font-bold">
                 Group Events
               </CardTitle>
-              <CardDescription>
-                Plan together with polls & expense tracking
+              <CardDescription className="text-sm">
+                Perfect for reunions, group trips & rides - plan together with polls, itinerary & split expenses
               </CardDescription>
+              <div className="flex flex-wrap gap-1 mt-2">
+                <Badge variant="outline" className="text-xs">Reunions</Badge>
+                <Badge variant="outline" className="text-xs">Trips</Badge>
+                <Badge variant="outline" className="text-xs">Rides</Badge>
+              </div>
             </CardHeader>
           </Card>
 
@@ -195,9 +210,14 @@ export default function Dashboard() {
               <CardTitle className="text-xl font-bold">
                 Find Vendors
               </CardTitle>
-              <CardDescription>
-                Discover venues, caterers, and more
+              <CardDescription className="text-sm">
+                Browse trusted vendors for your events - venues, caterers, decorators, photographers & more
               </CardDescription>
+              <div className="flex flex-wrap gap-1 mt-2">
+                <Badge variant="outline" className="text-xs">Venues</Badge>
+                <Badge variant="outline" className="text-xs">Catering</Badge>
+                <Badge variant="outline" className="text-xs">Decor</Badge>
+              </div>
             </CardHeader>
           </Card>
 
