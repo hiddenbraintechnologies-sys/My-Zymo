@@ -14,8 +14,8 @@ export default function LandingPage() {
       <Navbar />
       <TopBanner />
       <Hero />
-      <PublicEventsShowcase />
       <Features />
+      <PublicEventsShowcase />
       <HowItWorks />
       <VendorShowcase />
       <Testimonials />
