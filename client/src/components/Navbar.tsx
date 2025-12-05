@@ -60,7 +60,10 @@ export default function Navbar() {
               <Link href={logoHref} data-testid="link-home">
                 <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
                   <img src={logoUrl} alt="Myzymo" className="w-14 h-14 flex-shrink-0" />
-                  <span className="font-heading font-bold text-xl">Myzymo</span>
+                  <div className="flex flex-col">
+                    <span className="font-heading font-bold text-xl">Myzymo</span>
+                    <span className="text-[10px] text-muted-foreground hidden sm:block">Bringing People Together</span>
+                  </div>
                 </div>
               </Link>
               
@@ -95,7 +98,10 @@ export default function Navbar() {
               <Link href={logoHref} data-testid="link-home">
                 <div className="flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 rounded-md px-2 py-1">
                   <img src={logoUrl} alt="Myzymo" className="w-14 h-14 flex-shrink-0" />
-                  <span className="font-heading font-bold text-xl">Myzymo</span>
+                  <div className="flex flex-col">
+                    <span className="font-heading font-bold text-xl">Myzymo</span>
+                    <span className="text-[10px] text-muted-foreground hidden sm:block">Bringing People Together</span>
+                  </div>
                 </div>
               </Link>
               

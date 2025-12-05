@@ -150,8 +150,10 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center">
             <img src={logoUrl} alt="Myzymo" className="w-24 h-24" />
+            <span className="font-heading font-bold text-2xl mt-2">Myzymo</span>
+            <span className="text-sm text-primary font-medium">Bringing People Together</span>
           </div>
           <CardTitle className="text-3xl font-heading">Welcome Back</CardTitle>
           <CardDescription>

@@ -137,13 +137,15 @@ export default function VendorSignup() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4 py-12">
       <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-4 text-center">
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center">
             <div className="relative">
               <img src={logoUrl} alt="Myzymo" className="w-24 h-24" />
               <div className="absolute -bottom-2 -right-2 bg-primary rounded-full p-2">
                 <Store className="h-4 w-4 text-primary-foreground" />
               </div>
             </div>
+            <span className="font-heading font-bold text-2xl mt-2">Myzymo</span>
+            <span className="text-sm text-primary font-medium">Bringing People Together</span>
           </div>
           <CardTitle className="text-3xl font-heading">Vendor Registration</CardTitle>
           <CardDescription>

@@ -314,6 +314,15 @@ export default function Hero() {
           );
         })}
 
+        {/* Tagline */}
+        <div className={`mb-3 transition-all duration-500 ${
+          isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+        }`}>
+          <span className="text-white/90 text-sm md:text-base font-medium tracking-wide">
+            Bringing People Together
+          </span>
+        </div>
+
         {/* Category Badge - themed gradient */}
         <div 
           className={`mb-4 px-4 py-1.5 rounded-full backdrop-blur-sm border text-sm font-medium transition-all duration-500 ${theme.badgeGradient} ${

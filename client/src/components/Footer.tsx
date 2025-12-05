@@ -11,7 +11,10 @@ export default function Footer() {
               <img src={logoUrl} alt="Myzymo" className="w-10 h-10" />
               <span className="font-heading font-bold text-xl">Myzymo</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-medium text-primary">
+              Bringing People Together
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
               Making celebrations memorable, one gathering at a time.
             </p>
           </div>
