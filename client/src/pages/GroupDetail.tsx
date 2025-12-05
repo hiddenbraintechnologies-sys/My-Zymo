@@ -1512,7 +1512,7 @@ function MembersTab({
   );
 }
 
-// Expenses Tab Component
+// Expenses Tab Component - Two-Step Wizard
 function ExpensesTab({ 
   groupId, 
   expenses, 
@@ -1525,86 +1525,102 @@ function ExpensesTab({
   isAdmin: boolean;
 }) {
   const { toast } = useToast();
-  const [addExpenseOpen, setAddExpenseOpen] = useState(false);
-  const [autoSplitOpen, setAutoSplitOpen] = useState(false);
-  const [newExpense, setNewExpense] = useState({
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [splitMethod, setSplitMethod] = useState<"auto" | "manual">("auto");
+  const [expenseData, setExpenseData] = useState({
     description: "",
     amount: "",
     category: "other",
     paidById: "",
   });
-  const [autoSplitData, setAutoSplitData] = useState({
-    totalAmount: "",
-    description: "",
-    category: "other",
-  });
+  const [manualSplits, setManualSplits] = useState<Record<string, string>>({});
 
-  const addExpenseMutation = useMutation({
-    mutationFn: async (data: typeof newExpense) => {
-      const amount = parseFloat(data.amount);
-      const memberCount = members?.length || 1;
-      const splitAmount = (amount / memberCount).toFixed(2);
+  const totalAmount = parseFloat(expenseData.amount) || 0;
+  const memberCount = members?.length || 1;
+  const autoSplitAmount = totalAmount / memberCount;
+  
+  const manualSplitTotal = Object.values(manualSplits).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+  const splitDifference = totalAmount - manualSplitTotal;
+  const isSplitValid = Math.abs(splitDifference) < 0.01;
+
+  const initializeManualSplits = () => {
+    if (members) {
+      const equalSplit = (totalAmount / memberCount).toFixed(2);
+      const splits: Record<string, string> = {};
+      members.forEach(member => {
+        splits[member.userId] = equalSplit;
+      });
+      setManualSplits(splits);
+    }
+  };
+
+  const resetDialog = () => {
+    setStep(1);
+    setSplitMethod("auto");
+    setExpenseData({ description: "", amount: "", category: "other", paidById: "" });
+    setManualSplits({});
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      resetDialog();
+    }
+  };
+
+  const goToStep2 = () => {
+    initializeManualSplits();
+    setStep(2);
+  };
+
+  const goBackToStep1 = () => {
+    setStep(1);
+  };
+
+  const expenseMutation = useMutation({
+    mutationFn: async () => {
+      const amount = parseFloat(expenseData.amount);
+      let splits: { userId: string; amount: string; isPayer: boolean }[] = [];
       
-      const splits = members?.map(member => ({
-        userId: member.userId,
-        amount: splitAmount,
-        isPayer: member.userId === data.paidById
-      })) || [];
+      if (splitMethod === "auto") {
+        const splitAmount = (amount / memberCount).toFixed(2);
+        splits = members?.map(member => ({
+          userId: member.userId,
+          amount: splitAmount,
+          isPayer: member.userId === expenseData.paidById
+        })) || [];
+      } else {
+        splits = members?.map(member => ({
+          userId: member.userId,
+          amount: manualSplits[member.userId] || "0",
+          isPayer: member.userId === expenseData.paidById
+        })) || [];
+      }
       
       const res = await apiRequest(`/api/groups/${groupId}/expenses`, "POST", {
-        description: data.description,
+        description: expenseData.description,
         amount: amount,
-        category: data.category,
-        splitType: "equal",
+        category: expenseData.category,
+        splitType: splitMethod === "auto" ? "equal" : "manual",
         splits: splits,
       });
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "expenses"] });
-      toast({ title: "Expense added!" });
-      setAddExpenseOpen(false);
-      setNewExpense({ description: "", amount: "", category: "other", paidById: "" });
+      if (splitMethod === "auto") {
+        toast({ 
+          title: "Expense split automatically!", 
+          description: `₹${autoSplitAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per person (${memberCount} members)` 
+        });
+      } else {
+        toast({ title: "Expense added with manual splits!" });
+      }
+      handleDialogChange(false);
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to add expense", variant: "destructive" });
-    },
-  });
-
-  const autoSplitMutation = useMutation({
-    mutationFn: async (data: typeof autoSplitData) => {
-      const totalAmount = parseFloat(data.totalAmount);
-      const memberCount = members?.length || 1;
-      const splitAmount = Number((totalAmount / memberCount).toFixed(2));
-      
-      const splits = members?.map(member => ({
-        userId: member.userId,
-        amount: splitAmount.toString(),
-        isPayer: false,
-      })) || [];
-      
-      const res = await apiRequest(`/api/groups/${groupId}/expenses`, "POST", {
-        description: data.description || `Auto-split expense (₹${totalAmount.toLocaleString("en-IN")} ÷ ${memberCount})`,
-        amount: totalAmount,
-        category: data.category,
-        splitType: "equal",
-        splits: splits,
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups", groupId, "expenses"] });
-      const memberCount = members?.length || 1;
-      const perPerson = parseFloat(autoSplitData.totalAmount) / memberCount;
-      toast({ 
-        title: "Amount split successfully!", 
-        description: `₹${perPerson.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per person (${memberCount} members)` 
-      });
-      setAutoSplitOpen(false);
-      setAutoSplitData({ totalAmount: "", description: "", category: "other" });
-    },
-    onError: (error: any) => {
-      toast({ title: "Error", description: error.message || "Failed to split amount", variant: "destructive" });
     },
   });
 
@@ -1616,165 +1632,238 @@ function ExpensesTab({
 
   const CATEGORIES = ["venue", "food", "transport", "decoration", "entertainment", "other"];
 
+  const canProceedToStep2 = expenseData.description.trim() && expenseData.amount && parseFloat(expenseData.amount) > 0 && expenseData.paidById;
+  const canSubmit = splitMethod === "auto" || isSplitValid;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-heading font-semibold">Expenses</h2>
-        <div className="flex gap-2">
-          <Dialog open={autoSplitOpen} onOpenChange={setAutoSplitOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950" data-testid="button-auto-split">
-                <Split className="w-4 h-4 mr-2" />
-                Auto Split
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Auto Split Total Amount</DialogTitle>
-                <DialogDescription>
-                  Enter the total amount to split equally among all {members?.length || 0} group members
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Total Amount (INR)</Label>
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-add-expense">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Expense
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            {step === 1 ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Add Expense</DialogTitle>
+                  <DialogDescription>Step 1: Enter expense details</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Description</Label>
                     <Input
-                      type="number"
-                      placeholder="0.00"
-                      className="pl-9"
-                      value={autoSplitData.totalAmount}
-                      onChange={(e) => setAutoSplitData({ ...autoSplitData, totalAmount: e.target.value })}
-                      data-testid="input-auto-split-amount"
+                      placeholder="What was this expense for?"
+                      value={expenseData.description}
+                      onChange={(e) => setExpenseData({ ...expenseData, description: e.target.value })}
+                      data-testid="input-expense-description"
                     />
                   </div>
-                  {autoSplitData.totalAmount && members && members.length > 0 && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Each member pays: <span className="font-semibold text-foreground">₹{(parseFloat(autoSplitData.totalAmount) / members.length).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </p>
+                  <div>
+                    <Label>Total Amount (INR)</Label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="pl-9"
+                        value={expenseData.amount}
+                        onChange={(e) => setExpenseData({ ...expenseData, amount: e.target.value })}
+                        data-testid="input-expense-amount"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Category</Label>
+                      <Select
+                        value={expenseData.category}
+                        onValueChange={(value) => setExpenseData({ ...expenseData, category: value })}
+                      >
+                        <SelectTrigger data-testid="select-expense-category">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map(cat => (
+                            <SelectItem key={cat} value={cat} className="capitalize">
+                              {cat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Paid By</Label>
+                      <Select
+                        value={expenseData.paidById}
+                        onValueChange={(value) => setExpenseData({ ...expenseData, paidById: value })}
+                      >
+                        <SelectTrigger data-testid="select-expense-paid-by">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {members?.map(member => (
+                            <SelectItem key={member.userId} value={member.userId}>
+                              {member.user?.firstName || member.user?.username}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-orange-500 to-amber-500" 
+                    onClick={goToStep2}
+                    disabled={!canProceedToStep2}
+                    data-testid="button-next-step"
+                  >
+                    Next: Choose Split Method
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Split Expense</DialogTitle>
+                  <DialogDescription>
+                    Step 2: How should ₹{totalAmount.toLocaleString("en-IN")} be split among {memberCount} members?
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{expenseData.description}</span>
+                      <span className="font-semibold flex items-center">
+                        <IndianRupee className="w-3 h-3" />
+                        {totalAmount.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <RadioGroup value={splitMethod} onValueChange={(value: "auto" | "manual") => setSplitMethod(value)} className="space-y-3">
+                    <div className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${splitMethod === "auto" ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30" : "border-border hover:border-orange-300"}`}>
+                      <RadioGroupItem value="auto" id="auto-split" data-testid="radio-auto-split" />
+                      <Label htmlFor="auto-split" className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <Split className="w-4 h-4 text-orange-600" />
+                          <span className="font-medium">Auto Split (Equal)</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Each member pays: <span className="font-semibold text-foreground">₹{autoSplitAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </p>
+                      </Label>
+                    </div>
+                    
+                    <div className={`flex items-start space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${splitMethod === "manual" ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30" : "border-border hover:border-orange-300"}`}>
+                      <RadioGroupItem value="manual" id="manual-split" className="mt-1" data-testid="radio-manual-split" />
+                      <Label htmlFor="manual-split" className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <Edit className="w-4 h-4 text-orange-600" />
+                          <span className="font-medium">Manual Split (Custom)</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Assign custom amounts to each member
+                        </p>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {splitMethod === "manual" && (
+                    <div className="space-y-3">
+                      <Separator />
+                      <ScrollArea className="max-h-48">
+                        <div className="space-y-3 pr-4">
+                          {members?.map(member => (
+                            <div key={member.userId} className="flex items-center gap-3">
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={member.user?.profileImageUrl || undefined} />
+                                <AvatarFallback className="text-xs bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30">
+                                  {(member.user?.firstName?.[0] || member.user?.username?.[0] || "?").toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="flex-1 text-sm font-medium truncate">
+                                {member.user?.firstName || member.user?.username}
+                                {member.userId === expenseData.paidById && (
+                                  <Badge variant="secondary" className="ml-2 text-xs">Paid</Badge>
+                                )}
+                              </span>
+                              <div className="relative w-28">
+                                <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  className="pl-6 h-8 text-sm"
+                                  value={manualSplits[member.userId] || ""}
+                                  onChange={(e) => setManualSplits({ ...manualSplits, [member.userId]: e.target.value })}
+                                  data-testid={`input-split-${member.userId}`}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      
+                      <div className={`p-3 rounded-lg ${isSplitValid ? "bg-green-50 dark:bg-green-950/30" : "bg-red-50 dark:bg-red-950/30"}`}>
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Split Total:</span>
+                          <span className={`font-semibold flex items-center ${isSplitValid ? "text-green-600" : "text-red-600"}`}>
+                            <IndianRupee className="w-3 h-3" />
+                            {manualSplitTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        {!isSplitValid && (
+                          <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+                            <AlertCircle className="w-3 h-3" />
+                            <span>
+                              {splitDifference > 0 
+                                ? `₹${splitDifference.toLocaleString("en-IN", { minimumFractionDigits: 2 })} remaining to assign`
+                                : `₹${Math.abs(splitDifference).toLocaleString("en-IN", { minimumFractionDigits: 2 })} over the total`
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {isSplitValid && (
+                          <div className="flex items-center gap-1 mt-1 text-xs text-green-600">
+                            <Check className="w-3 h-3" />
+                            <span>Splits match the total amount</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
-                </div>
-                <div>
-                  <Label>Description (Optional)</Label>
-                  <Input
-                    placeholder="What is this expense for?"
-                    value={autoSplitData.description}
-                    onChange={(e) => setAutoSplitData({ ...autoSplitData, description: e.target.value })}
-                    data-testid="input-auto-split-description"
-                  />
-                </div>
-                <div>
-                  <Label>Category</Label>
-                  <Select
-                    value={autoSplitData.category}
-                    onValueChange={(value) => setAutoSplitData({ ...autoSplitData, category: value })}
-                  >
-                    <SelectTrigger data-testid="select-auto-split-category">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map(cat => (
-                        <SelectItem key={cat} value={cat} className="capitalize">
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button 
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500" 
-                  onClick={() => autoSplitMutation.mutate(autoSplitData)}
-                  disabled={autoSplitMutation.isPending || !autoSplitData.totalAmount || parseFloat(autoSplitData.totalAmount) <= 0 || !members?.length}
-                  data-testid="button-submit-auto-split"
-                >
-                  {autoSplitMutation.isPending ? "Splitting..." : `Split Among ${members?.length || 0} Members`}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Dialog open={addExpenseOpen} onOpenChange={setAddExpenseOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-add-expense">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Expense
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Expense</DialogTitle>
-                <DialogDescription>Record an expense for the group</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Description</Label>
-                  <Input
-                    placeholder="What was this expense for?"
-                    value={newExpense.description}
-                    onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                    data-testid="input-expense-description"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Amount (INR)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={newExpense.amount}
-                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                      data-testid="input-expense-amount"
-                    />
-                  </div>
-                  <div>
-                    <Label>Category</Label>
-                    <Select
-                      value={newExpense.category}
-                      onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
+
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={goBackToStep1}
+                      className="flex-1"
+                      data-testid="button-back-step"
                     >
-                      <SelectTrigger data-testid="select-expense-category">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(cat => (
-                          <SelectItem key={cat} value={cat} className="capitalize">
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500" 
+                      onClick={() => expenseMutation.mutate()}
+                      disabled={expenseMutation.isPending || !canSubmit}
+                      data-testid="button-submit-expense"
+                    >
+                      {expenseMutation.isPending ? "Saving..." : (
+                        splitMethod === "auto" 
+                          ? `Split Equally (${memberCount})` 
+                          : "Save Manual Split"
+                      )}
+                    </Button>
                   </div>
                 </div>
-                <div>
-                  <Label>Paid By</Label>
-                  <Select
-                    value={newExpense.paidById}
-                    onValueChange={(value) => setNewExpense({ ...newExpense, paidById: value })}
-                  >
-                    <SelectTrigger data-testid="select-expense-paid-by">
-                      <SelectValue placeholder="Select member" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {members?.map(member => (
-                        <SelectItem key={member.userId} value={member.userId}>
-                          {member.user?.firstName || member.user?.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={() => addExpenseMutation.mutate(newExpense)}
-                  disabled={addExpenseMutation.isPending || !newExpense.description.trim() || !newExpense.amount || !newExpense.paidById}
-                  data-testid="button-submit-expense"
-                >
-                  {addExpenseMutation.isPending ? "Adding..." : "Add Expense"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Summary Cards */}
