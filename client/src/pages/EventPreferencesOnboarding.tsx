@@ -18,7 +18,7 @@ import {
   Mountain,
   Calendar
 } from "lucide-react";
-import logoUrl from "@assets/generated_images/myzymo-logo-1749055298854.png";
+import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
 type PreferenceType = "group_planning" | "private_events" | "public_events";
 

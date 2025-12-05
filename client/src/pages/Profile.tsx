@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateProfileSchema, type UpdateProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload, LogOut } from "lucide-react";
+import { User as UserIcon, Calendar, Phone, Briefcase, MapPin, GraduationCap, Sparkles, Camera, Upload, LogOut, Users, PartyPopper, Dumbbell, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { useEffect, useState, useRef } from "react";
@@ -611,6 +611,9 @@ export default function Profile() {
           </form>
         </Form>
 
+        {/* Event Preferences Section */}
+        <EventPreferencesSection user={user} />
+
         {/* Logout Section - More prominent on mobile */}
         <Card className="mt-6 border-destructive/20">
           <CardHeader>
@@ -636,5 +639,139 @@ export default function Profile() {
         </Card>
       </main>
     </div>
+  );
+}
+
+type PreferenceType = "group_planning" | "private_events" | "public_events";
+
+interface PreferenceOption {
+  id: PreferenceType;
+  title: string;
+  description: string;
+  icon: typeof Users;
+  gradient: string;
+}
+
+const preferenceOptions: PreferenceOption[] = [
+  {
+    id: "group_planning",
+    title: "Group Planning",
+    description: "Rides, Reunions & Adventures",
+    icon: Users,
+    gradient: "from-blue-500 to-indigo-600",
+  },
+  {
+    id: "private_events",
+    title: "Private Events",
+    description: "Birthdays, Weddings & Family",
+    icon: PartyPopper,
+    gradient: "from-orange-500 to-amber-500",
+  },
+  {
+    id: "public_events",
+    title: "Public Events",
+    description: "Fitness, Yoga & Community",
+    icon: Dumbbell,
+    gradient: "from-green-500 to-emerald-600",
+  },
+];
+
+function EventPreferencesSection({ user }: { user: any }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedPreferences, setSelectedPreferences] = useState<PreferenceType[]>(
+    (user?.eventPreferences as PreferenceType[]) || []
+  );
+  
+  useEffect(() => {
+    if (user?.eventPreferences) {
+      setSelectedPreferences(user.eventPreferences as PreferenceType[]);
+    }
+  }, [user?.eventPreferences]);
+
+  const savePreferencesMutation = useMutation({
+    mutationFn: async (preferences: PreferenceType[]) => {
+      await apiRequest("/api/user/preferences", "POST", { 
+        eventPreferences: preferences,
+        onboardingCompleted: true 
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Preferences updated!",
+        description: "Your event preferences have been saved.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save preferences",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const togglePreference = (prefId: PreferenceType) => {
+    const newPreferences = selectedPreferences.includes(prefId)
+      ? selectedPreferences.filter(p => p !== prefId)
+      : [...selectedPreferences, prefId];
+    
+    setSelectedPreferences(newPreferences);
+    savePreferencesMutation.mutate(newPreferences);
+  };
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          Event Preferences
+        </CardTitle>
+        <CardDescription>
+          Select the types of events you're interested in planning. This helps personalize your experience.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 md:grid-cols-3">
+          {preferenceOptions.map((option) => {
+            const isSelected = selectedPreferences.includes(option.id);
+            const IconComponent = option.icon;
+            
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => togglePreference(option.id)}
+                disabled={savePreferencesMutation.isPending}
+                className={`relative p-4 rounded-lg border-2 transition-all text-left hover-elevate ${
+                  isSelected 
+                    ? "border-primary bg-primary/5" 
+                    : "border-muted hover:border-muted-foreground/30"
+                }`}
+                data-testid={`button-preference-${option.id}`}
+              >
+                {isSelected && (
+                  <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                )}
+                
+                <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${option.gradient} flex items-center justify-center mb-3`}>
+                  <IconComponent className="w-5 h-5 text-white" />
+                </div>
+                
+                <h4 className="font-medium text-sm mb-1">{option.title}</h4>
+                <p className="text-xs text-muted-foreground">{option.description}</p>
+              </button>
+            );
+          })}
+        </div>
+        
+        {savePreferencesMutation.isPending && (
+          <p className="text-xs text-muted-foreground mt-3 text-center">Saving preferences...</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
