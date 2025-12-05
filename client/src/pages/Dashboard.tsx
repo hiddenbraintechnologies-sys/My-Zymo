@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import type { Event } from "@shared/schema";
+import type { Event, EventGroup } from "@shared/schema";
 import Navbar from "@/components/Navbar";
 import {
   Dialog,
@@ -37,6 +37,11 @@ export default function Dashboard() {
 
   const { data: followedPublicEvents } = useQuery<Event[]>({
     queryKey: ["/api/events/followed"],
+    enabled: !!user,
+  });
+
+  const { data: groups } = useQuery<EventGroup[]>({
+    queryKey: ["/api/groups"],
     enabled: !!user,
   });
 
@@ -78,10 +83,21 @@ export default function Dashboard() {
                 </h1>
                 <p className="text-white/80 text-sm md:text-lg">Create and share your celebrations with friends and family</p>
               </div>
-              <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
                 <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
                   <div className="text-xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
                   <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap">My Events</div>
+                </div>
+                <div 
+                  className="text-center bg-gradient-to-br from-purple-500/30 to-violet-500/30 backdrop-blur-sm border border-purple-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center cursor-pointer hover:from-purple-500/40 hover:to-violet-500/40 transition-all"
+                  onClick={() => setLocation("/groups")}
+                  data-testid="stat-groups"
+                >
+                  <div className="text-xl md:text-3xl font-bold text-white">{groups?.length || 0}</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <UsersRound className="w-3 h-3" />
+                    Groups
+                  </div>
                 </div>
                 <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
                   <div className="text-xl md:text-3xl font-bold text-white">{publicEvents?.length || 0}</div>
@@ -97,7 +113,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Action Cards - Vibrant and Colorful */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 dark:from-orange-950/20 dark:to-amber-950/20 shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setCreateEventDialogOpen(true)} 
@@ -136,6 +152,27 @@ export default function Dashboard() {
               </CardTitle>
               <CardDescription className="text-amber-600 dark:text-amber-300">
                 View and manage all your events
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card 
+            className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-100 via-violet-50 to-purple-200 dark:from-purple-950/20 dark:to-violet-950/20 shadow-lg hover:shadow-xl transition-all" 
+            onClick={() => setLocation("/groups")} 
+            data-testid="card-quick-action-groups"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-400 rounded-xl shadow-md">
+                  <UsersRound className="w-6 h-6 text-white" />
+                </div>
+                <Badge className="bg-purple-400 text-white">{groups?.length || 0}</Badge>
+              </div>
+              <CardTitle className="text-xl font-bold text-purple-700 dark:text-purple-100">
+                Group Events
+              </CardTitle>
+              <CardDescription className="text-purple-600 dark:text-purple-300">
+                Plan together with polls & expense tracking
               </CardDescription>
             </CardHeader>
           </Card>
