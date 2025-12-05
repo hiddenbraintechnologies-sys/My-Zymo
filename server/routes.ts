@@ -136,6 +136,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user event preferences
+  app.post('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { eventPreferences, onboardingCompleted } = req.body;
+      
+      console.log('[Preferences Update] User ID:', userId);
+      console.log('[Preferences Update] Preferences:', eventPreferences);
+      
+      const updatedUser = await storage.updateUserProfile(userId, {
+        eventPreferences: eventPreferences || [],
+        onboardingCompleted: onboardingCompleted ?? true,
+      });
+      
+      res.json(sanitizeUser(updatedUser));
+    } catch (error: any) {
+      console.error("Error updating preferences:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
+    }
+  });
+
   // === Event Management APIs ===
   
   // Get events accessible to the user (created by them or invited to, including sample events)

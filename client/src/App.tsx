@@ -28,6 +28,7 @@ import GroupPlanning from "@/pages/GroupPlanning";
 import GroupDetail from "@/pages/GroupDetail";
 import Chat from "@/pages/Chat";
 import ChatInvite from "@/pages/ChatInvite";
+import EventPreferencesOnboarding from "@/pages/EventPreferencesOnboarding";
 import NotFound from "@/pages/not-found";
 
 // Universal post-auth redirect handler
@@ -84,6 +85,7 @@ function Router() {
       <Route path="/vendor/dashboard" component={VendorDashboard} />
       <Route path="/groups" component={GroupPlanning} />
       <Route path="/groups/:id" component={GroupDetail} />
+      <Route path="/onboarding/preferences" component={EventPreferencesOnboarding} />
       <Route component={NotFound} />
     </Switch>
   );

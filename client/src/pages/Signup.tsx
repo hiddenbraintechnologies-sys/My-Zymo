@@ -35,7 +35,7 @@ export default function Signup() {
         title: "Account created!",
         description: "Welcome to Myzymo!",
       });
-      navigate("/profile");
+      navigate("/onboarding/preferences");
     },
     onError: (error: any) => {
       toast({
