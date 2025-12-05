@@ -620,7 +620,7 @@ Looking forward to planning together!`;
 
           {/* Itinerary Tab */}
           <TabsContent value="itinerary" className="space-y-6">
-            <ItineraryTab groupId={groupId!} itinerary={itinerary} isAdmin={isAdmin || isCreator} />
+            <ItineraryTab groupId={groupId!} itinerary={itinerary} isAdmin={isAdmin || isCreator} groupLocation={group.location} />
           </TabsContent>
 
           {/* Members Tab */}

@@ -658,13 +658,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Vendor APIs ===
   
-  // Get all vendors
+  // Get all vendors with optional category and location filters
   app.get('/api/vendors', async (req, res) => {
     try {
-      const { category } = req.query;
-      const vendors = category && typeof category === 'string'
-        ? await storage.getVendorsByCategory(category)
-        : await storage.getAllVendors();
+      const { category, location } = req.query;
+      let vendors;
+      
+      if (category && typeof category === 'string') {
+        vendors = await storage.getVendorsByCategory(category);
+        
+        // Apply location filter if provided
+        if (location && typeof location === 'string') {
+          const locationLower = location.toLowerCase();
+          vendors = vendors.filter(v => 
+            v.location?.toLowerCase().includes(locationLower)
+          );
+        }
+      } else {
+        vendors = await storage.getAllVendors();
+        
+        // Apply location filter if provided
+        if (location && typeof location === 'string') {
+          const locationLower = location.toLowerCase();
+          vendors = vendors.filter(v => 
+            v.location?.toLowerCase().includes(locationLower)
+          );
+        }
+      }
+      
       res.json(vendors);
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -2464,6 +2485,26 @@ Return your response as a JSON object with this exact structure:
   // Update itinerary item
   app.patch('/api/itinerary/:itemId', isAuthenticated, async (req: any, res) => {
     try {
+      const item = await storage.updateItineraryItem(req.params.itemId, req.body);
+      if (!item) {
+        return res.status(404).json({ message: 'Itinerary item not found' });
+      }
+      res.json(item);
+    } catch (error: any) {
+      console.error('Error updating itinerary item:', error);
+      res.status(500).json({ message: error.message || 'Failed to update itinerary item' });
+    }
+  });
+
+  // Update itinerary item (group-based route for booking vendors)
+  app.patch('/api/groups/:id/itinerary/:itemId', isAuthenticated, async (req: any, res) => {
+    try {
+      // Verify user is a member of the group
+      const isMember = await storage.isUserEventGroupMember(req.params.id, req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+      
       const item = await storage.updateItineraryItem(req.params.itemId, req.body);
       if (!item) {
         return res.status(404).json({ message: 'Itinerary item not found' });
