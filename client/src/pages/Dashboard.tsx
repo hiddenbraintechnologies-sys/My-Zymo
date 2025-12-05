@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound } from "lucide-react";
+import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +66,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
-        {/* Welcome Banner - Hero Image Design */}
+        {/* Welcome Banner - Enhanced Hero Design with Floating Icons */}
         <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
@@ -74,19 +74,64 @@ export default function Dashboard() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          <div className="relative z-10 p-4 md:p-8 min-h-[120px] md:min-h-[140px] flex items-center">
+          
+          {/* Floating Decorative Icons */}
+          <div className="absolute top-4 left-4 md:top-6 md:left-8 z-10">
+            <div className="bg-gradient-to-br from-orange-500/30 to-amber-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '3s' }}>
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute top-8 right-4 md:top-4 md:right-[200px] z-10 hidden sm:block">
+            <div className="bg-gradient-to-br from-pink-500/30 to-rose-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }}>
+              <PartyPopper className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-16 left-8 md:bottom-4 md:left-[120px] z-10 hidden md:block">
+            <div className="bg-gradient-to-br from-violet-500/30 to-purple-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '2.8s', animationDelay: '1s' }}>
+              <Heart className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-4 right-4 md:bottom-6 md:right-8 z-10 hidden sm:block">
+            <div className="bg-gradient-to-br from-amber-500/30 to-yellow-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '0.3s' }}>
+              <Star className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          
+          <div className="relative z-10 p-4 md:p-8 min-h-[140px] md:min-h-[180px] flex items-center">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
               <div>
+                {/* Category Badge */}
+                <div className="mb-2 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/40 to-amber-500/40 backdrop-blur-sm border border-orange-300/50 text-xs font-medium text-white">
+                  <Sparkles className="w-3 h-3 mr-1.5" />
+                  Dashboard
+                </div>
                 <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 flex items-center gap-2 md:gap-3 text-white">
-                  <Sparkles className="w-5 h-5 md:w-7 md:h-7" />
-                  Welcome {user.firstName}
+                  Welcome back, {user.firstName}!
                 </h1>
-                <p className="text-white/80 text-sm md:text-lg">Create and share your celebrations with friends and family</p>
+                <p className="text-white/80 text-sm md:text-lg mb-3">Create and share your celebrations with friends and family</p>
+                {/* Quick Action Pills */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <Calendar className="w-3.5 h-3.5 text-orange-300" />
+                    <span className="text-xs text-white">Events</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <Users className="w-3.5 h-3.5 text-purple-300" />
+                    <span className="text-xs text-white">Groups</span>
+                  </div>
+                  <div className="hidden md:flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <Gift className="w-3.5 h-3.5 text-pink-300" />
+                    <span className="text-xs text-white">Celebrations</span>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
+                <div className="text-center bg-gradient-to-br from-orange-500/30 to-amber-500/30 backdrop-blur-sm border border-orange-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
                   <div className="text-xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
-                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap">My Events</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Events
+                  </div>
                 </div>
                 <div 
                   className="text-center bg-gradient-to-br from-purple-500/30 to-violet-500/30 backdrop-blur-sm border border-purple-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center cursor-pointer hover:from-purple-500/40 hover:to-violet-500/40 transition-all"
@@ -99,13 +144,19 @@ export default function Dashboard() {
                     Groups
                   </div>
                 </div>
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
+                <div className="text-center bg-gradient-to-br from-teal-500/30 to-cyan-500/30 backdrop-blur-sm border border-teal-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
                   <div className="text-xl md:text-3xl font-bold text-white">{publicEvents?.length || 0}</div>
-                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap">Public</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    Public
+                  </div>
                 </div>
-                <div className="text-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
+                <div className="text-center bg-gradient-to-br from-rose-500/30 to-pink-500/30 backdrop-blur-sm border border-rose-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
                   <div className="text-xl md:text-3xl font-bold text-white">{followedPublicEvents?.length || 0}</div>
-                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap">Followed</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <Heart className="w-3 h-3" />
+                    Following
+                  </div>
                 </div>
               </div>
             </div>
