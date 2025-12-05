@@ -21,9 +21,22 @@ The frontend employs a vibrant, celebration-themed design with an orange/coral c
 **Vibrant Design System:**
 *   **Primary Color Palette:** Warm celebration theme with orange/amber/coral gradients as the primary color scheme throughout the application
 *   **Color Gradients:** Sophisticated use of CSS gradients for depth and energy, featuring warm tones (orange/amber/yellow) with softer saturation for a refined look
-*   **Dashboard Welcome Banner:** Full-width gradient hero section with orange-amber gradient, pattern overlay, Sparkles icon, and event statistics cards with glass-morphism effects
+*   **Enhanced Hero Banner System:** Unified banner design across all pages with:
+    *   **Floating Decorative Icons:** Glassmorphism icons in corners with gradient backgrounds, bounce animations (staggered 2.5-3.2s durations), and border-white/20 styling
+    *   **Category Badges:** Gradient pills with icons above titles indicating section context (e.g., "Dashboard", "Events", "Marketplace", "Group Planning")
+    *   **Quick Action Pills:** Glassmorphism pills below subtitles with themed colored icons for contextual actions
+*   **Themed Hero Carousel:** Six unique themed slides on homepage:
+    *   Celebrations: Orange/amber theme with Sparkles, PartyPopper, Music, Star icons
+    *   Reunions: Purple/pink theme with GraduationCap, Camera, Users, Heart icons
+    *   Group Rides: Blue/cyan theme with Bike, Mountain, Route, Wind icons
+    *   Fitness: Green/emerald theme with Flower2, Dumbbell, Heart, Zap icons
+    *   Sports: Red/orange theme with Trophy, Timer, Flame, Zap icons
+    *   Birthdays: Pink/violet theme with Cake, Gift, PartyPopper, Star icons
+*   **Dashboard Welcome Banner:** Full-width gradient hero section with floating celebration icons, pattern overlay, statistics cards with gradient backgrounds and glass-morphism effects
 *   **Dashboard Chat Section:** Always-visible chat with warm orange-amber gradient headers matching the overall celebration theme
-*   **Events Page Hero:** Matching orange-amber gradient (`from-orange-500 via-amber-500 to-orange-600`) for visual consistency
+*   **Events Page Hero:** Enhanced with floating icons (Calendar, PartyPopper, Gift, Star), category badge, and event type quick action pills
+*   **Vendors Page Hero:** Marketplace-themed with floating icons (Store, Camera, Utensils, Palette), teal gradient badge, and vendor category pills
+*   **Group Planning Hero:** Purple-themed with floating icons (Users, GraduationCap, Bike, Heart), category badge, and event type pills
 *   **Color-Coded Quick Actions:** Three distinct gradient cards (orange for Create Event, blue for My Events, purple for Find Vendors) with themed icons and badges
 *   **Rotating Event Cards:** Five warm gradient color schemes using orange/amber/yellow variations that rotate by index for visual variety while maintaining thematic coherence
 *   **Gradient Typography:** Section headers use warm gradient text (bg-clip-text technique) with orange-amber tones for visual hierarchy
