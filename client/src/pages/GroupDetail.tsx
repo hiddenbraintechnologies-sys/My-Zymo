@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, Link, useRoute } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,7 +39,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SiWhatsapp } from "react-icons/si";
-import type { EventGroup, EventGroupMember, User, GroupPoll, GroupPollOption, GroupPollVote, GroupItineraryItem, GroupExpense } from "@shared/schema";
+import type { EventGroup, EventGroupMember, User, GroupPoll, GroupPollOption, GroupPollVote, GroupItineraryItem, GroupExpense, GroupExpenseSplit } from "@shared/schema";
+
+type ExpenseWithSplits = GroupExpense & { 
+  paidBy: User; 
+  splits: (GroupExpenseSplit & { user: User })[] 
+};
 
 type GroupMemberWithUser = EventGroupMember & { user: User };
 
@@ -54,7 +59,7 @@ type GroupWithFullDetails = EventGroup & {
   members: GroupMemberWithUser[];
   polls?: GroupPollWithDetails[];
   itinerary?: GroupItineraryItem[];
-  expenses?: GroupExpense[];
+  expenses?: ExpenseWithSplits[];
 };
 
 const ROLE_OPTIONS = [
@@ -175,7 +180,7 @@ export default function GroupDetail() {
   });
 
   // Fetch expenses
-  const { data: expenses } = useQuery<GroupExpense[]>({
+  const { data: expenses } = useQuery<ExpenseWithSplits[]>({
     queryKey: ["/api/groups", groupId, "expenses"],
     enabled: !!user && !!groupId,
   });
@@ -874,7 +879,7 @@ function OverviewTab({
   group: GroupWithFullDetails; 
   polls?: GroupPollWithDetails[];
   itinerary?: GroupItineraryItem[];
-  expenses?: GroupExpense[];
+  expenses?: ExpenseWithSplits[];
 }) {
   const activePolls = polls?.filter(p => p.status === "active") || [];
   const upcomingItems = itinerary?.filter(i => new Date(i.startTime) > new Date()).slice(0, 3) || [];
@@ -1526,11 +1531,12 @@ function ExpensesTab({
 }: { 
   groupId: string;
   group: GroupWithFullDetails;
-  expenses?: GroupExpense[];
+  expenses?: ExpenseWithSplits[];
   members?: GroupMemberWithUser[];
   isAdmin: boolean;
 }) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
@@ -1636,6 +1642,63 @@ function ExpensesTab({
     acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
     return acc;
   }, {} as Record<string, number>) || {};
+
+  // Calculate member balances (what they paid - what they owe)
+  const memberBalances = useMemo(() => {
+    if (!expenses || !members || expenses.length === 0) return [];
+
+    const balances = new Map<string, { paid: number; owes: number }>();
+
+    // Initialize all members
+    members.forEach(m => {
+      balances.set(m.userId, { paid: 0, owes: 0 });
+    });
+
+    // Calculate what each person paid and owes
+    expenses.forEach(expense => {
+      // Add to paid amount for the payer
+      const payer = balances.get(expense.paidById);
+      if (payer) {
+        payer.paid += Number(expense.amount);
+      }
+
+      // Add to owes amount for each split
+      expense.splits?.forEach(split => {
+        const member = balances.get(split.userId);
+        if (member) {
+          member.owes += Number(split.amount);
+        }
+      });
+    });
+
+    // Convert to array with net balance
+    return members.map(m => {
+      const balance = balances.get(m.userId) || { paid: 0, owes: 0 };
+      const net = balance.paid - balance.owes;
+      return {
+        member: m,
+        paid: balance.paid,
+        owes: balance.owes,
+        net: net,
+        status: net > 0.01 ? "receive" : net < -0.01 ? "pay" : "settled"
+      };
+    }).sort((a, b) => b.net - a.net); // Sort by net balance (receivers first)
+  }, [expenses, members]);
+
+  // Find treasurer or admin to pay
+  const paymentRecipient = useMemo(() => {
+    const treasurer = members?.find(m => m.role === "treasurer");
+    if (treasurer) return { member: treasurer, role: "Treasurer" };
+    
+    const admin = members?.find(m => m.role === "admin");
+    if (admin) return { member: admin, role: "Admin" };
+    
+    // Fallback to group creator
+    const creator = members?.find(m => m.userId === group.createdById);
+    if (creator) return { member: creator, role: "Organizer" };
+    
+    return null;
+  }, [members, group.createdById]);
 
   const CATEGORIES = ["venue", "food", "transport", "decoration", "entertainment", "other"];
 
@@ -2099,6 +2162,142 @@ function ExpensesTab({
             <p className="text-muted-foreground text-center mb-4">
               Track shared expenses for your event
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Settlement Summary */}
+      {memberBalances.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Split className="w-5 h-5 text-orange-500" />
+              Settlement Summary
+            </CardTitle>
+            <CardDescription>
+              {paymentRecipient ? (
+                <>
+                  Payments should be made to <span className="font-semibold text-foreground">{paymentRecipient.member.user.firstName}</span> ({paymentRecipient.role})
+                </>
+              ) : (
+                "Track what each member owes or is owed"
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">Member</th>
+                    <th className="px-4 py-3 text-right font-semibold hidden md:table-cell">Paid</th>
+                    <th className="px-4 py-3 text-right font-semibold hidden md:table-cell">Owes</th>
+                    <th className="px-4 py-3 text-right font-semibold">Net</th>
+                    <th className="px-4 py-3 text-center font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {memberBalances.map((balance, index) => {
+                    const isCurrentUser = balance.member.userId === user?.id;
+                    return (
+                      <tr 
+                        key={balance.member.userId} 
+                        className={`transition-colors ${isCurrentUser ? "bg-orange-50/50 dark:bg-orange-950/20" : "hover:bg-muted/30"}`}
+                        data-testid={`row-settlement-${index + 1}`}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={balance.member.user.profileImageUrl || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {balance.member.user.firstName?.[0]}{balance.member.user.lastName?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium flex items-center gap-2">
+                                {balance.member.user.firstName} {balance.member.user.lastName}
+                                {isCurrentUser && (
+                                  <Badge variant="outline" className="text-xs">You</Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground md:hidden">
+                                Paid: ₹{balance.paid.toLocaleString("en-IN")} • Owes: ₹{balance.owes.toLocaleString("en-IN")}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right hidden md:table-cell">
+                          <span className="flex items-center justify-end">
+                            <IndianRupee className="w-3 h-3" />
+                            {balance.paid.toLocaleString("en-IN")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right hidden md:table-cell">
+                          <span className="flex items-center justify-end">
+                            <IndianRupee className="w-3 h-3" />
+                            {balance.owes.toLocaleString("en-IN")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          <span className={`flex items-center justify-end ${balance.status === "receive" ? "text-green-600" : balance.status === "pay" ? "text-red-600" : "text-muted-foreground"}`}>
+                            {balance.net > 0 ? "+" : ""}
+                            <IndianRupee className="w-3 h-3" />
+                            {Math.abs(balance.net).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {balance.status === "receive" ? (
+                            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                              To Receive
+                            </Badge>
+                          ) : balance.status === "pay" ? (
+                            <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                              To Pay
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">Settled</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Payment Instructions for current user */}
+            {user && memberBalances.find(b => b.member.userId === user.id && b.status === "pay") && paymentRecipient && (
+              <div className="p-4 border-t bg-red-50/50 dark:bg-red-950/20">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                  <div>
+                    <div className="font-medium text-red-700 dark:text-red-400">
+                      You need to pay ₹{Math.abs(memberBalances.find(b => b.member.userId === user.id)?.net || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className="text-sm text-red-600/80 dark:text-red-400/80">
+                      Please pay {paymentRecipient.member.user.firstName} ({paymentRecipient.role}) to settle your balance
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Positive balance message for current user */}
+            {user && memberBalances.find(b => b.member.userId === user.id && b.status === "receive") && (
+              <div className="p-4 border-t bg-green-50/50 dark:bg-green-950/20">
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                  <div>
+                    <div className="font-medium text-green-700 dark:text-green-400">
+                      You will receive ₹{memberBalances.find(b => b.member.userId === user.id)?.net.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className="text-sm text-green-600/80 dark:text-green-400/80">
+                      Other members will pay you for the expenses you covered
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
