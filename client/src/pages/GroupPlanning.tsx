@@ -121,13 +121,34 @@ export default function GroupPlanning() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const joinCode = urlParams.get('join');
-    if (joinCode && user) {
-      setInviteCode(joinCode.toUpperCase());
-      setJoinDialogOpen(true);
-      // Clean up URL
-      window.history.replaceState({}, '', '/groups');
+    
+    if (joinCode) {
+      if (user) {
+        // User is logged in, open join dialog
+        setInviteCode(joinCode.toUpperCase());
+        setJoinDialogOpen(true);
+        // Clean up URL
+        window.history.replaceState({}, '', '/groups');
+        // Clear any stored join code
+        sessionStorage.removeItem('pendingJoinCode');
+      } else if (!authLoading) {
+        // User is not logged in, store the join code for after login
+        sessionStorage.setItem('pendingJoinCode', joinCode.toUpperCase());
+      }
     }
-  }, [user]);
+  }, [user, authLoading]);
+
+  // Check for pending join code after login
+  useEffect(() => {
+    if (user && !authLoading) {
+      const pendingCode = sessionStorage.getItem('pendingJoinCode');
+      if (pendingCode) {
+        setInviteCode(pendingCode);
+        setJoinDialogOpen(true);
+        sessionStorage.removeItem('pendingJoinCode');
+      }
+    }
+  }, [user, authLoading]);
 
   // Create group mutation
   const createGroupMutation = useMutation({
@@ -170,7 +191,7 @@ export default function GroupPlanning() {
       const res = await apiRequest(`/api/groups/join/${code}`, "POST");
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
         title: "Joined group!",
@@ -178,6 +199,10 @@ export default function GroupPlanning() {
       });
       setJoinDialogOpen(false);
       setInviteCode("");
+      // Redirect to the group page after joining
+      if (data.group?.id) {
+        setLocation(`/groups/${data.group.id}`);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -230,7 +255,14 @@ export default function GroupPlanning() {
   }
 
   if (!user) {
-    setLocation("/login");
+    // Preserve join code in URL when redirecting to login
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinCode = urlParams.get('join');
+    if (joinCode) {
+      // Store the full return URL with join parameter
+      sessionStorage.setItem('pendingJoinCode', joinCode.toUpperCase());
+    }
+    setLocation("/login?redirect=/groups" + (joinCode ? `?join=${joinCode}` : ""));
     return null;
   }
 

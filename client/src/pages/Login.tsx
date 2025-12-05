@@ -25,6 +25,12 @@ export default function Login() {
   const [showBiometric, setShowBiometric] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Get redirect URL from query params
+  const getRedirectUrl = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('redirect') || null;
+  };
+
   const loginMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       await apiRequest("/api/auth/login", "POST", data);
@@ -40,6 +46,13 @@ export default function Login() {
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
+      
+      // Check for redirect URL first
+      const redirectUrl = getRedirectUrl();
+      if (redirectUrl) {
+        navigate(redirectUrl);
+        return;
+      }
       
       // Redirect admin users to admin dashboard
       if (user.role === "super_admin" || user.role === "admin" || user.role === "master_user") {
@@ -80,6 +93,13 @@ export default function Login() {
         title: "Welcome back!",
         description: "Biometric authentication successful.",
       });
+      
+      // Check for redirect URL first
+      const redirectUrl = getRedirectUrl();
+      if (redirectUrl) {
+        navigate(redirectUrl);
+        return;
+      }
       
       // Redirect admin users to admin dashboard
       if (user.role === "super_admin" || user.role === "admin" || user.role === "master_user") {
@@ -205,7 +225,14 @@ export default function Login() {
 
               <Button
                 variant="outline"
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => {
+                  // Store redirect URL for social login
+                  const redirectUrl = getRedirectUrl();
+                  if (redirectUrl) {
+                    sessionStorage.setItem('authRedirect', redirectUrl);
+                  }
+                  window.location.href = "/api/login";
+                }}
                 data-testid="button-replit-login"
                 className="w-full gap-2"
               >
@@ -226,8 +253,8 @@ export default function Login() {
               <div className="text-center text-sm">
                 Don't have an account?{" "}
                 <Button
-                  variant="link"
-                  className="p-0"
+                  variant="ghost"
+                  className="p-0 h-auto underline text-primary"
                   onClick={() => navigate("/signup")}
                   data-testid="link-signup"
                 >
