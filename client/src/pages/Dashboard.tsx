@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift, MessageCircle, Bell, Camera, Store, GraduationCap, Cake, Bike, Dumbbell, Home, Gem, Music, Mountain, Trophy, Baby } from "lucide-react";
+import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift, MessageCircle, Bell, Camera, Store, GraduationCap, Cake, Bike, Dumbbell, Home, Gem, Music, Mountain, Trophy, Baby, Check, Copy, Share2 } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import reunionBg from "@assets/stock_images/college_reunion_grad_32cdfc94.jpg";
 import birthdayBg from "@assets/stock_images/birthday_party_celeb_2a4d00f8.jpg";
@@ -16,6 +18,9 @@ import familyBg from "@assets/stock_images/family_gathering_cel_69f4e3bd.jpg";
 import babyShowerBg from "@assets/stock_images/baby_shower_celebrat_f32cb2d3.jpg";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Event, EventGroup } from "@shared/schema";
 import Navbar from "@/components/Navbar";
 import {
@@ -30,6 +35,105 @@ import QuoteDialog from "@/components/QuoteDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { LucideIcon } from "lucide-react";
+
+// Category-specific form content
+const FORM_CONTENT: Record<string, {
+  title: string;
+  description: string;
+  namePlaceholder: string;
+  descriptionPlaceholder: string;
+  locationPlaceholder: string;
+  eventTypes: { value: string; label: string }[];
+  defaultEventType: string;
+}> = {
+  reunion: {
+    title: "Plan Your Reunion",
+    description: "Reconnect with old friends and create new memories",
+    namePlaceholder: "e.g., Class of 2015 Reunion",
+    descriptionPlaceholder: "e.g., 10-year reunion of our college batch",
+    locationPlaceholder: "e.g., Delhi, Mumbai",
+    eventTypes: [
+      { value: "college_reunion", label: "College Reunion" },
+      { value: "school_reunion", label: "School Reunion" },
+      { value: "family_gathering", label: "Family Reunion" },
+      { value: "corporate_event", label: "Alumni Meet" },
+    ],
+    defaultEventType: "college_reunion",
+  },
+  group_ride: {
+    title: "Plan Your Group Ride",
+    description: "Organize an exciting ride adventure with your crew",
+    namePlaceholder: "e.g., Leh-Ladakh Bike Trip",
+    descriptionPlaceholder: "e.g., Weekend ride to the mountains",
+    locationPlaceholder: "e.g., Manali, Goa",
+    eventTypes: [
+      { value: "group_ride", label: "Group Ride" },
+      { value: "bike_rally", label: "Bike Rally" },
+      { value: "cycling_trip", label: "Cycling Trip" },
+      { value: "adventure_trip", label: "Road Trip" },
+    ],
+    defaultEventType: "group_ride",
+  },
+  fitness: {
+    title: "Plan Your Fitness Activity",
+    description: "Get fit together with your workout buddies",
+    namePlaceholder: "e.g., Morning Yoga Group",
+    descriptionPlaceholder: "e.g., Daily fitness sessions in the park",
+    locationPlaceholder: "e.g., Local park, Gym",
+    eventTypes: [
+      { value: "fitness_bootcamp", label: "Fitness Bootcamp" },
+      { value: "yoga_session", label: "Yoga Session" },
+      { value: "marathon_run", label: "Marathon / Run" },
+      { value: "gym_meetup", label: "Gym Meetup" },
+    ],
+    defaultEventType: "fitness_bootcamp",
+  },
+  trek: {
+    title: "Plan Your Trek",
+    description: "Adventure awaits! Plan your next expedition",
+    namePlaceholder: "e.g., Himalayan Trek 2025",
+    descriptionPlaceholder: "e.g., 5-day trek to base camp",
+    locationPlaceholder: "e.g., Kedarnath, Triund",
+    eventTypes: [
+      { value: "trekking", label: "Trekking" },
+      { value: "adventure_trip", label: "Adventure Trip" },
+      { value: "camping", label: "Camping" },
+    ],
+    defaultEventType: "trekking",
+  },
+  sports: {
+    title: "Plan Your Sports Event",
+    description: "Organize matches and tournaments with your team",
+    namePlaceholder: "e.g., Weekend Cricket League",
+    descriptionPlaceholder: "e.g., Friendly match between office teams",
+    locationPlaceholder: "e.g., Sports complex, Stadium",
+    eventTypes: [
+      { value: "sports_event", label: "Sports Event" },
+      { value: "cricket_match", label: "Cricket Match" },
+      { value: "football_match", label: "Football Match" },
+      { value: "tournament", label: "Tournament" },
+    ],
+    defaultEventType: "sports_event",
+  },
+};
+
+const DEFAULT_FORM_CONTENT = {
+  title: "Create Planning Group",
+  description: "Start planning your event together with friends and family",
+  namePlaceholder: "e.g., Raj's Birthday Bash Planning",
+  descriptionPlaceholder: "What are we planning?",
+  locationPlaceholder: "e.g., Mumbai",
+  eventTypes: [
+    { value: "college_reunion", label: "College Reunion" },
+    { value: "birthday_party", label: "Birthday Party" },
+    { value: "wedding", label: "Wedding" },
+    { value: "group_ride", label: "Group Ride" },
+    { value: "trekking", label: "Trekking" },
+    { value: "sports_event", label: "Sports Event" },
+    { value: "other", label: "Other" },
+  ],
+  defaultEventType: "",
+};
 
 interface EventTypeConfig {
   type: string;
@@ -53,16 +157,122 @@ interface EventTypeConfig {
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [selectedEventType, setSelectedEventType] = useState<EventTypeConfig | null>(null);
   const [inviteCode, setInviteCode] = useState("");
+  
+  // Create form state
+  const [createFormOpen, setCreateFormOpen] = useState(false);
+  const [createFormCategory, setCreateFormCategory] = useState<string | null>(null);
+  const [createdGroup, setCreatedGroup] = useState<{ id: string; name: string; inviteCode: string } | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    eventType: "",
+    eventDate: "",
+    locationPreference: "",
+    budget: "",
+  });
 
   const openEventDialog = (config: EventTypeConfig) => {
     setSelectedEventType(config);
     setInviteCode("");
     setEventDialogOpen(true);
+  };
+  
+  // Open create form with category context
+  const openCreateForm = (category: string) => {
+    const content = FORM_CONTENT[category] || DEFAULT_FORM_CONTENT;
+    setCreateFormCategory(category);
+    setFormData({
+      name: "",
+      description: "",
+      eventType: content.defaultEventType,
+      eventDate: "",
+      locationPreference: "",
+      budget: "",
+    });
+    setCreatedGroup(null);
+    setEventDialogOpen(false); // Close the event type dialog
+    setCreateFormOpen(true);
+  };
+  
+  // Create group mutation
+  const createGroupMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await apiRequest("/api/groups", "POST", {
+        name: data.name,
+        description: data.description || null,
+        eventType: data.eventType || null,
+        eventDate: data.eventDate || null,
+        locationPreference: data.locationPreference || null,
+        budget: data.budget ? parseInt(data.budget) : null,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCreatedGroup({
+        id: data.id,
+        name: data.name,
+        inviteCode: data.inviteCode,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create group",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleCreateGroup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for your group",
+        variant: "destructive",
+      });
+      return;
+    }
+    createGroupMutation.mutate(formData);
+  };
+  
+  const copyInviteCode = () => {
+    if (createdGroup?.inviteCode) {
+      navigator.clipboard.writeText(createdGroup.inviteCode);
+      toast({
+        title: "Copied!",
+        description: "Invite code copied to clipboard",
+      });
+    }
+  };
+  
+  const shareViaWhatsApp = () => {
+    if (createdGroup) {
+      const message = `Join my ${createdGroup.name} planning group on Myzymo! Use invite code: ${createdGroup.inviteCode}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, "_blank");
+    }
+  };
+  
+  const closeCreateForm = () => {
+    setCreateFormOpen(false);
+    setCreateFormCategory(null);
+    setCreatedGroup(null);
+    setFormData({
+      name: "",
+      description: "",
+      eventType: "",
+      eventDate: "",
+      locationPreference: "",
+      budget: "",
+    });
   };
 
   
@@ -903,8 +1113,7 @@ export default function Dashboard() {
                 <Card 
                   className={`hover-elevate cursor-pointer border-2 ${selectedEventType.colors.border} bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/30 dark:to-gray-900/30`}
                   onClick={() => {
-                    setEventDialogOpen(false);
-                    setLocation(selectedEventType.createPath);
+                    openCreateForm(selectedEventType.type);
                   }}
                   data-testid="option-create-event"
                 >
@@ -968,6 +1177,183 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Form Dialog - Opens on Dashboard */}
+      <Dialog open={createFormOpen} onOpenChange={(open) => {
+        if (!open) closeCreateForm();
+      }}>
+        <DialogContent className="max-w-md" data-testid="dialog-create-form">
+          {createdGroup ? (
+            // Success Screen
+            <div className="text-center py-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Check className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Group Created!</h3>
+              <p className="text-muted-foreground mb-6">
+                Share the invite code with friends to start planning together
+              </p>
+              
+              {/* Invite Code Display */}
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200 dark:border-orange-800 rounded-xl p-4 mb-4">
+                <div className="text-sm text-muted-foreground mb-1">Invite Code</div>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-2xl font-bold tracking-wider text-orange-600 dark:text-orange-400">
+                    {createdGroup.inviteCode}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={copyInviteCode}
+                    data-testid="button-copy-invite"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Share Options */}
+              <div className="flex gap-3 mb-4">
+                <Button 
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                  onClick={shareViaWhatsApp}
+                  data-testid="button-share-whatsapp"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share via WhatsApp
+                </Button>
+              </div>
+              
+              {/* Save & Close */}
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={closeCreateForm}
+                data-testid="button-save-close"
+              >
+                Save & Close
+              </Button>
+            </div>
+          ) : (
+            // Create Form
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-orange-500" />
+                  {createFormCategory && FORM_CONTENT[createFormCategory] 
+                    ? FORM_CONTENT[createFormCategory].title 
+                    : DEFAULT_FORM_CONTENT.title}
+                </DialogTitle>
+                <DialogDescription>
+                  {createFormCategory && FORM_CONTENT[createFormCategory] 
+                    ? FORM_CONTENT[createFormCategory].description 
+                    : DEFAULT_FORM_CONTENT.description}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateGroup} className="space-y-4">
+                <div>
+                  <Label htmlFor="group-name">Name *</Label>
+                  <Input
+                    id="group-name"
+                    placeholder={createFormCategory && FORM_CONTENT[createFormCategory] 
+                      ? FORM_CONTENT[createFormCategory].namePlaceholder 
+                      : DEFAULT_FORM_CONTENT.namePlaceholder}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    data-testid="input-group-name"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="group-description">Description</Label>
+                  <Textarea
+                    id="group-description"
+                    placeholder={createFormCategory && FORM_CONTENT[createFormCategory] 
+                      ? FORM_CONTENT[createFormCategory].descriptionPlaceholder 
+                      : DEFAULT_FORM_CONTENT.descriptionPlaceholder}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="resize-none"
+                    rows={3}
+                    data-testid="input-group-description"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="event-type">Event Type</Label>
+                    <Select
+                      value={formData.eventType}
+                      onValueChange={(value) => setFormData({ ...formData, eventType: value })}
+                    >
+                      <SelectTrigger id="event-type" data-testid="select-event-type">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(createFormCategory && FORM_CONTENT[createFormCategory] 
+                          ? FORM_CONTENT[createFormCategory].eventTypes 
+                          : DEFAULT_FORM_CONTENT.eventTypes
+                        ).map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="event-date">Event Date</Label>
+                    <Input
+                      id="event-date"
+                      type="date"
+                      value={formData.eventDate}
+                      onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+                      data-testid="input-event-date"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="location">Preferred Location</Label>
+                    <Input
+                      id="location"
+                      placeholder={createFormCategory && FORM_CONTENT[createFormCategory] 
+                        ? FORM_CONTENT[createFormCategory].locationPlaceholder 
+                        : DEFAULT_FORM_CONTENT.locationPlaceholder}
+                      value={formData.locationPreference}
+                      onChange={(e) => setFormData({ ...formData, locationPreference: e.target.value })}
+                      data-testid="input-location"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="budget">Budget (INR)</Label>
+                    <Input
+                      id="budget"
+                      type="number"
+                      placeholder="e.g., 50000"
+                      value={formData.budget}
+                      onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                      data-testid="input-budget"
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600" 
+                  disabled={createGroupMutation.isPending}
+                  data-testid="button-submit-create"
+                >
+                  {createGroupMutation.isPending ? "Creating..." : "Create Group"}
+                </Button>
+              </form>
             </>
           )}
         </DialogContent>
