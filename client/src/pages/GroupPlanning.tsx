@@ -93,6 +93,59 @@ const STATUS_COLORS = {
   cancelled: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
 };
 
+// Category-specific form content (headings and placeholders)
+const FORM_CONTENT: Record<string, {
+  title: string;
+  description: string;
+  namePlaceholder: string;
+  descriptionPlaceholder: string;
+  locationPlaceholder: string;
+}> = {
+  reunion: {
+    title: "Plan Your Reunion",
+    description: "Reconnect with old friends and create new memories",
+    namePlaceholder: "e.g., Class of 2015 Reunion",
+    descriptionPlaceholder: "e.g., 10-year reunion of our college batch",
+    locationPlaceholder: "e.g., Delhi, Mumbai",
+  },
+  group_ride: {
+    title: "Plan Your Group Ride",
+    description: "Organize an exciting ride adventure with your crew",
+    namePlaceholder: "e.g., Leh-Ladakh Bike Trip",
+    descriptionPlaceholder: "e.g., Weekend ride to the mountains",
+    locationPlaceholder: "e.g., Manali, Goa",
+  },
+  fitness: {
+    title: "Plan Your Fitness Activity",
+    description: "Get fit together with your workout buddies",
+    namePlaceholder: "e.g., Morning Yoga Group",
+    descriptionPlaceholder: "e.g., Daily fitness sessions in the park",
+    locationPlaceholder: "e.g., Local park, Gym",
+  },
+  trek: {
+    title: "Plan Your Trek",
+    description: "Adventure awaits! Plan your next expedition",
+    namePlaceholder: "e.g., Himalayan Trek 2025",
+    descriptionPlaceholder: "e.g., 5-day trek to base camp",
+    locationPlaceholder: "e.g., Kedarnath, Triund",
+  },
+  sports: {
+    title: "Plan Your Sports Event",
+    description: "Organize matches and tournaments with your team",
+    namePlaceholder: "e.g., Weekend Cricket League",
+    descriptionPlaceholder: "e.g., Friendly match between office teams",
+    locationPlaceholder: "e.g., Sports complex, Stadium",
+  },
+};
+
+const DEFAULT_FORM_CONTENT = {
+  title: "Create Planning Group",
+  description: "Start planning your event together with friends and family",
+  namePlaceholder: "e.g., Raj's Birthday Bash Planning",
+  descriptionPlaceholder: "What are we planning?",
+  locationPlaceholder: "e.g., Mumbai",
+};
+
 export default function GroupPlanning() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -584,18 +637,24 @@ export default function GroupPlanning() {
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                           <Sparkles className="w-5 h-5 text-orange-500" />
-                          Create Planning Group
+                          {eventCategory && FORM_CONTENT[eventCategory] 
+                            ? FORM_CONTENT[eventCategory].title 
+                            : DEFAULT_FORM_CONTENT.title}
                         </DialogTitle>
                         <DialogDescription>
-                          Start planning your event together with friends and family
+                          {eventCategory && FORM_CONTENT[eventCategory] 
+                            ? FORM_CONTENT[eventCategory].description 
+                            : DEFAULT_FORM_CONTENT.description}
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleCreateGroup} className="space-y-4">
                     <div>
-                      <Label htmlFor="group-name">Group Name *</Label>
+                      <Label htmlFor="group-name">Name *</Label>
                       <Input
                         id="group-name"
-                        placeholder="e.g., Raj's Birthday Bash Planning"
+                        placeholder={eventCategory && FORM_CONTENT[eventCategory] 
+                          ? FORM_CONTENT[eventCategory].namePlaceholder 
+                          : DEFAULT_FORM_CONTENT.namePlaceholder}
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         data-testid="input-group-name"
@@ -606,7 +665,9 @@ export default function GroupPlanning() {
                       <Label htmlFor="group-description">Description</Label>
                       <Textarea
                         id="group-description"
-                        placeholder="What are we planning?"
+                        placeholder={eventCategory && FORM_CONTENT[eventCategory] 
+                          ? FORM_CONTENT[eventCategory].descriptionPlaceholder 
+                          : DEFAULT_FORM_CONTENT.descriptionPlaceholder}
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         className="resize-none"
@@ -656,7 +717,9 @@ export default function GroupPlanning() {
                         <Label htmlFor="location">Preferred Location</Label>
                         <Input
                           id="location"
-                          placeholder="e.g., Mumbai"
+                          placeholder={eventCategory && FORM_CONTENT[eventCategory] 
+                            ? FORM_CONTENT[eventCategory].locationPlaceholder 
+                            : DEFAULT_FORM_CONTENT.locationPlaceholder}
                           value={formData.locationPreference}
                           onChange={(e) => setFormData({ ...formData, locationPreference: e.target.value })}
                           data-testid="input-location"
