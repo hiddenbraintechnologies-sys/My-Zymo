@@ -32,6 +32,7 @@ import ChatInvite from "@/pages/ChatInvite";
 import EventPreferencesOnboarding from "@/pages/EventPreferencesOnboarding";
 import ExpenseSplitDemo from "@/pages/ExpenseSplitDemo";
 import EventsDemo from "@/pages/EventsDemo";
+import VendorMarketplaceDemo from "@/pages/VendorMarketplaceDemo";
 import NotFound from "@/pages/not-found";
 
 // Universal post-auth redirect handler
@@ -101,6 +102,7 @@ function Router() {
       <Route path="/onboarding/preferences" component={EventPreferencesOnboarding} />
       <Route path="/split-expenses" component={ExpenseSplitDemo} />
       <Route path="/manage-events" component={EventsDemo} />
+      <Route path="/vendor-marketplace" component={VendorMarketplaceDemo} />
       <Route component={NotFound} />
     </Switch>
   );

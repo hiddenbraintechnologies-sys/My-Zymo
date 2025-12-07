@@ -44,8 +44,10 @@ const features: Feature[] = [
   {
     icon: Store,
     title: "Vendor Marketplace",
-    description: "Browse and book trusted vendors for venues, catering, photography, and decorations.",
-    highlighted: false,
+    description: "Browse and book trusted vendors for venues, catering, photography, and decorations. Find the perfect partners for your celebration!",
+    highlighted: true,
+    badge: "New",
+    link: "/vendor-marketplace",
   },
   {
     icon: Bell,
@@ -78,7 +80,7 @@ export default function Features() {
         
         {/* Highlighted Features - Top Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {features.filter(f => f.highlighted).map((feature, index) => (
+          {features.filter(f => f.highlighted).slice(0, 2).map((feature, index) => (
             <Card 
               key={index} 
               className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 shadow-lg"
@@ -112,6 +114,41 @@ export default function Features() {
             </Card>
           ))}
         </div>
+        
+        {/* Vendor Marketplace - Full Width Highlighted */}
+        {features.filter(f => f.highlighted).slice(2).map((feature, index) => (
+          <Card 
+            key={`vendor-${index}`} 
+            className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 via-cyan-50 to-teal-100 dark:from-teal-950/30 dark:via-cyan-950/20 dark:to-teal-950/30 shadow-lg mb-6"
+            data-testid={`card-feature-highlighted-${index + 2}`}
+            onClick={() => handleFeatureClick(feature)}
+          >
+            {feature.badge && (
+              <Badge className="absolute top-4 right-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
+                <Star className="w-3 h-3 mr-1" />
+                {feature.badge}
+              </Badge>
+            )}
+            {feature.link && (
+              <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-teal-600 dark:text-teal-300 border-teal-300 dark:border-teal-700">
+                Try It Free
+              </Badge>
+            )}
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center shadow-md flex-shrink-0">
+                <feature.icon className="w-7 h-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading font-bold text-2xl mb-2 text-teal-700 dark:text-teal-100">
+                  {feature.title}
+                </h3>
+                <p className="text-teal-600/80 dark:text-teal-200/80 text-base leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            </div>
+          </Card>
+        ))}
 
         {/* Other Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
