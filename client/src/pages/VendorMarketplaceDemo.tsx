@@ -402,9 +402,12 @@ export default function VendorMarketplaceDemo() {
             data-testid="dialog-vendor-detail"
             onOpenAutoFocus={(e) => {
               e.preventDefault();
-              const closeBtn = e.currentTarget.querySelector('[data-testid="button-favorite-detail"]');
-              if (closeBtn instanceof HTMLElement) {
-                closeBtn.focus();
+              const target = e.currentTarget as HTMLElement | null;
+              if (target) {
+                const closeBtn = target.querySelector('[data-testid="button-favorite-detail"]');
+                if (closeBtn instanceof HTMLElement) {
+                  closeBtn.focus();
+                }
               }
             }}
           >
