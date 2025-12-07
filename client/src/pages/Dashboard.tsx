@@ -385,39 +385,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Action Cards - Clean White Design */}
-        <div className="max-w-md mb-8">
-          <Card 
-            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setLocation("/vendors")} 
-            data-testid="card-quick-action-vendors"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
-                  <MapPin className="w-6 h-6 text-white" />
-                </div>
-                <Badge className="bg-orange-300 text-amber-800">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  Explore
-                </Badge>
-              </div>
-              <CardTitle className="text-xl font-bold">
-                Find Vendors
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Browse trusted vendors for your events - venues, caterers, decorators, photographers & more
-              </CardDescription>
-              <div className="flex flex-wrap gap-1 mt-2">
-                <Badge variant="outline" className="text-xs">Venues</Badge>
-                <Badge variant="outline" className="text-xs">Catering</Badge>
-                <Badge variant="outline" className="text-xs">Decor</Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
-        </div>
-
         {/* Feature Tools Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
