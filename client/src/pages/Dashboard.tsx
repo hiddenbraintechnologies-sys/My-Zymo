@@ -36,7 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { LucideIcon } from "lucide-react";
 
-// Category-specific form content
+// Category-specific form content with matching colors from dashboard
 const FORM_CONTENT: Record<string, {
   title: string;
   description: string;
@@ -45,6 +45,14 @@ const FORM_CONTENT: Record<string, {
   locationPlaceholder: string;
   eventTypes: { value: string; label: string }[];
   defaultEventType: string;
+  colors: {
+    iconGradient: string;
+    iconColor: string;
+    buttonGradient: string;
+    successGradient: string;
+    cardBg: string;
+    cardBorder: string;
+  };
 }> = {
   reunion: {
     title: "Plan Your Reunion",
@@ -59,6 +67,14 @@ const FORM_CONTENT: Record<string, {
       { value: "corporate_event", label: "Alumni Meet" },
     ],
     defaultEventType: "college_reunion",
+    colors: {
+      iconGradient: "from-purple-500 to-pink-500",
+      iconColor: "text-purple-500",
+      buttonGradient: "from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
+      successGradient: "from-purple-500 to-pink-500",
+      cardBg: "from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30",
+      cardBorder: "border-purple-200 dark:border-purple-800",
+    },
   },
   group_ride: {
     title: "Plan Your Group Ride",
@@ -73,6 +89,14 @@ const FORM_CONTENT: Record<string, {
       { value: "adventure_trip", label: "Road Trip" },
     ],
     defaultEventType: "group_ride",
+    colors: {
+      iconGradient: "from-blue-500 to-cyan-500",
+      iconColor: "text-blue-500",
+      buttonGradient: "from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600",
+      successGradient: "from-blue-500 to-cyan-500",
+      cardBg: "from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
+      cardBorder: "border-blue-200 dark:border-blue-800",
+    },
   },
   fitness: {
     title: "Plan Your Fitness Activity",
@@ -87,6 +111,14 @@ const FORM_CONTENT: Record<string, {
       { value: "gym_meetup", label: "Gym Meetup" },
     ],
     defaultEventType: "fitness_bootcamp",
+    colors: {
+      iconGradient: "from-green-500 to-emerald-500",
+      iconColor: "text-green-500",
+      buttonGradient: "from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600",
+      successGradient: "from-green-500 to-emerald-500",
+      cardBg: "from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30",
+      cardBorder: "border-green-200 dark:border-green-800",
+    },
   },
   trek: {
     title: "Plan Your Trek",
@@ -100,6 +132,14 @@ const FORM_CONTENT: Record<string, {
       { value: "camping", label: "Camping" },
     ],
     defaultEventType: "trekking",
+    colors: {
+      iconGradient: "from-emerald-500 to-teal-500",
+      iconColor: "text-emerald-500",
+      buttonGradient: "from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600",
+      successGradient: "from-emerald-500 to-teal-500",
+      cardBg: "from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30",
+      cardBorder: "border-emerald-200 dark:border-emerald-800",
+    },
   },
   sports: {
     title: "Plan Your Sports Event",
@@ -114,6 +154,14 @@ const FORM_CONTENT: Record<string, {
       { value: "tournament", label: "Tournament" },
     ],
     defaultEventType: "sports_event",
+    colors: {
+      iconGradient: "from-red-500 to-orange-500",
+      iconColor: "text-red-500",
+      buttonGradient: "from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600",
+      successGradient: "from-red-500 to-orange-500",
+      cardBg: "from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30",
+      cardBorder: "border-red-200 dark:border-red-800",
+    },
   },
 };
 
@@ -133,6 +181,14 @@ const DEFAULT_FORM_CONTENT = {
     { value: "other", label: "Other" },
   ],
   defaultEventType: "",
+  colors: {
+    iconGradient: "from-orange-500 to-amber-500",
+    iconColor: "text-orange-500",
+    buttonGradient: "from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600",
+    successGradient: "from-orange-500 to-amber-500",
+    cardBg: "from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30",
+    cardBorder: "border-orange-200 dark:border-orange-800",
+  },
 };
 
 interface EventTypeConfig {
@@ -262,17 +318,42 @@ export default function Dashboard() {
   };
   
   const closeCreateForm = () => {
-    setCreateFormOpen(false);
-    setCreateFormCategory(null);
-    setCreatedGroup(null);
-    setFormData({
-      name: "",
-      description: "",
-      eventType: "",
-      eventDate: "",
-      locationPreference: "",
-      budget: "",
-    });
+    // If a group was created, navigate to its detail page
+    if (createdGroup) {
+      const groupId = createdGroup.id;
+      setCreateFormOpen(false);
+      setCreateFormCategory(null);
+      setCreatedGroup(null);
+      setFormData({
+        name: "",
+        description: "",
+        eventType: "",
+        eventDate: "",
+        locationPreference: "",
+        budget: "",
+      });
+      setLocation(`/groups/${groupId}`);
+    } else {
+      setCreateFormOpen(false);
+      setCreateFormCategory(null);
+      setCreatedGroup(null);
+      setFormData({
+        name: "",
+        description: "",
+        eventType: "",
+        eventDate: "",
+        locationPreference: "",
+        budget: "",
+      });
+    }
+  };
+  
+  // Helper to get current form colors
+  const getFormColors = () => {
+    if (createFormCategory && FORM_CONTENT[createFormCategory]) {
+      return FORM_CONTENT[createFormCategory].colors;
+    }
+    return DEFAULT_FORM_CONTENT.colors;
   };
 
   
@@ -1188,9 +1269,9 @@ export default function Dashboard() {
       }}>
         <DialogContent className="max-w-md" data-testid="dialog-create-form">
           {createdGroup ? (
-            // Success Screen
+            // Success Screen with themed colors
             <div className="text-center py-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className={`w-16 h-16 bg-gradient-to-br ${getFormColors().successGradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
                 <Check className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Group Created!</h3>
@@ -1198,11 +1279,11 @@ export default function Dashboard() {
                 Share the invite code with friends to start planning together
               </p>
               
-              {/* Invite Code Display */}
-              <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200 dark:border-orange-800 rounded-xl p-4 mb-4">
+              {/* Invite Code Display with themed colors */}
+              <div className={`bg-gradient-to-br ${getFormColors().cardBg} ${getFormColors().cardBorder} border rounded-xl p-4 mb-4`}>
                 <div className="text-sm text-muted-foreground mb-1">Invite Code</div>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl font-bold tracking-wider text-orange-600 dark:text-orange-400">
+                  <span className={`text-2xl font-bold tracking-wider ${getFormColors().iconColor}`}>
                     {createdGroup.inviteCode}
                   </span>
                   <Button 
@@ -1228,22 +1309,24 @@ export default function Dashboard() {
                 </Button>
               </div>
               
-              {/* Save & Close */}
+              {/* Continue to Event - Navigate to group page */}
               <Button 
-                variant="outline" 
-                className="w-full"
+                className={`w-full bg-gradient-to-r ${getFormColors().buttonGradient}`}
                 onClick={closeCreateForm}
                 data-testid="button-save-close"
               >
-                Save & Close
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Continue to Event
               </Button>
             </div>
           ) : (
-            // Create Form
+            // Create Form with themed colors
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-orange-500" />
+                  <div className={`p-1.5 bg-gradient-to-br ${getFormColors().iconGradient} rounded-lg`}>
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
                   {createFormCategory && FORM_CONTENT[createFormCategory] 
                     ? FORM_CONTENT[createFormCategory].title 
                     : DEFAULT_FORM_CONTENT.title}
@@ -1347,7 +1430,7 @@ export default function Dashboard() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600" 
+                  className={`w-full bg-gradient-to-r ${getFormColors().buttonGradient}`}
                   disabled={createGroupMutation.isPending}
                   data-testid="button-submit-create"
                 >
