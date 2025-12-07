@@ -19,6 +19,7 @@ const features: Feature[] = [
     description: "Create and manage all types of events - reunions, parties, group rides, fitness activities, and more. Set dates, locations, and invite your group instantly.",
     highlighted: true,
     badge: "Most Popular",
+    link: "/manage-events",
   },
   {
     icon: IndianRupee,
