@@ -386,33 +386,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Action Cards - Clean White Design */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-          <Card 
-            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setLocation("/groups")} 
-            data-testid="card-quick-action-groups"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-400 rounded-xl shadow-md">
-                  <UsersRound className="w-6 h-6 text-white" />
-                </div>
-                <Badge className="bg-purple-400 text-white">{groups?.length || 0}</Badge>
-              </div>
-              <CardTitle className="text-xl font-bold">
-                Group Events
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Perfect for reunions, group trips & rides - plan together with polls, itinerary & split expenses
-              </CardDescription>
-              <div className="flex flex-wrap gap-1 mt-2">
-                <Badge variant="outline" className="text-xs">Reunions</Badge>
-                <Badge variant="outline" className="text-xs">Trips</Badge>
-                <Badge variant="outline" className="text-xs">Rides</Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
+        <div className="max-w-md mb-8">
           <Card 
             className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/vendors")} 
