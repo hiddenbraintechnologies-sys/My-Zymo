@@ -386,33 +386,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Action Cards - Clean White Design */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <Card 
-            className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
-            onClick={() => setLocation("/events")} 
-            data-testid="card-quick-action-events"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl shadow-md">
-                  <Calendar className="w-6 h-6 text-white" />
-                </div>
-                <Badge className="bg-amber-400 text-amber-800">{privateEvents?.length || 0}</Badge>
-              </div>
-              <CardTitle className="text-xl font-bold">
-                My Events
-              </CardTitle>
-              <CardDescription className="text-sm">
-                View upcoming events, manage invitations, and track RSVPs for all your celebrations
-              </CardDescription>
-              <div className="flex flex-wrap gap-1 mt-2">
-                <Badge variant="outline" className="text-xs">Private</Badge>
-                <Badge variant="outline" className="text-xs">Public</Badge>
-                <Badge variant="outline" className="text-xs">Invites</Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <Card 
             className="hover-elevate cursor-pointer bg-white dark:bg-card border shadow-lg hover:shadow-xl transition-all" 
             onClick={() => setLocation("/groups")} 
