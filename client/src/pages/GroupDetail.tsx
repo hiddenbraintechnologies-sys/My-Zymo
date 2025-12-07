@@ -120,30 +120,263 @@ const THEME_COLORS = {
   ],
 };
 
+// Event type specific themes matching dashboard colors
+const EVENT_TYPE_THEMES: Record<string, {
+  gradient: string;
+  buttonGradient: string;
+  iconColor: string;
+  badgeBg: string;
+  badgeText: string;
+  cardBg: string;
+  cardBorder: string;
+  tabActive: string;
+  accentLight: string;
+  accentDark: string;
+}> = {
+  // Reunion types - Purple/Pink theme
+  college_reunion: {
+    gradient: "from-purple-500 via-pink-500 to-purple-600",
+    buttonGradient: "from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
+    iconColor: "text-purple-500",
+    badgeBg: "bg-purple-100 dark:bg-purple-900/50",
+    badgeText: "text-purple-700 dark:text-purple-300",
+    cardBg: "from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30",
+    cardBorder: "border-purple-200 dark:border-purple-800",
+    tabActive: "data-[state=active]:bg-purple-500",
+    accentLight: "purple-500",
+    accentDark: "purple-400",
+  },
+  school_reunion: {
+    gradient: "from-purple-500 via-pink-500 to-purple-600",
+    buttonGradient: "from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
+    iconColor: "text-purple-500",
+    badgeBg: "bg-purple-100 dark:bg-purple-900/50",
+    badgeText: "text-purple-700 dark:text-purple-300",
+    cardBg: "from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30",
+    cardBorder: "border-purple-200 dark:border-purple-800",
+    tabActive: "data-[state=active]:bg-purple-500",
+    accentLight: "purple-500",
+    accentDark: "purple-400",
+  },
+  // Group ride types - Blue/Cyan theme
+  group_ride: {
+    gradient: "from-blue-500 via-cyan-500 to-blue-600",
+    buttonGradient: "from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600",
+    iconColor: "text-blue-500",
+    badgeBg: "bg-blue-100 dark:bg-blue-900/50",
+    badgeText: "text-blue-700 dark:text-blue-300",
+    cardBg: "from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
+    cardBorder: "border-blue-200 dark:border-blue-800",
+    tabActive: "data-[state=active]:bg-blue-500",
+    accentLight: "blue-500",
+    accentDark: "blue-400",
+  },
+  bike_rally: {
+    gradient: "from-blue-500 via-cyan-500 to-blue-600",
+    buttonGradient: "from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600",
+    iconColor: "text-blue-500",
+    badgeBg: "bg-blue-100 dark:bg-blue-900/50",
+    badgeText: "text-blue-700 dark:text-blue-300",
+    cardBg: "from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
+    cardBorder: "border-blue-200 dark:border-blue-800",
+    tabActive: "data-[state=active]:bg-blue-500",
+    accentLight: "blue-500",
+    accentDark: "blue-400",
+  },
+  cycling_trip: {
+    gradient: "from-blue-500 via-cyan-500 to-blue-600",
+    buttonGradient: "from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600",
+    iconColor: "text-blue-500",
+    badgeBg: "bg-blue-100 dark:bg-blue-900/50",
+    badgeText: "text-blue-700 dark:text-blue-300",
+    cardBg: "from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
+    cardBorder: "border-blue-200 dark:border-blue-800",
+    tabActive: "data-[state=active]:bg-blue-500",
+    accentLight: "blue-500",
+    accentDark: "blue-400",
+  },
+  // Fitness types - Green/Emerald theme
+  fitness_bootcamp: {
+    gradient: "from-green-500 via-emerald-500 to-green-600",
+    buttonGradient: "from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600",
+    iconColor: "text-green-500",
+    badgeBg: "bg-green-100 dark:bg-green-900/50",
+    badgeText: "text-green-700 dark:text-green-300",
+    cardBg: "from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30",
+    cardBorder: "border-green-200 dark:border-green-800",
+    tabActive: "data-[state=active]:bg-green-500",
+    accentLight: "green-500",
+    accentDark: "green-400",
+  },
+  yoga_session: {
+    gradient: "from-green-500 via-emerald-500 to-green-600",
+    buttonGradient: "from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600",
+    iconColor: "text-green-500",
+    badgeBg: "bg-green-100 dark:bg-green-900/50",
+    badgeText: "text-green-700 dark:text-green-300",
+    cardBg: "from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30",
+    cardBorder: "border-green-200 dark:border-green-800",
+    tabActive: "data-[state=active]:bg-green-500",
+    accentLight: "green-500",
+    accentDark: "green-400",
+  },
+  marathon_run: {
+    gradient: "from-green-500 via-emerald-500 to-green-600",
+    buttonGradient: "from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600",
+    iconColor: "text-green-500",
+    badgeBg: "bg-green-100 dark:bg-green-900/50",
+    badgeText: "text-green-700 dark:text-green-300",
+    cardBg: "from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30",
+    cardBorder: "border-green-200 dark:border-green-800",
+    tabActive: "data-[state=active]:bg-green-500",
+    accentLight: "green-500",
+    accentDark: "green-400",
+  },
+  gym_meetup: {
+    gradient: "from-green-500 via-emerald-500 to-green-600",
+    buttonGradient: "from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600",
+    iconColor: "text-green-500",
+    badgeBg: "bg-green-100 dark:bg-green-900/50",
+    badgeText: "text-green-700 dark:text-green-300",
+    cardBg: "from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30",
+    cardBorder: "border-green-200 dark:border-green-800",
+    tabActive: "data-[state=active]:bg-green-500",
+    accentLight: "green-500",
+    accentDark: "green-400",
+  },
+  // Trek types - Emerald/Teal theme
+  trekking: {
+    gradient: "from-emerald-500 via-teal-500 to-emerald-600",
+    buttonGradient: "from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600",
+    iconColor: "text-emerald-500",
+    badgeBg: "bg-emerald-100 dark:bg-emerald-900/50",
+    badgeText: "text-emerald-700 dark:text-emerald-300",
+    cardBg: "from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30",
+    cardBorder: "border-emerald-200 dark:border-emerald-800",
+    tabActive: "data-[state=active]:bg-emerald-500",
+    accentLight: "emerald-500",
+    accentDark: "emerald-400",
+  },
+  adventure_trip: {
+    gradient: "from-emerald-500 via-teal-500 to-emerald-600",
+    buttonGradient: "from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600",
+    iconColor: "text-emerald-500",
+    badgeBg: "bg-emerald-100 dark:bg-emerald-900/50",
+    badgeText: "text-emerald-700 dark:text-emerald-300",
+    cardBg: "from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30",
+    cardBorder: "border-emerald-200 dark:border-emerald-800",
+    tabActive: "data-[state=active]:bg-emerald-500",
+    accentLight: "emerald-500",
+    accentDark: "emerald-400",
+  },
+  camping: {
+    gradient: "from-emerald-500 via-teal-500 to-emerald-600",
+    buttonGradient: "from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600",
+    iconColor: "text-emerald-500",
+    badgeBg: "bg-emerald-100 dark:bg-emerald-900/50",
+    badgeText: "text-emerald-700 dark:text-emerald-300",
+    cardBg: "from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30",
+    cardBorder: "border-emerald-200 dark:border-emerald-800",
+    tabActive: "data-[state=active]:bg-emerald-500",
+    accentLight: "emerald-500",
+    accentDark: "emerald-400",
+  },
+  // Sports types - Red/Orange theme
+  sports_event: {
+    gradient: "from-red-500 via-orange-500 to-red-600",
+    buttonGradient: "from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600",
+    iconColor: "text-red-500",
+    badgeBg: "bg-red-100 dark:bg-red-900/50",
+    badgeText: "text-red-700 dark:text-red-300",
+    cardBg: "from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30",
+    cardBorder: "border-red-200 dark:border-red-800",
+    tabActive: "data-[state=active]:bg-red-500",
+    accentLight: "red-500",
+    accentDark: "red-400",
+  },
+  cricket_match: {
+    gradient: "from-red-500 via-orange-500 to-red-600",
+    buttonGradient: "from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600",
+    iconColor: "text-red-500",
+    badgeBg: "bg-red-100 dark:bg-red-900/50",
+    badgeText: "text-red-700 dark:text-red-300",
+    cardBg: "from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30",
+    cardBorder: "border-red-200 dark:border-red-800",
+    tabActive: "data-[state=active]:bg-red-500",
+    accentLight: "red-500",
+    accentDark: "red-400",
+  },
+  football_match: {
+    gradient: "from-red-500 via-orange-500 to-red-600",
+    buttonGradient: "from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600",
+    iconColor: "text-red-500",
+    badgeBg: "bg-red-100 dark:bg-red-900/50",
+    badgeText: "text-red-700 dark:text-red-300",
+    cardBg: "from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30",
+    cardBorder: "border-red-200 dark:border-red-800",
+    tabActive: "data-[state=active]:bg-red-500",
+    accentLight: "red-500",
+    accentDark: "red-400",
+  },
+  tournament: {
+    gradient: "from-red-500 via-orange-500 to-red-600",
+    buttonGradient: "from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600",
+    iconColor: "text-red-500",
+    badgeBg: "bg-red-100 dark:bg-red-900/50",
+    badgeText: "text-red-700 dark:text-red-300",
+    cardBg: "from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30",
+    cardBorder: "border-red-200 dark:border-red-800",
+    tabActive: "data-[state=active]:bg-red-500",
+    accentLight: "red-500",
+    accentDark: "red-400",
+  },
+};
+
+// Default theme (orange/amber for generic events)
+const DEFAULT_EVENT_THEME = {
+  gradient: "from-orange-500 via-amber-500 to-orange-600",
+  buttonGradient: "from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600",
+  iconColor: "text-orange-500",
+  badgeBg: "bg-orange-100 dark:bg-orange-900/50",
+  badgeText: "text-orange-700 dark:text-orange-300",
+  cardBg: "from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30",
+  cardBorder: "border-orange-200 dark:border-orange-800",
+  tabActive: "data-[state=active]:bg-orange-500",
+  accentLight: "orange-500",
+  accentDark: "orange-400",
+};
+
+// Helper to get theme based on event type
+function getEventTypeTheme(eventType: string | null | undefined) {
+  if (!eventType) return DEFAULT_EVENT_THEME;
+  return EVENT_TYPE_THEMES[eventType] || DEFAULT_EVENT_THEME;
+}
+
 // Helper function to get banner gradient/color classes
-function getBannerStyles(themeColor: string | null | undefined): { gradientClass: string; hasCustomImage: boolean } {
-  if (!themeColor) {
-    return { gradientClass: "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600", hasCustomImage: false };
+function getBannerStyles(themeColor: string | null | undefined, eventType?: string | null): { gradientClass: string; hasCustomImage: boolean } {
+  // If there's a custom theme color set, use it
+  if (themeColor) {
+    // Check if it's a gradient
+    const gradient = THEME_COLORS.gradients.find(g => g.id === themeColor);
+    if (gradient) {
+      return { gradientClass: `bg-gradient-to-r ${gradient.gradient}`, hasCustomImage: false };
+    }
+    
+    // Check if it's a solid color
+    const solid = THEME_COLORS.solids.find(s => s.id === themeColor);
+    if (solid) {
+      return { gradientClass: solid.preview, hasCustomImage: false };
+    }
+    
+    // Check if it's a hex color (custom)
+    if (themeColor.startsWith("#")) {
+      return { gradientClass: "", hasCustomImage: false };
+    }
   }
   
-  // Check if it's a gradient
-  const gradient = THEME_COLORS.gradients.find(g => g.id === themeColor);
-  if (gradient) {
-    return { gradientClass: `bg-gradient-to-r ${gradient.gradient}`, hasCustomImage: false };
-  }
-  
-  // Check if it's a solid color
-  const solid = THEME_COLORS.solids.find(s => s.id === themeColor);
-  if (solid) {
-    return { gradientClass: solid.preview, hasCustomImage: false };
-  }
-  
-  // Check if it's a hex color (custom)
-  if (themeColor.startsWith("#")) {
-    return { gradientClass: "", hasCustomImage: false };
-  }
-  
-  return { gradientClass: "bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600", hasCustomImage: false };
+  // Use event type theme as fallback
+  const theme = getEventTypeTheme(eventType);
+  return { gradientClass: `bg-gradient-to-r ${theme.gradient}`, hasCustomImage: false };
 }
 
 export default function GroupDetail() {
@@ -185,6 +418,11 @@ export default function GroupDetail() {
     queryKey: ["/api/groups", groupId, "expenses"],
     enabled: !!user && !!groupId,
   });
+
+  // Get theme based on event type for consistent styling
+  const eventTheme = useMemo(() => {
+    return getEventTypeTheme(group?.eventType);
+  }, [group?.eventType]);
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
@@ -487,10 +725,10 @@ Looking forward to planning together!`;
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
-        {/* Group Header Banner */}
+        {/* Group Header Banner - Uses event type theme colors */}
         <div 
           className={`relative overflow-hidden rounded-2xl p-6 md:p-8 text-white shadow-xl mb-6 ${
-            group.bannerImageUrl ? "" : getBannerStyles(group.themeColor).gradientClass
+            group.bannerImageUrl ? "" : getBannerStyles(group.themeColor, group.eventType).gradientClass
           }`}
           style={
             group.bannerImageUrl 
@@ -610,27 +848,27 @@ Looking forward to planning together!`;
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <OverviewTab group={group} polls={polls} itinerary={itinerary} expenses={expenses} />
+            <OverviewTab group={group} polls={polls} itinerary={itinerary} expenses={expenses} theme={eventTheme} />
           </TabsContent>
 
           {/* Polls Tab */}
           <TabsContent value="polls" className="space-y-6">
-            <PollsTab groupId={groupId!} polls={polls} isAdmin={isAdmin || isCreator} />
+            <PollsTab groupId={groupId!} polls={polls} isAdmin={isAdmin || isCreator} theme={eventTheme} />
           </TabsContent>
 
           {/* Itinerary Tab */}
           <TabsContent value="itinerary" className="space-y-6">
-            <ItineraryTab groupId={groupId!} itinerary={itinerary} isAdmin={isAdmin || isCreator} groupLocation={group.location} />
+            <ItineraryTab groupId={groupId!} itinerary={itinerary} isAdmin={isAdmin || isCreator} groupLocation={group.locationPreference} theme={eventTheme} />
           </TabsContent>
 
           {/* Members Tab */}
           <TabsContent value="members" className="space-y-6">
-            <MembersTab group={group} isAdmin={isAdmin || isCreator} />
+            <MembersTab group={group} isAdmin={isAdmin || isCreator} theme={eventTheme} />
           </TabsContent>
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-6">
-            <ExpensesTab groupId={groupId!} group={group} expenses={expenses} members={group.members} isAdmin={isAdmin || isCreator} />
+            <ExpensesTab groupId={groupId!} group={group} expenses={expenses} members={group.members} isAdmin={isAdmin || isCreator} theme={eventTheme} />
           </TabsContent>
         </Tabs>
       </main>
@@ -858,7 +1096,7 @@ Looking forward to planning together!`;
             <Button 
               onClick={handleSaveCustomization}
               disabled={isUploadingBanner || customizeMutation.isPending}
-              className="bg-gradient-to-r from-orange-500 to-amber-500"
+              className={`bg-gradient-to-r ${eventTheme.buttonGradient}`}
               data-testid="button-save-customize"
             >
               {isUploadingBanner ? "Uploading..." : customizeMutation.isPending ? "Saving..." : "Save Changes"}
@@ -870,17 +1108,22 @@ Looking forward to planning together!`;
   );
 }
 
+// Theme type for child components
+type EventTheme = typeof DEFAULT_EVENT_THEME;
+
 // Overview Tab Component
 function OverviewTab({ 
   group, 
   polls, 
   itinerary, 
-  expenses 
+  expenses,
+  theme 
 }: { 
   group: GroupWithFullDetails; 
   polls?: GroupPollWithDetails[];
   itinerary?: GroupItineraryItem[];
   expenses?: ExpenseWithSplits[];
+  theme: EventTheme;
 }) {
   const activePolls = polls?.filter(p => p.status === "active") || [];
   const upcomingItems = itinerary?.filter(i => new Date(i.startTime) > new Date()).slice(0, 3) || [];
@@ -892,7 +1135,7 @@ function OverviewTab({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Vote className="w-5 h-5 text-orange-500" />
+            <Vote className={`w-5 h-5 ${theme.iconColor}`} />
             Active Polls
           </CardTitle>
         </CardHeader>
@@ -1022,11 +1265,13 @@ function OverviewTab({
 function PollsTab({ 
   groupId, 
   polls, 
-  isAdmin 
+  isAdmin,
+  theme 
 }: { 
   groupId: string; 
   polls?: GroupPollWithDetails[];
   isAdmin: boolean;
+  theme: EventTheme;
 }) {
   const { toast } = useToast();
   const [createPollOpen, setCreatePollOpen] = useState(false);
@@ -1089,7 +1334,7 @@ function PollsTab({
         {isAdmin && (
           <Dialog open={createPollOpen} onOpenChange={setCreatePollOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-create-poll">
+              <Button className={`bg-gradient-to-r ${theme.buttonGradient}`} data-testid="button-create-poll">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Poll
               </Button>
@@ -1275,12 +1520,14 @@ function ItineraryTab({
   groupId, 
   itinerary, 
   isAdmin,
-  groupLocation
+  groupLocation,
+  theme
 }: { 
   groupId: string; 
   itinerary?: GroupItineraryItem[];
   isAdmin: boolean;
   groupLocation?: string;
+  theme: EventTheme;
 }) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -1373,7 +1620,7 @@ function ItineraryTab({
         {isAdmin && (
           <Dialog open={createItemOpen} onOpenChange={setCreateItemOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-add-activity">
+              <Button className={`bg-gradient-to-r ${theme.buttonGradient}`} data-testid="button-add-activity">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Activity
               </Button>
@@ -1475,7 +1722,7 @@ function ItineraryTab({
 
       {sortedItinerary && sortedItinerary.length > 0 ? (
         <div className="relative">
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-orange-500 via-amber-500 to-orange-300" />
+          <div className={`absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b ${theme.buttonGradient.split(' ')[0]} via-current to-current/50`} />
           <div className="space-y-4 ml-10">
             {sortedItinerary.map((item, index) => {
               const itemVendorCategory = getVendorCategoryFromItem(item);
@@ -1484,7 +1731,7 @@ function ItineraryTab({
               
               return (
                 <Card key={item.id} className="relative">
-                  <div className="absolute -left-10 top-6 w-4 h-4 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 border-2 border-background" />
+                  <div className={`absolute -left-10 top-6 w-4 h-4 rounded-full bg-gradient-to-br ${theme.buttonGradient} border-2 border-background`} />
                   <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
                       <div className="flex-1">
@@ -1604,7 +1851,7 @@ function ItineraryTab({
                         </div>
                         <Button
                           size="sm"
-                          className="bg-gradient-to-r from-orange-500 to-amber-500 shrink-0"
+                          className={`bg-gradient-to-r ${theme.buttonGradient} shrink-0`}
                           onClick={() => selectedItem && bookVendorMutation.mutate({ 
                             itemId: selectedItem.id, 
                             vendorId: vendor.id 
@@ -1641,10 +1888,12 @@ function ItineraryTab({
 // Members Tab Component
 function MembersTab({ 
   group, 
-  isAdmin 
+  isAdmin,
+  theme 
 }: { 
   group: GroupWithFullDetails; 
   isAdmin: boolean;
+  theme: EventTheme;
 }) {
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
@@ -1680,12 +1929,12 @@ function MembersTab({
           const isCurrentUser = member.userId === currentUser?.id;
           
           return (
-            <Card key={member.id} className={isCurrentUser ? "border-orange-300 dark:border-orange-800" : ""}>
+            <Card key={member.id} className={isCurrentUser ? theme.cardBorder : ""}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={member.user?.profileImageUrl || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-amber-500 text-white">
+                    <AvatarFallback className={`bg-gradient-to-br ${theme.buttonGradient} text-white`}>
                       {member.user?.firstName?.[0] || member.user?.username?.[0] || "?"}
                     </AvatarFallback>
                   </Avatar>
@@ -1752,13 +2001,15 @@ function ExpensesTab({
   group,
   expenses, 
   members, 
-  isAdmin 
+  isAdmin,
+  theme 
 }: { 
   groupId: string;
   group: GroupWithFullDetails;
   expenses?: ExpenseWithSplits[];
   members?: GroupMemberWithUser[];
   isAdmin: boolean;
+  theme: EventTheme;
 }) {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -2041,7 +2292,7 @@ function ExpensesTab({
         <h2 className="text-xl font-heading font-semibold">Expenses</h2>
         <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-add-expense">
+            <Button className={`bg-gradient-to-r ${theme.buttonGradient}`} data-testid="button-add-expense">
               <Plus className="w-4 h-4 mr-2" />
               Add Expense
             </Button>
@@ -2116,7 +2367,7 @@ function ExpensesTab({
                     </div>
                   </div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-orange-500 to-amber-500" 
+                    className={`w-full bg-gradient-to-r ${theme.buttonGradient}`}
                     onClick={goToStep2}
                     disabled={!canProceedToStep2}
                     data-testid="button-next-step"
@@ -2247,7 +2498,7 @@ function ExpensesTab({
                       Back
                     </Button>
                     <Button 
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500" 
+                      className={`flex-1 bg-gradient-to-r ${theme.buttonGradient}`}
                       onClick={() => expenseMutation.mutate()}
                       disabled={expenseMutation.isPending || !canSubmit}
                       data-testid="button-submit-expense"
