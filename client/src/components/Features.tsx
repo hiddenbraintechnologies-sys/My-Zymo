@@ -41,7 +41,9 @@ const features: Feature[] = [
     icon: Users,
     title: "Attendee Management",
     description: "See who's coming, track RSVPs, and manage your guest list all in one place.",
-    highlighted: false,
+    highlighted: true,
+    badge: "Interactive",
+    link: "/attendee-management",
   },
   {
     icon: Store,
@@ -182,6 +184,43 @@ export default function Features() {
                     {feature.title}
                   </h3>
                   <p className="text-teal-600/80 dark:text-teal-200/80 text-base leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Attendee Management - Green Theme - Full Width */}
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          {features.filter(f => f.highlighted && f.title === "Attendee Management").map((feature, index) => (
+            <Card 
+              key={`attendee-${index}`} 
+              className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 dark:from-emerald-950/30 dark:via-green-950/20 dark:to-emerald-950/30 shadow-lg"
+              data-testid="card-feature-highlighted-attendee"
+              onClick={() => handleFeatureClick(feature)}
+            >
+              {feature.badge && (
+                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  {feature.badge}
+                </Badge>
+              )}
+              {feature.link && (
+                <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-emerald-600 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700">
+                  Try It Free
+                </Badge>
+              )}
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md flex-shrink-0">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-emerald-700 dark:text-emerald-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-emerald-600/80 dark:text-emerald-200/80 text-base leading-relaxed max-w-2xl">
                     {feature.description}
                   </p>
                 </div>
