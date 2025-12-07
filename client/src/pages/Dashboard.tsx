@@ -17,12 +17,16 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import QuoteDialog from "@/components/QuoteDialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
+  const [reunionDialogOpen, setReunionDialogOpen] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
 
   
   const { data: privateEvents } = useQuery<Event[]>({
@@ -173,10 +177,10 @@ export default function Dashboard() {
             </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-            {/* Reunions - Goes to Group Planning */}
+            {/* Reunions - Opens Dialog to Create or Join */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/40 dark:to-violet-950/40 border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/groups?type=reunion")} 
+              onClick={() => setReunionDialogOpen(true)} 
               data-testid="card-event-type-reunion"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -614,6 +618,96 @@ export default function Dashboard() {
                 <ArrowRight className="w-5 h-5 text-purple-400" />
               </CardHeader>
             </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reunion Dialog - Create or Join */}
+      <Dialog open={reunionDialogOpen} onOpenChange={setReunionDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="dialog-reunion-options" onOpenAutoFocus={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">Plan a Reunion</DialogTitle>
+                <DialogDescription>
+                  Create a new reunion or join an existing one
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            {/* Create New Reunion Option */}
+            <Card 
+              className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30"
+              onClick={() => {
+                setReunionDialogOpen(false);
+                setLocation("/groups?type=reunion");
+              }}
+              data-testid="option-create-reunion"
+            >
+              <CardHeader className="flex flex-row items-center gap-4 p-4">
+                <div className="p-2.5 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
+                  <Plus className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg text-purple-700 dark:text-purple-100">Create New Reunion</CardTitle>
+                  <CardDescription className="text-purple-600 dark:text-purple-300">
+                    Start planning a school, college, or family reunion
+                  </CardDescription>
+                </div>
+                <ArrowRight className="w-5 h-5 text-purple-400" />
+              </CardHeader>
+            </Card>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-border"></div>
+              <span className="text-xs text-muted-foreground font-medium">OR</span>
+              <div className="flex-1 h-px bg-border"></div>
+            </div>
+
+            {/* Join with Invite Code */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+                <Users className="w-4 h-4" />
+                Join an Existing Reunion
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter invite code..."
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && inviteCode.trim()) {
+                      setReunionDialogOpen(false);
+                      setLocation(`/groups/join/${inviteCode.trim()}`);
+                    }
+                  }}
+                  className="flex-1"
+                  data-testid="input-invite-code"
+                />
+                <Button
+                  onClick={() => {
+                    if (inviteCode.trim()) {
+                      setReunionDialogOpen(false);
+                      setLocation(`/groups/join/${inviteCode.trim()}`);
+                    }
+                  }}
+                  disabled={!inviteCode.trim()}
+                  className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600"
+                  data-testid="button-join-reunion"
+                >
+                  Join
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ask the reunion organizer for the invite code to join their group
+              </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
