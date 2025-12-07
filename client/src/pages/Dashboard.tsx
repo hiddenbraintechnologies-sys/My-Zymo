@@ -4,6 +4,16 @@ import { useLocation } from "wouter";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift, MessageCircle, Bell, Camera, Store, GraduationCap, Cake, Bike, Dumbbell, Home, Gem, Music, Mountain, Trophy, Baby } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
+import reunionBg from "@assets/stock_images/college_reunion_grad_32cdfc94.jpg";
+import birthdayBg from "@assets/stock_images/birthday_party_celeb_2a4d00f8.jpg";
+import groupRideBg from "@assets/stock_images/group_bike_ride_cycl_9f3949fe.jpg";
+import fitnessBg from "@assets/stock_images/fitness_yoga_gym_wor_0a78b5ea.jpg";
+import weddingBg from "@assets/stock_images/wedding_ceremony_cel_3d2131c8.jpg";
+import trekBg from "@assets/stock_images/hiking_trek_mountain_b500039b.jpg";
+import sportsBg from "@assets/stock_images/sports_team_cricket__e396c7f4.jpg";
+import musicBg from "@assets/stock_images/music_concert_live_p_6d56ef3e.jpg";
+import familyBg from "@assets/stock_images/family_gathering_cel_69f4e3bd.jpg";
+import babyShowerBg from "@assets/stock_images/baby_shower_celebrat_f32cb2d3.jpg";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import type { Event, EventGroup } from "@shared/schema";
@@ -206,7 +216,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
             {/* Reunions */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/40 dark:to-violet-950/40 border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "reunion",
                 title: "Reunions",
@@ -227,15 +237,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-reunion"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${reunionBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-900/90 via-purple-900/60 to-purple-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <GraduationCap className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-purple-700 dark:text-purple-100">Reunions</CardTitle>
-                <CardDescription className="text-xs text-purple-600/80 dark:text-purple-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Reunions</CardTitle>
+                <CardDescription className="text-xs text-purple-200 hidden sm:block">
                   School, college & family
                 </CardDescription>
-                <Badge className="mt-2 bg-purple-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-purple-400/80 text-white text-[10px]">
                   <UsersRound className="w-2.5 h-2.5 mr-1" />
                   Group
                 </Badge>
@@ -244,7 +259,7 @@ export default function Dashboard() {
 
             {/* Birthday Parties */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-950/40 dark:to-rose-950/40 border-2 border-pink-200 dark:border-pink-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-pink-200 dark:border-pink-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "birthday",
                 title: "Birthday Party",
@@ -265,15 +280,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-birthday"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${birthdayBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-pink-900/90 via-pink-900/60 to-pink-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Cake className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-pink-700 dark:text-pink-100">Birthday Party</CardTitle>
-                <CardDescription className="text-xs text-pink-600/80 dark:text-pink-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Birthday Party</CardTitle>
+                <CardDescription className="text-xs text-pink-200 hidden sm:block">
                   Celebrate in style
                 </CardDescription>
-                <Badge className="mt-2 bg-pink-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-pink-400/80 text-white text-[10px]">
                   <PartyPopper className="w-2.5 h-2.5 mr-1" />
                   Party
                 </Badge>
@@ -282,7 +302,7 @@ export default function Dashboard() {
 
             {/* Group Rides */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-950/40 dark:to-cyan-950/40 border-2 border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "group_ride",
                 title: "Group Rides",
@@ -303,15 +323,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-group-ride"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${groupRideBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/60 to-blue-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Bike className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-blue-700 dark:text-blue-100">Group Rides</CardTitle>
-                <CardDescription className="text-xs text-blue-600/80 dark:text-blue-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Group Rides</CardTitle>
+                <CardDescription className="text-xs text-blue-200 hidden sm:block">
                   Bike trips & adventures
                 </CardDescription>
-                <Badge className="mt-2 bg-blue-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-blue-400/80 text-white text-[10px]">
                   <UsersRound className="w-2.5 h-2.5 mr-1" />
                   Group
                 </Badge>
@@ -320,7 +345,7 @@ export default function Dashboard() {
 
             {/* Fitness Activities */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/40 dark:to-green-950/40 border-2 border-emerald-200 dark:border-emerald-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-emerald-200 dark:border-emerald-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "fitness",
                 title: "Fitness",
@@ -341,15 +366,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-fitness"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${fitnessBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/90 via-emerald-900/60 to-emerald-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Dumbbell className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-emerald-700 dark:text-emerald-100">Fitness</CardTitle>
-                <CardDescription className="text-xs text-emerald-600/80 dark:text-emerald-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Fitness</CardTitle>
+                <CardDescription className="text-xs text-emerald-200 hidden sm:block">
                   Yoga, gym & sports
                 </CardDescription>
-                <Badge className="mt-2 bg-emerald-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-emerald-400/80 text-white text-[10px]">
                   <UsersRound className="w-2.5 h-2.5 mr-1" />
                   Group
                 </Badge>
@@ -358,7 +388,7 @@ export default function Dashboard() {
 
             {/* Weddings */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "wedding",
                 title: "Wedding",
@@ -379,15 +409,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-wedding"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${weddingBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-amber-900/90 via-amber-900/60 to-amber-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Gem className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-amber-700 dark:text-amber-100">Wedding</CardTitle>
-                <CardDescription className="text-xs text-amber-600/80 dark:text-amber-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Wedding</CardTitle>
+                <CardDescription className="text-xs text-amber-200 hidden sm:block">
                   Your special day
                 </CardDescription>
-                <Badge className="mt-2 bg-amber-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-amber-400/80 text-white text-[10px]">
                   <Heart className="w-2.5 h-2.5 mr-1" />
                   Private
                 </Badge>
@@ -396,7 +431,7 @@ export default function Dashboard() {
 
             {/* Treks & Adventures */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-teal-50 to-cyan-100 dark:from-teal-950/40 dark:to-cyan-950/40 border-2 border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "trek",
                 title: "Treks",
@@ -417,15 +452,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-trek"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${trekBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-teal-900/90 via-teal-900/60 to-teal-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Mountain className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-teal-700 dark:text-teal-100">Treks</CardTitle>
-                <CardDescription className="text-xs text-teal-600/80 dark:text-teal-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Treks</CardTitle>
+                <CardDescription className="text-xs text-teal-200 hidden sm:block">
                   Hiking & adventures
                 </CardDescription>
-                <Badge className="mt-2 bg-teal-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-teal-400/80 text-white text-[10px]">
                   <UsersRound className="w-2.5 h-2.5 mr-1" />
                   Group
                 </Badge>
@@ -434,7 +474,7 @@ export default function Dashboard() {
 
             {/* Sports Events */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950/40 dark:to-orange-950/40 border-2 border-red-200 dark:border-red-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-red-200 dark:border-red-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "sports",
                 title: "Sports",
@@ -455,15 +495,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-sports"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${sportsBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-red-900/90 via-red-900/60 to-red-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-red-400 to-orange-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Trophy className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-red-700 dark:text-red-100">Sports</CardTitle>
-                <CardDescription className="text-xs text-red-600/80 dark:text-red-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Sports</CardTitle>
+                <CardDescription className="text-xs text-red-200 hidden sm:block">
                   Matches & tournaments
                 </CardDescription>
-                <Badge className="mt-2 bg-red-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-red-400/80 text-white text-[10px]">
                   <UsersRound className="w-2.5 h-2.5 mr-1" />
                   Group
                 </Badge>
@@ -472,7 +517,7 @@ export default function Dashboard() {
 
             {/* Music & Concerts */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-violet-50 to-purple-100 dark:from-violet-950/40 dark:to-purple-950/40 border-2 border-violet-200 dark:border-violet-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-violet-200 dark:border-violet-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "music",
                 title: "Music",
@@ -493,15 +538,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-music"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${musicBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-violet-900/90 via-violet-900/60 to-violet-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-violet-400 to-purple-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Music className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-violet-700 dark:text-violet-100">Music</CardTitle>
-                <CardDescription className="text-xs text-violet-600/80 dark:text-violet-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Music</CardTitle>
+                <CardDescription className="text-xs text-violet-200 hidden sm:block">
                   Concerts & shows
                 </CardDescription>
-                <Badge className="mt-2 bg-violet-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-violet-400/80 text-white text-[10px]">
                   <Globe className="w-2.5 h-2.5 mr-1" />
                   Public
                 </Badge>
@@ -510,7 +560,7 @@ export default function Dashboard() {
 
             {/* Family Events */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-sky-50 to-blue-100 dark:from-sky-950/40 dark:to-blue-950/40 border-2 border-sky-200 dark:border-sky-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-sky-200 dark:border-sky-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "family",
                 title: "Family",
@@ -531,15 +581,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-family"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${familyBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-sky-900/90 via-sky-900/60 to-sky-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Home className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-sky-700 dark:text-sky-100">Family</CardTitle>
-                <CardDescription className="text-xs text-sky-600/80 dark:text-sky-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Family</CardTitle>
+                <CardDescription className="text-xs text-sky-200 hidden sm:block">
                   Gatherings & occasions
                 </CardDescription>
-                <Badge className="mt-2 bg-sky-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-sky-400/80 text-white text-[10px]">
                   <Heart className="w-2.5 h-2.5 mr-1" />
                   Private
                 </Badge>
@@ -548,7 +603,7 @@ export default function Dashboard() {
 
             {/* Baby Shower */}
             <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-rose-50 to-pink-100 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-200 dark:border-rose-800 shadow-md hover:shadow-lg transition-all group" 
+              className="hover-elevate cursor-pointer border-2 border-rose-200 dark:border-rose-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
               onClick={() => openEventDialog({
                 type: "baby_shower",
                 title: "Baby Shower",
@@ -569,15 +624,20 @@ export default function Dashboard() {
               })}
               data-testid="card-event-type-baby-shower"
             >
-              <CardHeader className="p-3 md:p-4 text-center">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${babyShowerBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-rose-900/90 via-rose-900/60 to-rose-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
                 <div className="mx-auto p-3 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
                   <Baby className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-sm md:text-base font-bold text-rose-700 dark:text-rose-100">Baby Shower</CardTitle>
-                <CardDescription className="text-xs text-rose-600/80 dark:text-rose-200/80 hidden sm:block">
+                <CardTitle className="text-sm md:text-base font-bold text-white">Baby Shower</CardTitle>
+                <CardDescription className="text-xs text-rose-200 hidden sm:block">
                   Celebrate new life
                 </CardDescription>
-                <Badge className="mt-2 bg-rose-400 text-white text-[10px]">
+                <Badge className="mt-2 bg-rose-400/80 text-white text-[10px]">
                   <Heart className="w-2.5 h-2.5 mr-1" />
                   Private
                 </Badge>
