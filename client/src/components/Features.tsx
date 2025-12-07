@@ -1,8 +1,18 @@
+import { useLocation } from "wouter";
 import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users, Star, Bike, Dumbbell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const features = [
+interface Feature {
+  icon: any;
+  title: string;
+  description: string;
+  highlighted: boolean;
+  badge?: string;
+  link?: string;
+}
+
+const features: Feature[] = [
   {
     icon: Calendar,
     title: "Manage Events",
@@ -16,6 +26,7 @@ const features = [
     description: "Track expenses and split bills fairly among group members. See who paid, who owes, and settle balances easily. No more awkward money conversations!",
     highlighted: true,
     badge: "Essential",
+    link: "/split-expenses",
   },
   {
     icon: MessageCircle,
@@ -44,6 +55,14 @@ const features = [
 ];
 
 export default function Features() {
+  const [, navigate] = useLocation();
+  
+  const handleFeatureClick = (feature: Feature) => {
+    if (feature.link) {
+      navigate(feature.link);
+    }
+  };
+  
   return (
     <section id="features" className="py-12 md:py-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -63,11 +82,17 @@ export default function Features() {
               key={index} 
               className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 shadow-lg"
               data-testid={`card-feature-highlighted-${index}`}
+              onClick={() => handleFeatureClick(feature)}
             >
               {feature.badge && (
                 <Badge className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
                   <Star className="w-3 h-3 mr-1" />
                   {feature.badge}
+                </Badge>
+              )}
+              {feature.link && (
+                <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-orange-600 dark:text-orange-300 border-orange-300 dark:border-orange-700">
+                  Try It Free
                 </Badge>
               )}
               <div className="flex flex-col gap-4">
