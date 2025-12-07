@@ -19,14 +19,41 @@ import { useState, useEffect } from "react";
 import QuoteDialog from "@/components/QuoteDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { LucideIcon } from "lucide-react";
+
+interface EventTypeConfig {
+  type: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  createPath: string;
+  joinPath: string;
+  createLabel: string;
+  createDescription: string;
+  colors: {
+    gradient: string;
+    border: string;
+    text: string;
+    textMuted: string;
+    button: string;
+    buttonHover: string;
+  };
+}
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
-  const [reunionDialogOpen, setReunionDialogOpen] = useState(false);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [selectedEventType, setSelectedEventType] = useState<EventTypeConfig | null>(null);
   const [inviteCode, setInviteCode] = useState("");
+
+  const openEventDialog = (config: EventTypeConfig) => {
+    setSelectedEventType(config);
+    setInviteCode("");
+    setEventDialogOpen(true);
+  };
 
   
   const { data: privateEvents } = useQuery<Event[]>({
@@ -177,10 +204,27 @@ export default function Dashboard() {
             </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-            {/* Reunions - Opens Dialog to Create or Join */}
+            {/* Reunions */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/40 dark:to-violet-950/40 border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setReunionDialogOpen(true)} 
+              onClick={() => openEventDialog({
+                type: "reunion",
+                title: "Reunions",
+                description: "Create a new reunion or join an existing one",
+                icon: GraduationCap,
+                createPath: "/groups?type=reunion",
+                joinPath: "/groups/join/",
+                createLabel: "Create New Reunion",
+                createDescription: "Start planning a school, college, or family reunion",
+                colors: {
+                  gradient: "from-purple-400 to-violet-500",
+                  border: "border-purple-200 dark:border-purple-800",
+                  text: "text-purple-700 dark:text-purple-100",
+                  textMuted: "text-purple-600 dark:text-purple-300",
+                  button: "from-purple-500 to-violet-500",
+                  buttonHover: "from-purple-600 to-violet-600"
+                }
+              })}
               data-testid="card-event-type-reunion"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -198,10 +242,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Birthday Parties - Private/Public Event */}
+            {/* Birthday Parties */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-950/40 dark:to-rose-950/40 border-2 border-pink-200 dark:border-pink-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/events/create?type=private&category=birthday")} 
+              onClick={() => openEventDialog({
+                type: "birthday",
+                title: "Birthday Party",
+                description: "Create a new birthday event or join an existing one",
+                icon: Cake,
+                createPath: "/events/create?type=private&category=birthday",
+                joinPath: "/events/join/",
+                createLabel: "Create Birthday Event",
+                createDescription: "Plan a memorable birthday celebration",
+                colors: {
+                  gradient: "from-pink-400 to-rose-500",
+                  border: "border-pink-200 dark:border-pink-800",
+                  text: "text-pink-700 dark:text-pink-100",
+                  textMuted: "text-pink-600 dark:text-pink-300",
+                  button: "from-pink-500 to-rose-500",
+                  buttonHover: "from-pink-600 to-rose-600"
+                }
+              })}
               data-testid="card-event-type-birthday"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -219,10 +280,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Group Rides - Goes to Group Planning */}
+            {/* Group Rides */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-950/40 dark:to-cyan-950/40 border-2 border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/groups?type=group_ride")} 
+              onClick={() => openEventDialog({
+                type: "group_ride",
+                title: "Group Rides",
+                description: "Create a new ride or join an existing one",
+                icon: Bike,
+                createPath: "/groups?type=group_ride",
+                joinPath: "/groups/join/",
+                createLabel: "Create Group Ride",
+                createDescription: "Plan a bike trip or adventure with friends",
+                colors: {
+                  gradient: "from-blue-400 to-cyan-500",
+                  border: "border-blue-200 dark:border-blue-800",
+                  text: "text-blue-700 dark:text-blue-100",
+                  textMuted: "text-blue-600 dark:text-blue-300",
+                  button: "from-blue-500 to-cyan-500",
+                  buttonHover: "from-blue-600 to-cyan-600"
+                }
+              })}
               data-testid="card-event-type-group-ride"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -240,10 +318,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Fitness Activities - Goes to Group Planning */}
+            {/* Fitness Activities */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/40 dark:to-green-950/40 border-2 border-emerald-200 dark:border-emerald-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/groups?type=fitness")} 
+              onClick={() => openEventDialog({
+                type: "fitness",
+                title: "Fitness",
+                description: "Create a new fitness activity or join an existing one",
+                icon: Dumbbell,
+                createPath: "/groups?type=fitness",
+                joinPath: "/groups/join/",
+                createLabel: "Create Fitness Activity",
+                createDescription: "Plan yoga, gym sessions, or sports activities",
+                colors: {
+                  gradient: "from-emerald-400 to-green-500",
+                  border: "border-emerald-200 dark:border-emerald-800",
+                  text: "text-emerald-700 dark:text-emerald-100",
+                  textMuted: "text-emerald-600 dark:text-emerald-300",
+                  button: "from-emerald-500 to-green-500",
+                  buttonHover: "from-emerald-600 to-green-600"
+                }
+              })}
               data-testid="card-event-type-fitness"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -261,10 +356,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Weddings - Private Event */}
+            {/* Weddings */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/events/create?type=private&category=wedding")} 
+              onClick={() => openEventDialog({
+                type: "wedding",
+                title: "Wedding",
+                description: "Create a new wedding event or join an existing one",
+                icon: Gem,
+                createPath: "/events/create?type=private&category=wedding",
+                joinPath: "/events/join/",
+                createLabel: "Create Wedding Event",
+                createDescription: "Plan your special day celebration",
+                colors: {
+                  gradient: "from-amber-400 to-orange-500",
+                  border: "border-amber-200 dark:border-amber-800",
+                  text: "text-amber-700 dark:text-amber-100",
+                  textMuted: "text-amber-600 dark:text-amber-300",
+                  button: "from-amber-500 to-orange-500",
+                  buttonHover: "from-amber-600 to-orange-600"
+                }
+              })}
               data-testid="card-event-type-wedding"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -282,10 +394,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Treks & Adventures - Goes to Group Planning */}
+            {/* Treks & Adventures */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-teal-50 to-cyan-100 dark:from-teal-950/40 dark:to-cyan-950/40 border-2 border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/groups?type=trek")} 
+              onClick={() => openEventDialog({
+                type: "trek",
+                title: "Treks",
+                description: "Create a new trek or join an existing one",
+                icon: Mountain,
+                createPath: "/groups?type=trek",
+                joinPath: "/groups/join/",
+                createLabel: "Create Trek",
+                createDescription: "Plan a hiking or adventure trip",
+                colors: {
+                  gradient: "from-teal-400 to-cyan-500",
+                  border: "border-teal-200 dark:border-teal-800",
+                  text: "text-teal-700 dark:text-teal-100",
+                  textMuted: "text-teal-600 dark:text-teal-300",
+                  button: "from-teal-500 to-cyan-500",
+                  buttonHover: "from-teal-600 to-cyan-600"
+                }
+              })}
               data-testid="card-event-type-trek"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -303,10 +432,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Sports Events - Goes to Group Planning */}
+            {/* Sports Events */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950/40 dark:to-orange-950/40 border-2 border-red-200 dark:border-red-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/groups?type=sports")} 
+              onClick={() => openEventDialog({
+                type: "sports",
+                title: "Sports",
+                description: "Create a new sports event or join an existing one",
+                icon: Trophy,
+                createPath: "/groups?type=sports",
+                joinPath: "/groups/join/",
+                createLabel: "Create Sports Event",
+                createDescription: "Plan matches, tournaments, or team sports",
+                colors: {
+                  gradient: "from-red-400 to-orange-500",
+                  border: "border-red-200 dark:border-red-800",
+                  text: "text-red-700 dark:text-red-100",
+                  textMuted: "text-red-600 dark:text-red-300",
+                  button: "from-red-500 to-orange-500",
+                  buttonHover: "from-red-600 to-orange-600"
+                }
+              })}
               data-testid="card-event-type-sports"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -324,10 +470,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Music & Concerts - Public Event */}
+            {/* Music & Concerts */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-violet-50 to-purple-100 dark:from-violet-950/40 dark:to-purple-950/40 border-2 border-violet-200 dark:border-violet-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/events/create?type=public&category=music")} 
+              onClick={() => openEventDialog({
+                type: "music",
+                title: "Music",
+                description: "Create a new music event or join an existing one",
+                icon: Music,
+                createPath: "/events/create?type=public&category=music",
+                joinPath: "/events/join/",
+                createLabel: "Create Music Event",
+                createDescription: "Plan a concert, show, or music gathering",
+                colors: {
+                  gradient: "from-violet-400 to-purple-500",
+                  border: "border-violet-200 dark:border-violet-800",
+                  text: "text-violet-700 dark:text-violet-100",
+                  textMuted: "text-violet-600 dark:text-violet-300",
+                  button: "from-violet-500 to-purple-500",
+                  buttonHover: "from-violet-600 to-purple-600"
+                }
+              })}
               data-testid="card-event-type-music"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -345,10 +508,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Family Events - Private Event */}
+            {/* Family Events */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-sky-50 to-blue-100 dark:from-sky-950/40 dark:to-blue-950/40 border-2 border-sky-200 dark:border-sky-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/events/create?type=private&category=family")} 
+              onClick={() => openEventDialog({
+                type: "family",
+                title: "Family",
+                description: "Create a new family event or join an existing one",
+                icon: Home,
+                createPath: "/events/create?type=private&category=family",
+                joinPath: "/events/join/",
+                createLabel: "Create Family Event",
+                createDescription: "Plan a family gathering or special occasion",
+                colors: {
+                  gradient: "from-sky-400 to-blue-500",
+                  border: "border-sky-200 dark:border-sky-800",
+                  text: "text-sky-700 dark:text-sky-100",
+                  textMuted: "text-sky-600 dark:text-sky-300",
+                  button: "from-sky-500 to-blue-500",
+                  buttonHover: "from-sky-600 to-blue-600"
+                }
+              })}
               data-testid="card-event-type-family"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -366,10 +546,27 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            {/* Baby Shower - Private Event */}
+            {/* Baby Shower */}
             <Card 
               className="hover-elevate cursor-pointer bg-gradient-to-br from-rose-50 to-pink-100 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-200 dark:border-rose-800 shadow-md hover:shadow-lg transition-all group" 
-              onClick={() => setLocation("/events/create?type=private&category=baby_shower")} 
+              onClick={() => openEventDialog({
+                type: "baby_shower",
+                title: "Baby Shower",
+                description: "Create a new baby shower or join an existing one",
+                icon: Baby,
+                createPath: "/events/create?type=private&category=baby_shower",
+                joinPath: "/events/join/",
+                createLabel: "Create Baby Shower",
+                createDescription: "Plan a celebration for the new arrival",
+                colors: {
+                  gradient: "from-rose-400 to-pink-500",
+                  border: "border-rose-200 dark:border-rose-800",
+                  text: "text-rose-700 dark:text-rose-100",
+                  textMuted: "text-rose-600 dark:text-rose-300",
+                  button: "from-rose-500 to-pink-500",
+                  buttonHover: "from-rose-600 to-pink-600"
+                }
+              })}
               data-testid="card-event-type-baby-shower"
             >
               <CardHeader className="p-3 md:p-4 text-center">
@@ -622,93 +819,97 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Reunion Dialog - Create or Join */}
-      <Dialog open={reunionDialogOpen} onOpenChange={setReunionDialogOpen}>
-        <DialogContent className="max-w-md" data-testid="dialog-reunion-options" onOpenAutoFocus={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
-                <GraduationCap className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl">Plan a Reunion</DialogTitle>
-                <DialogDescription>
-                  Create a new reunion or join an existing one
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-
-          <div className="space-y-4 pt-2">
-            {/* Create New Reunion Option */}
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30"
-              onClick={() => {
-                setReunionDialogOpen(false);
-                setLocation("/groups?type=reunion");
-              }}
-              data-testid="option-create-reunion"
-            >
-              <CardHeader className="flex flex-row items-center gap-4 p-4">
-                <div className="p-2.5 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
-                  <Plus className="w-5 h-5 text-white" />
+      {/* Unified Event Type Dialog - Create or Join */}
+      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="dialog-event-type-options" onOpenAutoFocus={(e) => e.preventDefault()}>
+          {selectedEventType && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`p-3 bg-gradient-to-br ${selectedEventType.colors.gradient} rounded-xl shadow-md`}>
+                    <selectedEventType.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl">{selectedEventType.title}</DialogTitle>
+                    <DialogDescription>
+                      {selectedEventType.description}
+                    </DialogDescription>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg text-purple-700 dark:text-purple-100">Create New Reunion</CardTitle>
-                  <CardDescription className="text-purple-600 dark:text-purple-300">
-                    Start planning a school, college, or family reunion
-                  </CardDescription>
-                </div>
-                <ArrowRight className="w-5 h-5 text-purple-400" />
-              </CardHeader>
-            </Card>
+              </DialogHeader>
 
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-border"></div>
-              <span className="text-xs text-muted-foreground font-medium">OR</span>
-              <div className="flex-1 h-px bg-border"></div>
-            </div>
-
-            {/* Join with Invite Code */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
-                <Users className="w-4 h-4" />
-                Join an Existing Reunion
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter invite code..."
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && inviteCode.trim()) {
-                      setReunionDialogOpen(false);
-                      setLocation(`/groups/join/${inviteCode.trim()}`);
-                    }
-                  }}
-                  className="flex-1"
-                  data-testid="input-invite-code"
-                />
-                <Button
+              <div className="space-y-4 pt-2">
+                {/* Create New Option */}
+                <Card 
+                  className={`hover-elevate cursor-pointer border-2 ${selectedEventType.colors.border} bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/30 dark:to-gray-900/30`}
                   onClick={() => {
-                    if (inviteCode.trim()) {
-                      setReunionDialogOpen(false);
-                      setLocation(`/groups/join/${inviteCode.trim()}`);
-                    }
+                    setEventDialogOpen(false);
+                    setLocation(selectedEventType.createPath);
                   }}
-                  disabled={!inviteCode.trim()}
-                  className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600"
-                  data-testid="button-join-reunion"
+                  data-testid="option-create-event"
                 >
-                  Join
-                </Button>
+                  <CardHeader className="flex flex-row items-center gap-4 p-4">
+                    <div className={`p-2.5 bg-gradient-to-br ${selectedEventType.colors.gradient} rounded-xl shadow-md`}>
+                      <Plus className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className={`text-lg ${selectedEventType.colors.text}`}>{selectedEventType.createLabel}</CardTitle>
+                      <CardDescription className={selectedEventType.colors.textMuted}>
+                        {selectedEventType.createDescription}
+                      </CardDescription>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                  </CardHeader>
+                </Card>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-border"></div>
+                  <span className="text-xs text-muted-foreground font-medium">OR</span>
+                  <div className="flex-1 h-px bg-border"></div>
+                </div>
+
+                {/* Join with Invite Code */}
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-2 text-sm font-medium ${selectedEventType.colors.text}`}>
+                    <Users className="w-4 h-4" />
+                    Join an Existing {selectedEventType.title}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter invite code..."
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && inviteCode.trim()) {
+                          setEventDialogOpen(false);
+                          setLocation(`${selectedEventType.joinPath}${inviteCode.trim()}`);
+                        }
+                      }}
+                      className="flex-1"
+                      data-testid="input-invite-code"
+                    />
+                    <Button
+                      onClick={() => {
+                        if (inviteCode.trim()) {
+                          setEventDialogOpen(false);
+                          setLocation(`${selectedEventType.joinPath}${inviteCode.trim()}`);
+                        }
+                      }}
+                      disabled={!inviteCode.trim()}
+                      className={`bg-gradient-to-r ${selectedEventType.colors.button} hover:${selectedEventType.colors.buttonHover}`}
+                      data-testid="button-join-event"
+                    >
+                      Join
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ask the organizer for the invite code to join
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Ask the reunion organizer for the invite code to join their group
-              </p>
-            </div>
-          </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
