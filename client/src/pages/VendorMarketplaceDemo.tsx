@@ -397,7 +397,17 @@ export default function VendorMarketplaceDemo() {
 
         {/* Vendor Detail Dialog */}
         <Dialog open={!!selectedVendor} onOpenChange={(open) => !open && setSelectedVendor(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-vendor-detail">
+          <DialogContent 
+            className="max-w-2xl max-h-[90vh] overflow-y-auto" 
+            data-testid="dialog-vendor-detail"
+            onOpenAutoFocus={(e) => {
+              e.preventDefault();
+              const closeBtn = e.currentTarget.querySelector('[data-testid="button-favorite-detail"]');
+              if (closeBtn instanceof HTMLElement) {
+                closeBtn.focus();
+              }
+            }}
+          >
             {selectedVendor && (
               <>
                 <DialogHeader>
