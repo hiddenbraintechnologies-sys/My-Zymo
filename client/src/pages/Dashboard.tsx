@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift } from "lucide-react";
+import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift, MessageCircle, Bell, Camera, Store } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -272,6 +272,138 @@ export default function Dashboard() {
             </CardHeader>
           </Card>
 
+        </div>
+
+        {/* Feature Tools Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading font-semibold text-xl md:text-2xl">Feature Tools</h2>
+            <Badge variant="outline" className="text-xs">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Interactive
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Split Expenses */}
+            <Card 
+              className="hover-elevate cursor-pointer bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 border-2 border-orange-200 dark:border-orange-800 shadow-md hover:shadow-lg transition-all" 
+              onClick={() => setLocation("/split-expenses")} 
+              data-testid="card-feature-split-expenses"
+            >
+              <CardHeader className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
+                    <IndianRupee className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs">Essential</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold text-orange-700 dark:text-orange-100">Split Expenses</CardTitle>
+                <CardDescription className="text-sm text-orange-600/80 dark:text-orange-200/80">
+                  Track expenses and split bills fairly among group members
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Group Chat */}
+            <Card 
+              className="hover-elevate cursor-pointer bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100 dark:from-purple-950/30 dark:via-violet-950/20 dark:to-purple-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all" 
+              onClick={() => setLocation("/group-chat-demo")} 
+              data-testid="card-feature-group-chat"
+            >
+              <CardHeader className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-gradient-to-r from-purple-500 to-violet-500 text-white text-xs">Interactive</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold text-purple-700 dark:text-purple-100">Group Chat</CardTitle>
+                <CardDescription className="text-sm text-purple-600/80 dark:text-purple-200/80">
+                  Real-time messaging within your event group
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Attendee Management */}
+            <Card 
+              className="hover-elevate cursor-pointer bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 dark:from-emerald-950/30 dark:via-green-950/20 dark:to-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-md hover:shadow-lg transition-all" 
+              onClick={() => setLocation("/attendee-management")} 
+              data-testid="card-feature-attendee-management"
+            >
+              <CardHeader className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl shadow-md">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs">Interactive</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold text-emerald-700 dark:text-emerald-100">Attendee Management</CardTitle>
+                <CardDescription className="text-sm text-emerald-600/80 dark:text-emerald-200/80">
+                  Track RSVPs and manage your guest list
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Smart Reminders */}
+            <Card 
+              className="hover-elevate cursor-pointer bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 dark:from-sky-950/30 dark:via-blue-950/20 dark:to-sky-950/30 border-2 border-sky-200 dark:border-sky-800 shadow-md hover:shadow-lg transition-all" 
+              onClick={() => setLocation("/smart-reminders")} 
+              data-testid="card-feature-smart-reminders"
+            >
+              <CardHeader className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl shadow-md">
+                    <Bell className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-gradient-to-r from-sky-500 to-blue-500 text-white text-xs">Interactive</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold text-sky-700 dark:text-sky-100">Smart Reminders</CardTitle>
+                <CardDescription className="text-sm text-sky-600/80 dark:text-sky-200/80">
+                  Never miss important event updates
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Photo Album */}
+            <Card 
+              className="hover-elevate cursor-pointer bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-rose-950/30 border-2 border-rose-200 dark:border-rose-800 shadow-md hover:shadow-lg transition-all" 
+              onClick={() => setLocation("/photo-album")} 
+              data-testid="card-feature-photo-album"
+            >
+              <CardHeader className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl shadow-md">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs">Interactive</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold text-rose-700 dark:text-rose-100">Photo Album</CardTitle>
+                <CardDescription className="text-sm text-rose-600/80 dark:text-rose-200/80">
+                  Share memories with your event group
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Vendor Marketplace */}
+            <Card 
+              className="hover-elevate cursor-pointer bg-gradient-to-br from-teal-50 via-cyan-50 to-teal-100 dark:from-teal-950/30 dark:via-cyan-950/20 dark:to-teal-950/30 border-2 border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg transition-all" 
+              onClick={() => setLocation("/vendor-marketplace")} 
+              data-testid="card-feature-vendor-marketplace"
+            >
+              <CardHeader className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-xl shadow-md">
+                    <Store className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs">New</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold text-teal-700 dark:text-teal-100">Vendor Marketplace</CardTitle>
+                <CardDescription className="text-sm text-teal-600/80 dark:text-teal-200/80">
+                  Find trusted vendors for your events
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
         </div>
       </main>
       {/* Floating Free Quote Button - Cute FAB */}
