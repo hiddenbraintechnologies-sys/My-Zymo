@@ -20,7 +20,7 @@ import {
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee,
   Vote, ClipboardList, UserCog,
   ChevronRight, Share2, Copy, LogOut, Sparkles, Target, Pencil,
-  Heart, Bike, Trophy, GraduationCap
+  Heart, Bike, Trophy, GraduationCap, Check, MessageCircle
 } from "lucide-react";
 import type { EventGroup, EventGroupMember, User } from "@shared/schema";
 
@@ -102,6 +102,7 @@ export default function GroupPlanning() {
   const [bannerEditOpen, setBannerEditOpen] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [eventCategory, setEventCategory] = useState<string | null>(null); // Track category from dashboard
+  const [createdGroup, setCreatedGroup] = useState<{ id: string; name: string; inviteCode: string } | null>(null); // Track created group for success screen
   
   // Banner customization state
   const [bannerData, setBannerData] = useState({
@@ -236,13 +237,15 @@ export default function GroupPlanning() {
       });
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-      toast({
-        title: "Group created!",
-        description: "Start inviting members and planning your event.",
+      // Store created group data for success screen
+      setCreatedGroup({
+        id: data.id,
+        name: data.name,
+        inviteCode: data.inviteCode,
       });
-      setCreateDialogOpen(false);
+      // Reset form
       setFormData({
         name: "",
         description: "",
@@ -485,8 +488,11 @@ export default function GroupPlanning() {
               {/* Create Group Button */}
               <Dialog open={createDialogOpen} onOpenChange={(open) => {
                 setCreateDialogOpen(open);
-                // Clear category when dialog closes so next time shows all options
-                if (!open) setEventCategory(null);
+                // Clear category and created group when dialog closes
+                if (!open) {
+                  setEventCategory(null);
+                  setCreatedGroup(null);
+                }
               }}>
                 <DialogTrigger asChild>
                   <Button 
@@ -498,16 +504,93 @@ export default function GroupPlanning() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-orange-500" />
-                      Create Planning Group
-                    </DialogTitle>
-                    <DialogDescription>
-                      Start planning your event together with friends and family
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateGroup} className="space-y-4">
+                  {createdGroup ? (
+                    // Success Screen
+                    <div className="space-y-6 py-4">
+                      <div className="text-center">
+                        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-4">
+                          <Check className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold text-foreground mb-2">Event Created Successfully!</h2>
+                        <p className="text-muted-foreground">
+                          Your event "{createdGroup.name}" has been saved.
+                        </p>
+                      </div>
+                      
+                      {/* Share Section */}
+                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl p-4 space-y-3">
+                        <h3 className="font-semibold flex items-center gap-2">
+                          <Share2 className="w-4 h-4 text-orange-500" />
+                          Share with Friends & Family
+                        </h3>
+                        <div className="flex items-center gap-2 bg-background rounded-lg p-3 border">
+                          <span className="font-mono text-lg tracking-widest flex-1 text-center">
+                            {createdGroup.inviteCode}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(createdGroup.inviteCode);
+                              toast({
+                                title: "Copied!",
+                                description: "Invite code copied to clipboard.",
+                              });
+                            }}
+                            data-testid="button-copy-invite-success"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full gap-2"
+                          onClick={() => {
+                            const shareUrl = `${window.location.origin}/groups?join=${createdGroup.inviteCode}`;
+                            const message = `Join my event "${createdGroup.name}" on Myzymo! Use code: ${createdGroup.inviteCode} or click: ${shareUrl}`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                          }}
+                          data-testid="button-share-whatsapp"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          Share via WhatsApp
+                        </Button>
+                      </div>
+                      
+                      {/* Info Note */}
+                      <div className="text-center text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                        <span className="font-medium">Tip:</span> Your saved events can be viewed anytime from{" "}
+                        <span className="font-semibold text-orange-600 dark:text-orange-400">"My Events"</span>{" "}
+                        in the menu.
+                      </div>
+                      
+                      {/* Close Button */}
+                      <Button
+                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                        onClick={() => {
+                          setCreateDialogOpen(false);
+                          setCreatedGroup(null);
+                          setEventCategory(null);
+                          setLocation('/dashboard');
+                        }}
+                        data-testid="button-save-close"
+                      >
+                        Save & Close
+                      </Button>
+                    </div>
+                  ) : (
+                    // Create Form
+                    <>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Sparkles className="w-5 h-5 text-orange-500" />
+                          Create Planning Group
+                        </DialogTitle>
+                        <DialogDescription>
+                          Start planning your event together with friends and family
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateGroup} className="space-y-4">
                     <div>
                       <Label htmlFor="group-name">Group Name *</Label>
                       <Input
@@ -601,7 +684,9 @@ export default function GroupPlanning() {
                     >
                       {createGroupMutation.isPending ? "Creating..." : "Create Group"}
                     </Button>
-                  </form>
+                      </form>
+                    </>
+                  )}
                 </DialogContent>
               </Dialog>
 
