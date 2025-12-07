@@ -30,7 +30,7 @@ export default function Navbar() {
   // Authenticated user navigation links
   const authNavLinks = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Events", href: "/events", icon: CalendarDays },
+    { label: "My Events", href: "/events", icon: CalendarDays },
     { label: "Chat", href: "/chat", icon: MessageSquare },
     { label: "Profile", href: "/profile", icon: User },
   ];
