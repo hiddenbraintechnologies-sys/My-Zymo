@@ -35,6 +35,7 @@ import EventsDemo from "@/pages/EventsDemo";
 import VendorMarketplaceDemo from "@/pages/VendorMarketplaceDemo";
 import GroupChatDemo from "@/pages/GroupChatDemo";
 import AttendeeManagementDemo from "@/pages/AttendeeManagementDemo";
+import SmartRemindersDemo from "@/pages/SmartRemindersDemo";
 import NotFound from "@/pages/not-found";
 
 // Universal post-auth redirect handler
@@ -107,6 +108,7 @@ function Router() {
       <Route path="/vendor-marketplace" component={VendorMarketplaceDemo} />
       <Route path="/group-chat-demo" component={GroupChatDemo} />
       <Route path="/attendee-management" component={AttendeeManagementDemo} />
+      <Route path="/smart-reminders" component={SmartRemindersDemo} />
       <Route component={NotFound} />
     </Switch>
   );

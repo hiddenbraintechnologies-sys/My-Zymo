@@ -57,7 +57,9 @@ const features: Feature[] = [
     icon: Bell,
     title: "Smart Reminders",
     description: "Never miss important updates. Get notifications for messages, payments, and event changes.",
-    highlighted: false,
+    highlighted: true,
+    badge: "Interactive",
+    link: "/smart-reminders",
   },
 ];
 
@@ -221,6 +223,43 @@ export default function Features() {
                     {feature.title}
                   </h3>
                   <p className="text-emerald-600/80 dark:text-emerald-200/80 text-base leading-relaxed max-w-2xl">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Smart Reminders - Blue Theme - Full Width */}
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          {features.filter(f => f.highlighted && f.title === "Smart Reminders").map((feature, index) => (
+            <Card 
+              key={`reminders-${index}`} 
+              className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-sky-200 dark:border-sky-800 bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 dark:from-sky-950/30 dark:via-blue-950/20 dark:to-sky-950/30 shadow-lg"
+              data-testid="card-feature-highlighted-reminders"
+              onClick={() => handleFeatureClick(feature)}
+            >
+              {feature.badge && (
+                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-sky-500 to-blue-500 text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  {feature.badge}
+                </Badge>
+              )}
+              {feature.link && (
+                <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-sky-600 dark:text-sky-300 border-sky-300 dark:border-sky-700">
+                  Try It Free
+                </Badge>
+              )}
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-md flex-shrink-0">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-sky-700 dark:text-sky-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sky-600/80 dark:text-sky-200/80 text-base leading-relaxed max-w-2xl">
                     {feature.description}
                   </p>
                 </div>
