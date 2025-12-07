@@ -93,15 +93,14 @@ Design Requirements:
           model: "gpt-image-1",
           prompt,
           size: "1024x1024",
-          response_format: "b64_json",
         });
         
-        const base64 = response.data?.[0]?.b64_json ?? "";
-        if (!base64) {
+        const imageUrl = response.data?.[0]?.url ?? "";
+        if (!imageUrl) {
           throw new Error("No image data received from AI");
         }
         
-        return `data:image/png;base64,${base64}`;
+        return imageUrl;
       } catch (error: any) {
         console.error("Error generating invitation card:", error);
         if (isRateLimitError(error)) {
