@@ -161,6 +161,34 @@ export default function GroupPlanning() {
     }
   }, [user, authLoading]);
 
+  // Handle type parameter from dashboard - auto-open create dialog
+  useEffect(() => {
+    if (user && !authLoading) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const eventType = urlParams.get('type');
+      
+      if (eventType) {
+        // Map dashboard event types to form event types
+        const typeMapping: Record<string, string> = {
+          'reunion': 'college_reunion',
+          'group_ride': 'group_ride',
+          'fitness': 'fitness_bootcamp',
+          'trek': 'trekking',
+          'sports': 'sports_event',
+        };
+        
+        const mappedType = typeMapping[eventType] || eventType;
+        
+        // Pre-fill the event type and open create dialog
+        setFormData(prev => ({ ...prev, eventType: mappedType }));
+        setCreateDialogOpen(true);
+        
+        // Clean up URL
+        window.history.replaceState({}, '', '/groups');
+      }
+    }
+  }, [user, authLoading]);
+
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
