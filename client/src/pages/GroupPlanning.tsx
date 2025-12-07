@@ -53,6 +53,39 @@ const EVENT_TYPES = [
   { value: "other", label: "Other" },
 ];
 
+// Category-specific event types for when coming from dashboard
+const EVENT_TYPE_CATEGORIES: Record<string, { value: string; label: string }[]> = {
+  reunion: [
+    { value: "college_reunion", label: "College Reunion" },
+    { value: "school_reunion", label: "School Reunion" },
+    { value: "family_gathering", label: "Family Reunion" },
+    { value: "corporate_event", label: "Alumni Meet" },
+  ],
+  group_ride: [
+    { value: "group_ride", label: "Group Ride" },
+    { value: "bike_rally", label: "Bike Rally" },
+    { value: "cycling_trip", label: "Cycling Trip" },
+    { value: "adventure_trip", label: "Road Trip" },
+  ],
+  fitness: [
+    { value: "fitness_bootcamp", label: "Fitness Bootcamp" },
+    { value: "yoga_session", label: "Yoga Session" },
+    { value: "marathon_run", label: "Marathon / Run" },
+    { value: "gym_meetup", label: "Gym Meetup" },
+  ],
+  trek: [
+    { value: "trekking", label: "Trekking" },
+    { value: "adventure_trip", label: "Adventure Trip" },
+    { value: "camping", label: "Camping" },
+  ],
+  sports: [
+    { value: "sports_event", label: "Sports Event" },
+    { value: "cricket_match", label: "Cricket Match" },
+    { value: "football_match", label: "Football Match" },
+    { value: "tournament", label: "Tournament" },
+  ],
+};
+
 const STATUS_COLORS = {
   planning: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
   active: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
@@ -68,6 +101,7 @@ export default function GroupPlanning() {
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [bannerEditOpen, setBannerEditOpen] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
+  const [eventCategory, setEventCategory] = useState<string | null>(null); // Track category from dashboard
   
   // Banner customization state
   const [bannerData, setBannerData] = useState({
@@ -178,6 +212,9 @@ export default function GroupPlanning() {
         };
         
         const mappedType = typeMapping[eventType] || eventType;
+        
+        // Store the category for filtered dropdown
+        setEventCategory(eventType);
         
         // Pre-fill the event type and open create dialog
         setFormData(prev => ({ ...prev, eventType: mappedType }));
@@ -446,7 +483,11 @@ export default function GroupPlanning() {
               </Dialog>
 
               {/* Create Group Button */}
-              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <Dialog open={createDialogOpen} onOpenChange={(open) => {
+                setCreateDialogOpen(open);
+                // Clear category when dialog closes so next time shows all options
+                if (!open) setEventCategory(null);
+              }}>
                 <DialogTrigger asChild>
                   <Button 
                     className="bg-white text-orange-600 hover:bg-white/90"
@@ -502,7 +543,11 @@ export default function GroupPlanning() {
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                           <SelectContent>
-                            {EVENT_TYPES.map((type) => (
+                            {/* Show filtered options if coming from dashboard, otherwise show all */}
+                            {(eventCategory && EVENT_TYPE_CATEGORIES[eventCategory] 
+                              ? EVENT_TYPE_CATEGORIES[eventCategory] 
+                              : EVENT_TYPES
+                            ).map((type) => (
                               <SelectItem key={type.value} value={type.value}>
                                 {type.label}
                               </SelectItem>
