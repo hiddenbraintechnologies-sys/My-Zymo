@@ -33,7 +33,9 @@ const features: Feature[] = [
     icon: MessageCircle,
     title: "Group Chat",
     description: "Real-time messaging within your event group. Share updates, photos, and coordinate seamlessly.",
-    highlighted: false,
+    highlighted: true,
+    badge: "Interactive",
+    link: "/group-chat-demo",
   },
   {
     icon: Users,
@@ -115,40 +117,78 @@ export default function Features() {
           ))}
         </div>
         
-        {/* Vendor Marketplace - Full Width Highlighted */}
-        {features.filter(f => f.highlighted).slice(2).map((feature, index) => (
-          <Card 
-            key={`vendor-${index}`} 
-            className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 via-cyan-50 to-teal-100 dark:from-teal-950/30 dark:via-cyan-950/20 dark:to-teal-950/30 shadow-lg mb-6"
-            data-testid={`card-feature-highlighted-${index + 2}`}
-            onClick={() => handleFeatureClick(feature)}
-          >
-            {feature.badge && (
-              <Badge className="absolute top-4 right-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
-                <Star className="w-3 h-3 mr-1" />
-                {feature.badge}
-              </Badge>
-            )}
-            {feature.link && (
-              <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-teal-600 dark:text-teal-300 border-teal-300 dark:border-teal-700">
-                Try It Free
-              </Badge>
-            )}
-            <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center shadow-md flex-shrink-0">
-                <feature.icon className="w-7 h-7 text-white" />
+        {/* Group Chat & Vendor Marketplace - Full Width Highlighted */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Group Chat - Purple Theme */}
+          {features.filter(f => f.highlighted && f.title === "Group Chat").map((feature, index) => (
+            <Card 
+              key={`chat-${index}`} 
+              className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100 dark:from-purple-950/30 dark:via-violet-950/20 dark:to-purple-950/30 shadow-lg"
+              data-testid="card-feature-highlighted-2"
+              onClick={() => handleFeatureClick(feature)}
+            >
+              {feature.badge && (
+                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-purple-500 to-violet-500 text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  {feature.badge}
+                </Badge>
+              )}
+              {feature.link && (
+                <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-purple-600 dark:text-purple-300 border-purple-300 dark:border-purple-700">
+                  Try It Free
+                </Badge>
+              )}
+              <div className="flex flex-col gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center shadow-md flex-shrink-0">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-purple-700 dark:text-purple-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-purple-600/80 dark:text-purple-200/80 text-base leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="font-heading font-bold text-2xl mb-2 text-teal-700 dark:text-teal-100">
-                  {feature.title}
-                </h3>
-                <p className="text-teal-600/80 dark:text-teal-200/80 text-base leading-relaxed">
-                  {feature.description}
-                </p>
+            </Card>
+          ))}
+          
+          {/* Vendor Marketplace - Teal Theme */}
+          {features.filter(f => f.highlighted && f.title === "Vendor Marketplace").map((feature, index) => (
+            <Card 
+              key={`vendor-${index}`} 
+              className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 via-cyan-50 to-teal-100 dark:from-teal-950/30 dark:via-cyan-950/20 dark:to-teal-950/30 shadow-lg"
+              data-testid="card-feature-highlighted-3"
+              onClick={() => handleFeatureClick(feature)}
+            >
+              {feature.badge && (
+                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  {feature.badge}
+                </Badge>
+              )}
+              {feature.link && (
+                <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-teal-600 dark:text-teal-300 border-teal-300 dark:border-teal-700">
+                  Try It Free
+                </Badge>
+              )}
+              <div className="flex flex-col gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center shadow-md flex-shrink-0">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-teal-700 dark:text-teal-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-teal-600/80 dark:text-teal-200/80 text-base leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
 
         {/* Other Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
