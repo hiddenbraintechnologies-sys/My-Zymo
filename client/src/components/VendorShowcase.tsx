@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useLocation } from "wouter";
 import venueImage from "@assets/generated_images/wedding_venue_category_image.png";
 import cateringImage from "@assets/generated_images/catering_food_category_image.png";
 import photographyImage from "@assets/generated_images/photography_service_category_image.png";
@@ -11,25 +12,31 @@ const categories = [
     name: "Venues",
     image: venueImage,
     count: "150+ venues",
+    category: "venue",
   },
   {
     name: "Catering",
     image: cateringImage,
     count: "200+ caterers",
+    category: "catering",
   },
   {
     name: "Photography",
     image: photographyImage,
     count: "80+ photographers",
+    category: "photography",
   },
   {
     name: "Decoration",
     image: decorationImage,
     count: "120+ decorators",
+    category: "decoration",
   },
 ];
 
 export default function VendorShowcase() {
+  const [, setLocation] = useLocation();
+
   return (
     <section id="vendors" className="py-12 md:py-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -46,7 +53,7 @@ export default function VendorShowcase() {
             variant="outline" 
             className="gap-2"
             data-testid="button-browse-all-vendors"
-            onClick={() => console.log('Browse all vendors clicked')}
+            onClick={() => setLocation("/vendor-marketplace")}
           >
             Browse All
             <ArrowRight className="w-4 h-4" />
@@ -59,7 +66,7 @@ export default function VendorShowcase() {
               key={index}
               className="overflow-hidden hover-elevate cursor-pointer group"
               data-testid={`card-vendor-category-${index}`}
-              onClick={() => console.log(`${category.name} category clicked`)}
+              onClick={() => setLocation(`/vendor-marketplace?category=${category.category}`)}
             >
               <div className="aspect-[4/3] overflow-hidden">
                 <img 
