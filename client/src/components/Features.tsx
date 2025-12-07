@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users, Star, Bike, Dumbbell } from "lucide-react";
+import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users, Star, Bike, Dumbbell, Camera } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -60,6 +60,14 @@ const features: Feature[] = [
     highlighted: true,
     badge: "Interactive",
     link: "/smart-reminders",
+  },
+  {
+    icon: Camera,
+    title: "Photo Album",
+    description: "Capture and share memories with your event group. Create beautiful photo albums that everyone can contribute to.",
+    highlighted: true,
+    badge: "Interactive",
+    link: "/photo-album",
   },
 ];
 
@@ -231,8 +239,9 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Smart Reminders - Blue Theme - Full Width */}
-        <div className="grid grid-cols-1 gap-6 mb-6">
+        {/* Smart Reminders & Photo Album - Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Smart Reminders - Blue Theme */}
           {features.filter(f => f.highlighted && f.title === "Smart Reminders").map((feature, index) => (
             <Card 
               key={`reminders-${index}`} 
@@ -251,7 +260,7 @@ export default function Features() {
                   Try It Free
                 </Badge>
               )}
-              <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+              <div className="flex flex-col gap-4">
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-md flex-shrink-0">
                   <feature.icon className="w-7 h-7 text-white" />
                 </div>
@@ -259,7 +268,42 @@ export default function Features() {
                   <h3 className="font-heading font-bold text-2xl mb-2 text-sky-700 dark:text-sky-100">
                     {feature.title}
                   </h3>
-                  <p className="text-sky-600/80 dark:text-sky-200/80 text-base leading-relaxed max-w-2xl">
+                  <p className="text-sky-600/80 dark:text-sky-200/80 text-base leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+          
+          {/* Photo Album - Rose Theme */}
+          {features.filter(f => f.highlighted && f.title === "Photo Album").map((feature, index) => (
+            <Card 
+              key={`album-${index}`} 
+              className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-rose-200 dark:border-rose-800 bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-rose-950/30 shadow-lg"
+              data-testid="card-feature-highlighted-album"
+              onClick={() => handleFeatureClick(feature)}
+            >
+              {feature.badge && (
+                <Badge className="absolute top-4 right-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white">
+                  <Star className="w-3 h-3 mr-1" />
+                  {feature.badge}
+                </Badge>
+              )}
+              {feature.link && (
+                <Badge variant="outline" className="absolute top-4 left-4 bg-white/80 dark:bg-black/50 text-rose-600 dark:text-rose-300 border-rose-300 dark:border-rose-700">
+                  Try It Free
+                </Badge>
+              )}
+              <div className="flex flex-col gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-md flex-shrink-0">
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-rose-700 dark:text-rose-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-rose-600/80 dark:text-rose-200/80 text-base leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
