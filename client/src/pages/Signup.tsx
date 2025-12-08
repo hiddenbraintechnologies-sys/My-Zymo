@@ -123,7 +123,7 @@ const signupFormSchema = z.object({
     }),
   username: z.string()
     .min(1, "Username is required")
-    .min(5, "Username must be at least 5 characters")
+    .min(4, "Username must be at least 4 characters")
     .max(30, "Username cannot exceed 30 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
   password: z.string()
