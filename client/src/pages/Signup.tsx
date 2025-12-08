@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,25 +11,50 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { SiGoogle, SiFacebook } from "react-icons/si";
-import { FaXTwitter } from "react-icons/fa6";
+import { SiGoogle } from "react-icons/si";
 import { Eye, EyeOff } from "lucide-react";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+
+// Zod schema for signup validation
+const signupFormSchema = z.object({
+  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
+  email: z.string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  username: z.string()
+    .min(1, "Username is required")
+    .min(3, "Username must be at least 3 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  password: z.string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+});
+
+type SignupFormData = z.infer<typeof signupFormSchema>;
 
 export default function Signup() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-  });
   const [showPassword, setShowPassword] = useState(false);
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      username: "",
+      password: "",
+    },
+  });
+
   const signupMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: SignupFormData) => {
       await apiRequest("/api/auth/signup", "POST", data);
     },
     onSuccess: async () => {
@@ -46,20 +74,8 @@ export default function Signup() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    signupMutation.mutate(formData);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  const handleSocialSignup = (provider: string) => {
-    window.location.href = `/api/auth/${provider}`;
+  const onSubmit = (data: SignupFormData) => {
+    signupMutation.mutate(data);
   };
 
   return (
@@ -97,29 +113,35 @@ export default function Signup() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
+                    {...register("firstName")}
                     data-testid="input-firstName"
+                    className={errors.firstName ? "border-red-500" : ""}
                   />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-500" data-testid="error-firstName">
+                      {errors.firstName.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
+                    {...register("lastName")}
                     data-testid="input-lastName"
+                    className={errors.lastName ? "border-red-500" : ""}
                   />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-500" data-testid="error-lastName">
+                      {errors.lastName.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -127,26 +149,32 @@ export default function Signup() {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                  type="text"
+                  {...register("email")}
                   data-testid="input-email"
+                  className={errors.email ? "border-red-500" : ""}
+                  placeholder="your@email.com"
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-500" data-testid="error-email">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                  minLength={3}
+                  {...register("username")}
                   data-testid="input-username"
+                  className={errors.username ? "border-red-500" : ""}
                 />
+                {errors.username && (
+                  <p className="text-sm text-red-500" data-testid="error-username">
+                    {errors.username.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -154,14 +182,10 @@ export default function Signup() {
                 <div className="relative">
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    minLength={6}
+                    {...register("password")}
                     data-testid="input-password"
-                    className="pr-10"
+                    className={`pr-10 ${errors.password ? "border-red-500" : ""}`}
                   />
                   <button
                     type="button"
@@ -177,6 +201,11 @@ export default function Signup() {
                     )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500" data-testid="error-password">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
               <Button
