@@ -121,7 +121,10 @@ const signupFormSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
   password: z.string()
     .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters"),
+    .min(6, "Password must be at least 6 characters")
+    .refine((password) => !password.includes(" "), {
+      message: "Password cannot contain spaces",
+    }),
 });
 
 type SignupFormData = z.infer<typeof signupFormSchema>;
