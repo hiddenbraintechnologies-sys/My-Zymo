@@ -15,13 +15,106 @@ import { SiGoogle } from "react-icons/si";
 import { Eye, EyeOff } from "lucide-react";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
 
+// Common email domain typos and their corrections
+const EMAIL_DOMAIN_TYPOS: Record<string, string> = {
+  // Gmail typos
+  "gmaill.com": "gmail.com",
+  "gmial.com": "gmail.com",
+  "gmal.com": "gmail.com",
+  "gmali.com": "gmail.com",
+  "gmai.com": "gmail.com",
+  "gmailcom": "gmail.com",
+  "gmail.co": "gmail.com",
+  "gmail.om": "gmail.com",
+  "gmaik.com": "gmail.com",
+  "gamil.com": "gmail.com",
+  "gnail.com": "gmail.com",
+  "gimail.com": "gmail.com",
+  "gemail.com": "gmail.com",
+  "g]mail.com": "gmail.com",
+  // Yahoo typos
+  "yaho.com": "yahoo.com",
+  "yahooo.com": "yahoo.com",
+  "yahho.com": "yahoo.com",
+  "yaoo.com": "yahoo.com",
+  "yhoo.com": "yahoo.com",
+  "yhaoo.com": "yahoo.com",
+  "yahoo.co": "yahoo.com",
+  "yahoo.om": "yahoo.com",
+  "yahooo.co.in": "yahoo.co.in",
+  "yaho.co.in": "yahoo.co.in",
+  // Hotmail typos
+  "hotmal.com": "hotmail.com",
+  "hotmial.com": "hotmail.com",
+  "hotmai.com": "hotmail.com",
+  "hotmaill.com": "hotmail.com",
+  "hotmil.com": "hotmail.com",
+  "hotamail.com": "hotmail.com",
+  "homail.com": "hotmail.com",
+  "htmail.com": "hotmail.com",
+  "hotmail.co": "hotmail.com",
+  // Outlook typos
+  "outlok.com": "outlook.com",
+  "outloo.com": "outlook.com",
+  "outloook.com": "outlook.com",
+  "outlookk.com": "outlook.com",
+  "oulook.com": "outlook.com",
+  "outllook.com": "outlook.com",
+  "outlook.co": "outlook.com",
+  // Rediffmail typos (popular in India)
+  "redifmail.com": "rediffmail.com",
+  "rediff.com": "rediffmail.com",
+  "redifmaill.com": "rediffmail.com",
+  // iCloud typos
+  "icoud.com": "icloud.com",
+  "iclod.com": "icloud.com",
+  "icloudd.com": "icloud.com",
+  // Live.com typos
+  "liv.com": "live.com",
+  "livee.com": "live.com",
+  // Common TLD typos
+  ".con": ".com",
+  ".cpm": ".com",
+  ".vom": ".com",
+  ".xom": ".com",
+};
+
+// Function to check for email domain typos
+function checkEmailTypo(email: string): string | null {
+  if (!email.includes("@")) return null;
+  
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (!domain) return null;
+  
+  // Check exact domain match
+  if (EMAIL_DOMAIN_TYPOS[domain]) {
+    return `Did you mean ${email.split("@")[0]}@${EMAIL_DOMAIN_TYPOS[domain]}?`;
+  }
+  
+  // Check TLD typos
+  for (const [typo, correct] of Object.entries(EMAIL_DOMAIN_TYPOS)) {
+    if (typo.startsWith(".") && domain.endsWith(typo)) {
+      const correctedDomain = domain.slice(0, -typo.length) + correct;
+      return `Did you mean ${email.split("@")[0]}@${correctedDomain}?`;
+    }
+  }
+  
+  return null;
+}
+
 // Zod schema for signup validation
 const signupFormSchema = z.object({
   firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
   email: z.string()
     .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+    .email("Please enter a valid email address")
+    .refine((email) => {
+      const typoSuggestion = checkEmailTypo(email);
+      return !typoSuggestion;
+    }, {
+      message: "This email domain appears to have a typo. Please check and correct it.",
+    }),
   username: z.string()
     .min(1, "Username is required")
     .min(3, "Username must be at least 3 characters")
