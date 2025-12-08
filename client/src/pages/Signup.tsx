@@ -226,6 +226,7 @@ export default function Signup() {
                     id="firstName"
                     {...register("firstName")}
                     data-testid="input-firstName"
+                    maxLength={50}
                     className={errors.firstName ? "border-red-500" : ""}
                   />
                   {errors.firstName && (
@@ -240,6 +241,7 @@ export default function Signup() {
                     id="lastName"
                     {...register("lastName")}
                     data-testid="input-lastName"
+                    maxLength={50}
                     className={errors.lastName ? "border-red-500" : ""}
                   />
                   {errors.lastName && (
@@ -273,6 +275,7 @@ export default function Signup() {
                   id="username"
                   {...register("username")}
                   data-testid="input-username"
+                  maxLength={30}
                   className={errors.username ? "border-red-500" : ""}
                 />
                 {errors.username && (
