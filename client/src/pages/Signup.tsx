@@ -104,8 +104,14 @@ function checkEmailTypo(email: string): string | null {
 
 // Zod schema for signup validation
 const signupFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
+  firstName: z.string()
+    .min(1, "First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens, and apostrophes"),
+  lastName: z.string()
+    .min(1, "Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens, and apostrophes"),
   email: z.string()
     .min(1, "Email is required")
     .email("Please enter a valid email address")
