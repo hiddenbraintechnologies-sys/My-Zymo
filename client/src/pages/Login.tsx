@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,18 @@ import { SiGoogle, SiFacebook } from "react-icons/si";
 import { Fingerprint, Eye, EyeOff } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [, navigate] = useLocation();
+  const { user, isLoading } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, isLoading, navigate]);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     username: "",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -14,6 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { SiGoogle } from "react-icons/si";
 import { Eye, EyeOff } from "lucide-react";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import { useAuth } from "@/hooks/useAuth";
 
 // Common email domain typos and their corrections
 const EMAIL_DOMAIN_TYPOS: Record<string, string> = {
@@ -161,6 +162,14 @@ export default function Signup() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const { user, isLoading } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, isLoading, navigate]);
 
   const {
     register,
