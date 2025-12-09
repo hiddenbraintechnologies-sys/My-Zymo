@@ -1828,6 +1828,76 @@ function getVendorCategoryFromItem(item: GroupItineraryItem): string | null {
   return null;
 }
 
+// Location suggestions based on category
+const LOCATION_SUGGESTIONS: Record<string, string[]> = {
+  dining: [
+    "Taj Restaurant",
+    "Mainland China",
+    "Barbeque Nation",
+    "Copper Chimney",
+    "Paradise Biryani",
+    "Absolute Barbecues",
+    "Ohri's",
+    "Cream Stone",
+    "Bikanervala",
+    "Haldiram's",
+  ],
+  entertainment: [
+    "PVR Cinemas",
+    "INOX Movies",
+    "Wonderla Amusement Park",
+    "Snow World",
+    "Escape Room Adventures",
+    "Timezone Gaming Zone",
+    "Smaaash Gaming",
+    "Bowling Alley",
+    "Go-Karting Track",
+    "Laser Tag Arena",
+  ],
+  sightseeing: [
+    "City Museum",
+    "Heritage Walk",
+    "Art Gallery",
+    "Botanical Garden",
+    "Historical Fort",
+    "Lake View Point",
+    "Temple Complex",
+    "Cultural Center",
+    "Observatory",
+    "Wildlife Sanctuary",
+  ],
+  shopping: [
+    "Phoenix Mall",
+    "Forum Mall",
+    "City Centre Mall",
+    "GVK One",
+    "Inorbit Mall",
+    "Local Bazaar",
+    "Handicraft Market",
+    "Street Shopping Area",
+  ],
+  sports: [
+    "Stadium",
+    "Sports Complex",
+    "Cricket Ground",
+    "Tennis Courts",
+    "Swimming Pool",
+    "Golf Course",
+    "Badminton Court",
+    "Football Ground",
+  ],
+  adventure: [
+    "Trekking Trail",
+    "Rock Climbing Center",
+    "Bungee Jumping",
+    "Zip Line Adventure",
+    "Paragliding Point",
+    "River Rafting",
+    "Camping Ground",
+    "Adventure Park",
+  ],
+};
+
 // Itinerary Tab Component
 function ItineraryTab({ 
   groupId, 
@@ -1847,6 +1917,7 @@ function ItineraryTab({
   const [createItemOpen, setCreateItemOpen] = useState(false);
   const [vendorDialogOpen, setVendorDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GroupItineraryItem | null>(null);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [newItem, setNewItem] = useState({
     title: "",
     description: "",
@@ -1855,6 +1926,26 @@ function ItineraryTab({
     endTime: "",
     location: "",
   });
+
+  // Get location suggestions based on category
+  const locationSuggestions = useMemo(() => {
+    const category = newItem.category;
+    const suggestions = LOCATION_SUGGESTIONS[category] || [];
+    const cityPrefix = groupLocation ? `${groupLocation} - ` : "";
+    
+    // Filter by what user has typed
+    const searchTerm = newItem.location.toLowerCase();
+    let filtered = suggestions
+      .map(s => `${cityPrefix}${s}`)
+      .filter(s => s.toLowerCase().includes(searchTerm) || searchTerm === "");
+    
+    // Add a custom option if user is typing something not in suggestions
+    if (searchTerm && !filtered.some(s => s.toLowerCase() === searchTerm)) {
+      filtered = [`${newItem.location}`, ...filtered.slice(0, 5)];
+    }
+    
+    return filtered.slice(0, 8);
+  }, [newItem.category, newItem.location, groupLocation]);
 
   // Get vendors for selected category and location
   const vendorCategory = selectedItem ? getVendorCategoryFromItem(selectedItem) : null;
@@ -2010,14 +2101,50 @@ function ItineraryTab({
                     />
                   </div>
                 </div>
-                <div>
+                <div className="relative">
                   <Label>Location</Label>
-                  <Input
-                    placeholder="Where will this take place?"
-                    value={newItem.location}
-                    onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                    data-testid="input-activity-location"
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder={groupLocation ? `e.g., ${groupLocation} - Restaurant Name` : "Where will this take place?"}
+                      value={newItem.location}
+                      onChange={(e) => {
+                        setNewItem({ ...newItem, location: e.target.value });
+                        setShowLocationSuggestions(true);
+                      }}
+                      onFocus={() => setShowLocationSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}
+                      data-testid="input-activity-location"
+                    />
+                    {showLocationSuggestions && locationSuggestions.length > 0 && newItem.category && (
+                      <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        <div className="p-2 text-xs text-muted-foreground border-b">
+                          <MapPin className="w-3 h-3 inline mr-1" />
+                          Popular {ACTIVITY_CATEGORIES.find(c => c.value === newItem.category)?.label || 'places'} {groupLocation && `in ${groupLocation}`}
+                        </div>
+                        {locationSuggestions.map((suggestion, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setNewItem({ ...newItem, location: suggestion });
+                              setShowLocationSuggestions(false);
+                            }}
+                            data-testid={`suggestion-location-${idx}`}
+                          >
+                            <MapPin className="w-3.5 h-3.5 text-orange-500" />
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {!newItem.category && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select a category first to see location suggestions
+                    </p>
+                  )}
                 </div>
                 <Button 
                   className="w-full" 
