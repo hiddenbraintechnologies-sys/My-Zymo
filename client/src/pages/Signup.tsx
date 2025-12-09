@@ -124,6 +124,13 @@ const signupFormSchema = z.object({
     .min(1, "Email is required")
     .email("Please enter a valid email address")
     .refine((email) => {
+      // Validate that the local part (before @) contains at least one letter or number
+      const localPart = email.split("@")[0];
+      return localPart && /[a-zA-Z0-9]/.test(localPart);
+    }, {
+      message: "Email must contain at least one letter or number before the @",
+    })
+    .refine((email) => {
       const typoSuggestion = checkEmailTypo(email);
       return !typoSuggestion;
     }, {
