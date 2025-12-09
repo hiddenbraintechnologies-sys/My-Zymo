@@ -113,3 +113,6 @@ SUPER_ADMIN_PASSWORD = "admin123"
 [userenv.shared]
 PRIVATE_OBJECT_DIR = "/myzymo-storage/private"
 PUBLIC_OBJECT_SEARCH_PATHS = "/myzymo-storage/public"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-5d67e201-4828-4253-a697-10a8a2bfb7e4"
