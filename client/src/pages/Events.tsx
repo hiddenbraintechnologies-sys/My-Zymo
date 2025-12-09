@@ -27,8 +27,9 @@ import sportsBg from "@assets/stock_images/sports_team_cricket__e396c7f4.jpg";
 import musicBg from "@assets/stock_images/music_concert_live_p_6d56ef3e.jpg";
 import familyBg from "@assets/stock_images/family_gathering_cel_69f4e3bd.jpg";
 import babyShowerBg from "@assets/stock_images/baby_shower_celebrat_f32cb2d3.jpg";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import { useSearch } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -89,9 +90,24 @@ const EVENT_TYPE_ICONS: Record<string, typeof Calendar> = {
 export default function Events() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const [eventFilter, setEventFilter] = useState<EventFilter>("public");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortOption, setSortOption] = useState<SortOption>("date-asc");
   const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
+  
+  // Read category from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const category = params.get('category');
+    if (category && category !== 'all') {
+      setCategoryFilter(category);
+      // If category is specified, show user's events (group events)
+      if (user) {
+        setEventFilter("group-events");
+      }
+    }
+  }, [searchString, user]);
   
   const { data: publicEvents, isLoading: isLoadingPublic, error: publicError } = useQuery<Event[]>({
     queryKey: ["/api/public-events"],
@@ -135,6 +151,14 @@ export default function Events() {
         return sorted;
     }
   }, [displayEvents, sortOption]);
+  
+  // Filter event groups by category as well
+  const filteredEventGroups = useMemo(() => {
+    if (!eventGroups) return [];
+    return categoryFilter && categoryFilter !== 'all'
+      ? eventGroups.filter(g => g.eventType === categoryFilter)
+      : eventGroups;
+  }, [eventGroups, categoryFilter]);
 
   const getEventColors = (eventType: string | undefined) => {
     return EVENT_TYPE_COLORS[eventType || 'default'] || EVENT_TYPE_COLORS.default;
@@ -294,10 +318,10 @@ export default function Events() {
                 {sortedEvents.length} {sortedEvents.length === 1 ? 'Event' : 'Events'}
               </Badge>
             )}
-            {eventFilter === "group-events" && eventGroups && eventGroups.length > 0 && (
+            {eventFilter === "group-events" && filteredEventGroups && filteredEventGroups.length > 0 && (
               <Badge variant="secondary" className="ml-auto">
                 <UsersRound className="w-3 h-3 mr-1" />
-                {eventGroups.length} {eventGroups.length === 1 ? 'Group' : 'Groups'}
+                {filteredEventGroups.length} {filteredEventGroups.length === 1 ? 'Group' : 'Groups'}
               </Badge>
             )}
           </div>
@@ -334,9 +358,9 @@ export default function Events() {
               <Skeleton key={i} className="h-80" />
             ))}
           </div>
-        ) : !error && eventFilter === "group-events" && eventGroups && eventGroups.length > 0 ? (
+        ) : !error && eventFilter === "group-events" && filteredEventGroups && filteredEventGroups.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {eventGroups.map((group) => {
+            {filteredEventGroups.map((group) => {
               const colors = getEventColors(group.eventType);
               const bgImage = getEventBackground(group.eventType);
               const IconComponent = getEventIcon(group.eventType);

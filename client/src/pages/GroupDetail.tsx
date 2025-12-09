@@ -639,7 +639,7 @@ Looking forward to planning together!`;
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/groups" data-testid="link-back-groups">
+            <Link href={`/events?category=${group.eventType || 'all'}`} data-testid="link-back-events">
               <Button variant="ghost" size="icon" data-testid="button-back">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
