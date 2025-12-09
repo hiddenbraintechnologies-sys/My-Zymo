@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Calendar, ArrowLeft, Globe, Lock } from "lucide-react";
+import { Calendar, ArrowLeft, Globe, Lock, Sparkles, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertEventSchema, type Event } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +15,7 @@ import { Link } from "wouter";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Form schema with string date (for datetime-local input)
 // Omit creatorId since backend doesn't allow updating it
@@ -30,6 +30,7 @@ export default function EditEvent() {
   const [, params] = useRoute("/events/:id/edit");
   const { toast } = useToast();
   const { user } = useAuth();
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
   const { data: event, isLoading } = useQuery<Event>({
     queryKey: ["/api/events", params?.id],
@@ -110,6 +111,58 @@ export default function EditEvent() {
     updateEventMutation.mutate(payload);
   };
 
+  // AI Description Generator
+  const generateAIDescription = async () => {
+    const title = form.getValues("title");
+    const date = form.getValues("date");
+    const location = form.getValues("location");
+    const existingDescription = form.getValues("description");
+
+    if (!title) {
+      toast({
+        title: "Need more info",
+        description: "Please enter an event title first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingDescription(true);
+    try {
+      const response = await fetch('/api/ai/event-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          eventTitle: title,
+          date,
+          location,
+          existingDescription,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate description');
+      }
+
+      const data = await response.json();
+      form.setValue("description", data.description);
+      toast({
+        title: "Description generated!",
+        description: "AI has written a description for your event.",
+      });
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate description. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -186,10 +239,33 @@ export default function EditEvent() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Description</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAIDescription}
+                      disabled={isGeneratingDescription}
+                      className="gap-1.5 text-xs border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:border-orange-700 dark:hover:bg-orange-950/50"
+                      data-testid="button-ai-write-description"
+                    >
+                      {isGeneratingDescription ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Writing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 text-orange-500" />
+                          AI Write
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Textarea 
-                      placeholder="Tell your guests about the event..."
+                      placeholder="Tell your guests about the event... or click 'AI Write' to generate"
                       rows={4}
                       {...field}
                       value={field.value || ""}

@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift, MessageCircle, Bell, Camera, Store, GraduationCap, Cake, Bike, Dumbbell, Home, Gem, Music, Mountain, Trophy, Baby, Check, Copy, Share2 } from "lucide-react";
+import { Calendar, MapPin, Plus, Sparkles, Users, TrendingUp, IndianRupee, Vote, Lock, Globe, ArrowRight, UsersRound, PartyPopper, Heart, Star, Gift, MessageCircle, Bell, Camera, Store, GraduationCap, Cake, Bike, Dumbbell, Home, Gem, Music, Mountain, Trophy, Baby, Check, Copy, Share2, Loader2 } from "lucide-react";
 import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 import reunionBg from "@assets/stock_images/college_reunion_grad_32cdfc94.jpg";
 import birthdayBg from "@assets/stock_images/birthday_party_celeb_2a4d00f8.jpg";
@@ -224,6 +224,7 @@ export default function Dashboard() {
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [createFormCategory, setCreateFormCategory] = useState<string | null>(null);
   const [createdGroup, setCreatedGroup] = useState<{ id: string; name: string; inviteCode: string } | null>(null);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -286,6 +287,54 @@ export default function Dashboard() {
     },
   });
   
+  // AI Description Generator for group creation
+  const generateAIDescription = async () => {
+    if (!formData.name) {
+      toast({
+        title: "Need more info",
+        description: "Please enter a group name first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingDescription(true);
+    try {
+      const response = await fetch('/api/ai/event-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          eventTitle: formData.name,
+          eventType: formData.eventType || createFormCategory,
+          date: formData.eventDate,
+          location: formData.locationPreference,
+          existingDescription: formData.description,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate description');
+      }
+
+      const data = await response.json();
+      setFormData({ ...formData, description: data.description });
+      toast({
+        title: "Description generated!",
+        description: "AI has written a description for your event.",
+      });
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate description. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
   const handleCreateGroup = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = formData.name.trim();
@@ -1362,12 +1411,35 @@ export default function Dashboard() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="group-description">Description</Label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Label htmlFor="group-description">Description</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAIDescription}
+                      disabled={isGeneratingDescription}
+                      className="gap-1.5 text-xs h-7 border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:border-orange-700 dark:hover:bg-orange-950/50"
+                      data-testid="button-ai-write-description"
+                    >
+                      {isGeneratingDescription ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Writing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 text-orange-500" />
+                          AI Write
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <Textarea
                     id="group-description"
                     placeholder={createFormCategory && FORM_CONTENT[createFormCategory] 
                       ? FORM_CONTENT[createFormCategory].descriptionPlaceholder 
-                      : DEFAULT_FORM_CONTENT.descriptionPlaceholder}
+                      : DEFAULT_FORM_CONTENT.descriptionPlaceholder + " or click 'AI Write' to generate"}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="resize-none"
