@@ -14,20 +14,20 @@ interface Feature {
 
 const features: Feature[] = [
   {
-    icon: Calendar,
-    title: "Manage Events",
-    description: "Create and manage all types of events - reunions, parties, group rides, fitness activities, and more. Set dates, locations, and invite your group instantly.",
-    highlighted: true,
-    badge: "Most Popular",
-    link: "/manage-events",
-  },
-  {
     icon: IndianRupee,
     title: "Split Expenses",
     description: "Track expenses and split bills fairly among group members. See who paid, who owes, and settle balances easily. No more awkward money conversations!",
     highlighted: true,
     badge: "Essential",
     link: "/split-expenses",
+  },
+  {
+    icon: Calendar,
+    title: "Manage Events",
+    description: "Create and manage all types of events - reunions, parties, group rides, fitness activities, and more. Set dates, locations, and invite your group instantly.",
+    highlighted: true,
+    badge: "Most Popular",
+    link: "/manage-events",
   },
   {
     icon: MessageCircle,
