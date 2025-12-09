@@ -108,12 +108,18 @@ const signupFormSchema = z.object({
     .min(1, "First name is required")
     .min(2, "First name must be at least 2 characters")
     .max(50, "First name cannot exceed 50 characters")
-    .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens, and apostrophes"),
+    .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens, and apostrophes")
+    .refine((name) => /[a-zA-Z]/.test(name), {
+      message: "First name must contain at least one letter",
+    }),
   lastName: z.string()
     .min(1, "Last name is required")
     .min(2, "Last name must be at least 2 characters")
     .max(50, "Last name cannot exceed 50 characters")
-    .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens, and apostrophes"),
+    .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens, and apostrophes")
+    .refine((name) => /[a-zA-Z]/.test(name), {
+      message: "Last name must contain at least one letter",
+    }),
   email: z.string()
     .min(1, "Email is required")
     .email("Please enter a valid email address")
@@ -127,7 +133,13 @@ const signupFormSchema = z.object({
     .min(1, "Username is required")
     .min(4, "Username must be at least 4 characters")
     .max(30, "Username cannot exceed 30 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores")
+    .refine((username) => /[a-zA-Z0-9]/.test(username), {
+      message: "Username must contain at least one letter or number",
+    })
+    .refine((username) => /^[a-zA-Z]/.test(username), {
+      message: "Username must start with a letter",
+    }),
   password: z.string()
     .min(1, "Password is required")
     .min(6, "Password must be at least 6 characters")
