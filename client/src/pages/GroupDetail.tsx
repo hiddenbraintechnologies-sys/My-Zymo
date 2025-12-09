@@ -15,6 +15,31 @@ import dateBg from "@assets/stock_images/calendar_date_event__81a53008.jpg";
 import locationBg from "@assets/stock_images/location_map_pin_des_5d18dfbb.jpg";
 import budgetBg from "@assets/stock_images/indian_rupee_money_c_c599aff9.jpg";
 import statsMembersBg from "@assets/stock_images/friends_group_people_76ba475f.jpg";
+import reunionBg from "@assets/stock_images/college_reunion_grad_32cdfc94.jpg";
+import birthdayBg from "@assets/stock_images/birthday_party_celeb_2a4d00f8.jpg";
+import groupRideBg from "@assets/stock_images/group_bike_ride_cycl_9f3949fe.jpg";
+import fitnessBg from "@assets/stock_images/fitness_yoga_gym_wor_0a78b5ea.jpg";
+import weddingBg from "@assets/stock_images/wedding_ceremony_cel_3d2131c8.jpg";
+import trekBg from "@assets/stock_images/hiking_trek_mountain_b500039b.jpg";
+import sportsBg from "@assets/stock_images/sports_team_cricket__e396c7f4.jpg";
+import musicBg from "@assets/stock_images/music_concert_live_p_6d56ef3e.jpg";
+import familyBg from "@assets/stock_images/family_gathering_cel_69f4e3bd.jpg";
+import babyShowerBg from "@assets/stock_images/baby_shower_celebrat_f32cb2d3.jpg";
+
+const EVENT_TYPE_BACKGROUNDS: Record<string, string> = {
+  college_reunion: reunionBg,
+  school_reunion: reunionBg,
+  birthday_party: birthdayBg,
+  wedding: weddingBg,
+  group_ride: groupRideBg,
+  fitness_bootcamp: fitnessBg,
+  yoga_session: fitnessBg,
+  trekking: trekBg,
+  sports_event: sportsBg,
+  music_event: musicBg,
+  family_gathering: familyBg,
+  baby_shower: babyShowerBg,
+};
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -734,27 +759,38 @@ Looking forward to planning together!`;
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
-        {/* Group Header Banner - Dashboard-style with floating icons */}
+        {/* Group Header Banner - Dashboard-style with background image and floating icons */}
         <div 
-          className={`relative overflow-hidden rounded-2xl shadow-xl mb-6 ${
-            group.bannerImageUrl ? "" : getBannerStyles(group.themeColor, group.eventType).gradientClass
-          }`}
-          style={
-            group.bannerImageUrl 
-              ? { backgroundImage: `url(${group.bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-              : group.themeColor?.startsWith("#") 
-                ? { backgroundColor: group.themeColor }
-                : undefined
-          }
+          className="relative overflow-hidden rounded-2xl shadow-xl mb-6"
         >
-          {/* Dark overlay for custom banner images */}
-          {group.bannerImageUrl && (
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          )}
-          {/* Pattern overlay for color backgrounds */}
-          {!group.bannerImageUrl && (
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-          )}
+          {/* Background Image Layer - event type specific or custom */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ 
+              backgroundImage: `url(${
+                group.bannerImageUrl || 
+                (group.eventType && EVENT_TYPE_BACKGROUNDS[group.eventType]) || 
+                overviewBg
+              })` 
+            }}
+          />
+          
+          {/* Gradient Overlay - based on theme color */}
+          <div 
+            className={`absolute inset-0 ${
+              group.bannerImageUrl 
+                ? "bg-gradient-to-r from-black/70 via-black/50 to-black/40"
+                : `bg-gradient-to-r ${getBannerStyles(group.themeColor, group.eventType).gradientClass} opacity-85`
+            }`}
+            style={
+              group.themeColor?.startsWith("#") && !group.bannerImageUrl
+                ? { background: `linear-gradient(to right, ${group.themeColor}e0, ${group.themeColor}b0, ${group.themeColor}90)` }
+                : undefined
+            }
+          />
+          
+          {/* Pattern overlay for added texture */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20" />
           
           {/* Floating Decorative Icons - Dashboard style */}
           <div className="absolute top-4 left-4 md:top-6 md:left-8 z-10">
