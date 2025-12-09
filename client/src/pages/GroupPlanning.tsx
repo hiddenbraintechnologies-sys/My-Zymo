@@ -20,7 +20,7 @@ import {
   Users, Plus, ArrowLeft, Calendar, MapPin, IndianRupee,
   Vote, ClipboardList, UserCog,
   ChevronRight, Share2, Copy, LogOut, Sparkles, Target, Pencil,
-  Heart, Bike, Trophy, GraduationCap, Check, MessageCircle
+  Heart, Bike, Trophy, GraduationCap, Check, MessageCircle, Loader2
 } from "lucide-react";
 import type { EventGroup, EventGroupMember, User } from "@shared/schema";
 
@@ -197,6 +197,62 @@ export default function GroupPlanning() {
     locationPreference: "",
     budget: "",
   });
+
+  // AI description generation state
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+
+  // AI Description Generator for group
+  const generateAIDescription = async () => {
+    const groupName = formData.name;
+    const eventType = formData.eventType;
+    const location = formData.locationPreference;
+    const eventDate = formData.eventDate;
+
+    if (!groupName && !eventType && !eventCategory) {
+      toast({
+        title: "Need more info",
+        description: "Please enter a group name or select an event type first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingDescription(true);
+    try {
+      const response = await fetch('/api/ai/event-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          eventTitle: groupName,
+          eventType: eventType || eventCategory,
+          date: eventDate,
+          location,
+          existingDescription: formData.description,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate description');
+      }
+
+      const data = await response.json();
+      setFormData({ ...formData, description: data.description });
+      toast({
+        title: "Description generated!",
+        description: "AI has written a description for your group.",
+      });
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate description. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
 
   // Fetch user's groups
   const { data: groups, isLoading: groupsLoading, error: groupsError } = useQuery<GroupWithDetails[]>({
@@ -672,12 +728,35 @@ export default function GroupPlanning() {
                     </div>
                     
                     <div>
-                      <Label htmlFor="group-description">Description</Label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <Label htmlFor="group-description">Description</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={generateAIDescription}
+                          disabled={isGeneratingDescription}
+                          className="gap-1.5 text-xs border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:border-orange-700 dark:hover:bg-orange-950/50"
+                          data-testid="button-ai-write-description"
+                        >
+                          {isGeneratingDescription ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Writing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3 text-orange-500" />
+                              AI Write
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <Textarea
                         id="group-description"
                         placeholder={eventCategory && FORM_CONTENT[eventCategory] 
                           ? FORM_CONTENT[eventCategory].descriptionPlaceholder 
-                          : DEFAULT_FORM_CONTENT.descriptionPlaceholder}
+                          : "Tell us about your event... or click 'AI Write' to generate"}
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         className="resize-none"
