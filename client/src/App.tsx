@@ -15,6 +15,7 @@ import EditEvent from "@/pages/EditEvent";
 import EventDetail from "@/pages/EventDetail";
 import Vendors from "@/pages/Vendors";
 import VendorDetail from "@/pages/VendorDetail";
+import Bookings from "@/pages/Bookings";
 import Profile from "@/pages/Profile";
 import AIAssistant from "@/pages/AIAssistant";
 import Messages from "@/pages/Messages";
@@ -89,6 +90,7 @@ function Router() {
       <Route path="/events/:id" component={EventDetail} />
       <Route path="/vendors" component={Vendors} />
       <Route path="/vendors/:id" component={VendorDetail} />
+      <Route path="/bookings" component={Bookings} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/profile" component={Profile} />
       <Route path="/messages/:userId" component={Messages} />
