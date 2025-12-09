@@ -322,6 +322,7 @@ export default function Profile() {
                           <Input 
                             placeholder="John" 
                             data-testid="input-first-name"
+                            maxLength={50}
                             {...field}
                             value={field.value || ""}
                           />
@@ -340,6 +341,7 @@ export default function Profile() {
                           <Input 
                             placeholder="Doe" 
                             data-testid="input-last-name"
+                            maxLength={50}
                             {...field}
                             value={field.value || ""}
                           />

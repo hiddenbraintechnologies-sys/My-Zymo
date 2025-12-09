@@ -194,6 +194,7 @@ export default function VendorSignup() {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
+                    maxLength={50}
                     data-testid="input-firstName"
                   />
                 </div>
@@ -205,6 +206,7 @@ export default function VendorSignup() {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
+                    maxLength={50}
                     data-testid="input-lastName"
                   />
                 </div>
@@ -231,6 +233,7 @@ export default function VendorSignup() {
                   value={formData.username}
                   onChange={handleChange}
                   required
+                  maxLength={30}
                   data-testid="input-username"
                 />
               </div>
