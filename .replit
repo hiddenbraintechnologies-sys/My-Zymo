@@ -109,3 +109,7 @@ SUPER_ADMIN_PASSWORD = "admin123"
 
 [userenv.production]
 SUPER_ADMIN_PASSWORD = "admin123"
+
+[userenv.shared]
+PRIVATE_OBJECT_DIR = "/myzymo-storage/private"
+PUBLIC_OBJECT_SEARCH_PATHS = "/myzymo-storage/public"
