@@ -2038,6 +2038,76 @@ Return your response as a JSON object with this exact structure:
     }
   });
 
+  // AI Event Description Generator - Write a compelling description for an event
+  app.post('/api/ai/event-description', isAuthenticated, async (req, res) => {
+    try {
+      const { eventTitle, eventType, date, location, existingDescription } = req.body;
+      
+      if (!eventTitle && !eventType) {
+        return res.status(400).json({ message: "Event title or type is required" });
+      }
+
+      const { chatWithAI } = await import('./openai');
+      
+      const systemPrompt = `You are an expert event planner and copywriter specializing in celebrations in India. Write compelling, warm, and inviting event descriptions that make guests excited to attend.
+
+Guidelines:
+- Write in a warm, friendly, and celebratory tone
+- Keep descriptions between 50-150 words
+- Include relevant details when provided (date, location, type)
+- Consider Indian cultural context and celebration traditions
+- Make it personal and exciting
+- Focus on what makes this event special
+- Avoid overly formal or corporate language
+- Do NOT use any emojis or emoticons
+- Return ONLY the description text, no formatting or markdown`;
+
+      let userPrompt = `Write a compelling event description for:`;
+      
+      if (eventTitle) {
+        userPrompt += `\nEvent Title: ${eventTitle}`;
+      }
+      if (eventType) {
+        userPrompt += `\nEvent Type: ${eventType}`;
+      }
+      if (date) {
+        const formattedDate = new Date(date).toLocaleDateString("en-IN", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        userPrompt += `\nDate: ${formattedDate}`;
+      }
+      if (location) {
+        userPrompt += `\nLocation: ${location}`;
+      }
+      
+      if (existingDescription && existingDescription.trim()) {
+        userPrompt += `\n\nExisting description to improve (keep the core message but enhance it):\n${existingDescription}`;
+      }
+      
+      userPrompt += `\n\nWrite a single, compelling description that will make guests excited to attend.`;
+
+      const aiResponse = await chatWithAI([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]);
+      
+      // Clean up the response
+      let description = aiResponse.trim();
+      if ((description.startsWith('"') && description.endsWith('"')) || 
+          (description.startsWith("'") && description.endsWith("'"))) {
+        description = description.slice(1, -1);
+      }
+      
+      res.json({ description });
+    } catch (error: any) {
+      console.error("Error generating event description:", error);
+      res.status(500).json({ message: error.message || "Failed to generate description" });
+    }
+  });
+
   // Object Storage routes for file sharing
   const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
   const objectStorage = new ObjectStorageService();

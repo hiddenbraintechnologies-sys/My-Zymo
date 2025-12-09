@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, ArrowLeft, Globe, Lock, Image } from "lucide-react";
+import { Calendar, ArrowLeft, Globe, Lock, Image, Sparkles, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertEventSchema, type InsertEvent } from "@shared/schema";
@@ -65,6 +65,7 @@ export default function CreateEvent() {
   const [customEventType, setCustomEventType] = useState<string>("");
   const [invitationCardUrl, setInvitationCardUrl] = useState<string>("");
   const [isCardSectionOpen, setIsCardSectionOpen] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
   const urlParams = new URLSearchParams(searchString);
   const eventTypeParam = urlParams.get("type");
@@ -141,6 +142,59 @@ export default function CreateEvent() {
     
     console.log("Payload to send:", payload);
     createEventMutation.mutate(payload);
+  };
+
+  // AI Description Generator
+  const generateAIDescription = async () => {
+    const title = form.getValues("title");
+    const date = form.getValues("date");
+    const location = form.getValues("location");
+    const existingDescription = form.getValues("description");
+
+    if (!title && !effectiveEventType) {
+      toast({
+        title: "Need more info",
+        description: "Please enter an event title or select an event type first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingDescription(true);
+    try {
+      const response = await fetch('/api/ai/event-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          eventTitle: title,
+          eventType: effectiveEventType,
+          date,
+          location,
+          existingDescription,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate description');
+      }
+
+      const data = await response.json();
+      form.setValue("description", data.description);
+      toast({
+        title: "Description generated!",
+        description: "AI has written a description for your event.",
+      });
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate description. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingDescription(false);
+    }
   };
 
   return (
@@ -244,10 +298,33 @@ export default function CreateEvent() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Description</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAIDescription}
+                      disabled={isGeneratingDescription}
+                      className="gap-1.5 text-xs border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:border-orange-700 dark:hover:bg-orange-950/50"
+                      data-testid="button-ai-write-description"
+                    >
+                      {isGeneratingDescription ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Writing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 text-orange-500" />
+                          AI Write
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Textarea 
-                      placeholder="Tell your guests about the event..."
+                      placeholder="Tell your guests about the event... or click 'AI Write' to generate a description"
                       rows={4}
                       {...field}
                       value={field.value || ""}
