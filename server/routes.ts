@@ -709,41 +709,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Booking APIs ===
   
-  // Create booking
+  // Get user's bookings
+  app.get('/api/bookings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const bookings = await storage.getUserBookings(userId);
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  // Get single booking
+  app.get('/api/bookings/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const booking = await storage.getBooking(req.params.id);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Only booking owner can view
+      if (booking.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to view this booking" });
+      }
+      
+      res.json(booking);
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+  
+  // Create booking with payment
   app.post('/api/bookings', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
+      const user = await storage.getUser(userId);
       
-      // Validate booking data
-      const validatedData = insertBookingSchema.parse({
-        ...req.body,
-        userId,
-      });
+      const { vendorId, eventId, bookingDate, guestCount, specialRequests, amount } = req.body;
       
-      // Verify event and vendor exist
-      const [event, vendor] = await Promise.all([
-        storage.getEvent(validatedData.eventId),
-        storage.getVendor(validatedData.vendorId),
-      ]);
-      
-      if (!event) {
-        return res.status(404).json({ message: "Event not found" });
-      }
+      // Verify vendor exists
+      const vendor = await storage.getVendor(vendorId);
       if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
       }
       
-      // Verify user is event creator or participant
-      const participants = await storage.getEventParticipants(validatedData.eventId);
-      const participantUserIds = participants.map(p => p.userId);
-      const isCreator = event.creatorId === userId;
-      const isParticipant = participantUserIds.includes(userId);
-      
-      if (!isCreator && !isParticipant) {
-        return res.status(403).json({ message: "Only event participants can create bookings" });
+      // If eventId provided, verify event exists
+      if (eventId) {
+        const event = await storage.getEvent(eventId);
+        if (!event) {
+          return res.status(404).json({ message: "Event not found" });
+        }
       }
       
-      const booking = await storage.createBooking(validatedData);
+      // Create booking
+      const booking = await storage.createBooking({
+        vendorId,
+        userId,
+        eventId: eventId || null,
+        bookingDate: new Date(bookingDate),
+        guestCount: guestCount || 1,
+        specialRequests: specialRequests || null,
+        amount: amount.toString(),
+        advanceAmount: null,
+        paymentStatus: "pending",
+        paymentId: null,
+        paymentMethod: null,
+        status: "pending",
+        vendorNotes: null,
+        cancellationReason: null,
+        contactName: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null,
+        contactPhone: user?.phone || null,
+        contactEmail: user?.email || null,
+      });
+      
       res.status(201).json(booking);
     } catch (error: any) {
       console.error("Error creating booking:", error);
@@ -751,6 +793,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid booking data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create booking" });
+    }
+  });
+
+  // Update booking payment status (simulate payment completion)
+  app.patch('/api/bookings/:id/payment', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { paymentMethod, amountPaid, isAdvance } = req.body;
+      
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      if (booking.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to update this booking" });
+      }
+      
+      // Simulate payment processing
+      const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      
+      const updatedBooking = await storage.updateBookingPayment(req.params.id, {
+        paymentId,
+        paymentMethod,
+        paymentStatus: isAdvance ? "advance_paid" : "fully_paid",
+        advanceAmount: isAdvance ? amountPaid.toString() : null,
+        status: "confirmed",
+      });
+      
+      res.json(updatedBooking);
+    } catch (error) {
+      console.error("Error updating booking payment:", error);
+      res.status(500).json({ message: "Failed to update booking payment" });
+    }
+  });
+
+  // Cancel booking
+  app.patch('/api/bookings/:id/cancel', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { reason } = req.body;
+      
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      if (booking.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to cancel this booking" });
+      }
+      
+      const updatedBooking = await storage.cancelBooking(req.params.id, reason);
+      res.json(updatedBooking);
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      res.status(500).json({ message: "Failed to cancel booking" });
     }
   });
 

@@ -348,15 +348,37 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   bookings: many(bookings),
 }));
 
-// Bookings table
+// Bookings table with payment support
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  eventId: varchar("event_id").references(() => events.id, { onDelete: "cascade" }), // Optional - can book without event
   vendorId: varchar("vendor_id").notNull().references(() => vendors.id),
   userId: varchar("user_id").notNull().references(() => users.id),
-  status: text("status").notNull().default("pending"), // pending, confirmed, cancelled
-  message: text("message"),
+  
+  // Booking details
+  bookingDate: timestamp("booking_date").notNull(), // When the service is booked for
+  guestCount: integer("guest_count").notNull().default(1),
+  specialRequests: text("special_requests"),
+  
+  // Pricing and payment
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Total amount in INR
+  advanceAmount: decimal("advance_amount", { precision: 10, scale: 2 }), // Advance payment amount
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, advance_paid, fully_paid, refunded
+  paymentId: varchar("payment_id"), // Stripe payment intent ID
+  paymentMethod: text("payment_method"), // card, upi, bank_transfer
+  
+  // Status tracking
+  status: text("status").notNull().default("pending"), // pending, confirmed, cancelled, completed
+  vendorNotes: text("vendor_notes"), // Notes from vendor
+  cancellationReason: text("cancellation_reason"),
+  
+  // Contact info
+  contactName: text("contact_name"),
+  contactPhone: text("contact_phone"),
+  contactEmail: text("contact_email"),
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const bookingsRelations = relations(bookings, ({ one }) => ({

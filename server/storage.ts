@@ -144,8 +144,12 @@ export interface IStorage {
   // Booking methods
   getAllBookings(): Promise<Booking[]>;
   getEventBookings(eventId: string): Promise<(Booking & { vendor: Vendor })[]>;
+  getUserBookings(userId: string): Promise<(Booking & { vendor: Vendor })[]>;
+  getBooking(id: string): Promise<(Booking & { vendor: Vendor }) | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: string, status: string): Promise<void>;
+  updateBookingPayment(id: string, data: { paymentId: string; paymentMethod: string; paymentStatus: string; advanceAmount: string | null; status: string }): Promise<Booking>;
+  cancelBooking(id: string, reason?: string): Promise<Booking>;
   
   // AI Conversation methods
   getUserConversations(userId: string): Promise<AiConversation[]>;
@@ -1259,6 +1263,64 @@ export class DatabaseStorage implements IStorage {
 
   async updateBookingStatus(id: string, status: string): Promise<void> {
     await db.update(bookings).set({ status }).where(eq(bookings.id, id));
+  }
+
+  async getUserBookings(userId: string): Promise<(Booking & { vendor: Vendor })[]> {
+    const results = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.userId, userId))
+      .leftJoin(vendors, eq(bookings.vendorId, vendors.id))
+      .orderBy(desc(bookings.createdAt));
+    
+    return results.map(r => ({
+      ...r.bookings,
+      vendor: r.vendors!,
+    }));
+  }
+
+  async getBooking(id: string): Promise<(Booking & { vendor: Vendor }) | undefined> {
+    const [result] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id))
+      .leftJoin(vendors, eq(bookings.vendorId, vendors.id));
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result.bookings,
+      vendor: result.vendors!,
+    };
+  }
+
+  async updateBookingPayment(id: string, data: { paymentId: string; paymentMethod: string; paymentStatus: string; advanceAmount: string | null; status: string }): Promise<Booking> {
+    const [result] = await db
+      .update(bookings)
+      .set({
+        paymentId: data.paymentId,
+        paymentMethod: data.paymentMethod,
+        paymentStatus: data.paymentStatus,
+        advanceAmount: data.advanceAmount,
+        status: data.status,
+        updatedAt: new Date(),
+      })
+      .where(eq(bookings.id, id))
+      .returning();
+    return result;
+  }
+
+  async cancelBooking(id: string, reason?: string): Promise<Booking> {
+    const [result] = await db
+      .update(bookings)
+      .set({
+        status: "cancelled",
+        cancellationReason: reason || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(bookings.id, id))
+      .returning();
+    return result;
   }
 
   // AI Conversation methods
