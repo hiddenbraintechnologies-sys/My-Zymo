@@ -2186,6 +2186,28 @@ Guidelines:
     }
   });
 
+  // Get signed URL for banner/image uploads (GET version for compatibility)
+  app.get('/api/upload/signed-url', isAuthenticated, async (req: any, res) => {
+    try {
+      const filename = req.query.filename as string;
+      if (!filename) {
+        return res.status(400).json({ message: 'Filename is required' });
+      }
+      
+      const { uploadURL, objectPath } = await objectStorage.getObjectEntityUploadURL(filename);
+      // Build the file URL that can be used to access the uploaded file
+      const fileUrl = `/api${objectPath}`;
+      
+      res.json({ 
+        signedUrl: uploadURL, 
+        fileUrl,
+      });
+    } catch (error: any) {
+      console.error('Error generating signed upload URL:', error);
+      res.status(500).json({ message: error.message || 'Failed to generate upload URL' });
+    }
+  });
+
   // Serve uploaded objects
   app.get('/api/objects/*', isAuthenticated, async (req: any, res) => {
     try {

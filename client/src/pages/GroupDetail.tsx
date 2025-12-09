@@ -576,15 +576,23 @@ Looking forward to planning together!`;
       if (bannerFile) {
         // Get signed upload URL
         const uploadRes = await fetch(`/api/upload/signed-url?filename=${encodeURIComponent(bannerFile.name)}&contentType=${encodeURIComponent(bannerFile.type)}`);
-        if (!uploadRes.ok) throw new Error("Failed to get upload URL");
-        const { signedUrl, fileUrl } = await uploadRes.json();
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.message || "Failed to get upload URL");
+        }
+        const { signedUrl, fileUrl } = uploadData;
 
         // Upload to storage
-        await fetch(signedUrl, {
+        const uploadToStorageRes = await fetch(signedUrl, {
           method: "PUT",
           body: bannerFile,
           headers: { "Content-Type": bannerFile.type },
         });
+        
+        if (!uploadToStorageRes.ok) {
+          throw new Error("Failed to upload image to storage");
+        }
+        
         bannerImageUrl = fileUrl;
       }
 
