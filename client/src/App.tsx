@@ -38,6 +38,7 @@ import AttendeeManagementDemo from "@/pages/AttendeeManagementDemo";
 import SmartRemindersDemo from "@/pages/SmartRemindersDemo";
 import PhotoAlbumDemo from "@/pages/PhotoAlbumDemo";
 import NotFound from "@/pages/not-found";
+import FloatingChat from "@/components/FloatingChat";
 
 // Universal post-auth redirect handler
 function PostAuthRedirectHandler() {
@@ -123,6 +124,7 @@ function App() {
         <PostAuthRedirectHandler />
         <Toaster />
         <Router />
+        <FloatingChat />
       </TooltipProvider>
     </QueryClientProvider>
   );
