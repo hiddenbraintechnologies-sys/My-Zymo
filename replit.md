@@ -36,7 +36,7 @@ The frontend employs a vibrant, celebration-themed design with an orange/coral c
 *   **Dashboard Chat Section:** Always-visible chat with warm orange-amber gradient headers matching the overall celebration theme
 *   **Events Page Hero:** Enhanced with floating icons (Calendar, PartyPopper, Gift, Star), category badge, and event type quick action pills
 *   **Vendors Page Hero:** Marketplace-themed with floating icons (Store, Camera, Utensils, Palette), teal gradient badge, and vendor category pills
-*   **Group Planning Hero:** Purple-themed with floating icons (Users, GraduationCap, Bike, Heart), category badge, and event type pills
+*   **Group Detail Page:** Dashboard-style redesign with floating decorative icons, gradient Quick Stats cards, and themed OverviewTab cards matching the celebration design system
 *   **Color-Coded Quick Actions:** Three distinct gradient cards (orange for Create Event, blue for My Events, purple for Find Vendors) with themed icons and badges
 *   **Rotating Event Cards:** Five warm gradient color schemes using orange/amber/yellow variations that rotate by index for visual variety while maintaining thematic coherence
 *   **Gradient Typography:** Section headers use warm gradient text (bg-clip-text technique) with orange-amber tones for visual hierarchy
@@ -134,7 +134,7 @@ Myzymo includes a comprehensive set of features:
         *   Step 2: Choose split method with radio selection between Auto Split (equal division with live per-person calculation) or Manual Split (custom amounts per member with real-time validation ensuring totals match)
         *   Manual split shows member avatars, names, individual input fields, and validates that splits sum to total amount
     *   Database tables: eventGroups, eventGroupMembers, groupPolls, groupPollOptions, groupPollVotes, groupMemberRoles, groupInvitations, groupItineraryItems, eventAttendance, eventPhotos, eventFeedback, groupExpenses, groupExpenseSplits
-    *   Accessible via dedicated /groups route and Dashboard quick action card
+    *   Group detail pages accessible via /groups/:id route from Dashboard or event creation flow
 
 ### System Design Choices
 

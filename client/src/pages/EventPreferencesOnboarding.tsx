@@ -46,7 +46,7 @@ const preferenceOptions: PreferenceOption[] = [
     ],
     gradient: "from-blue-500 to-indigo-600",
     borderColor: "border-blue-500/50",
-    redirectTo: "/groups",
+    redirectTo: "/dashboard",
   },
   {
     id: "private_events",

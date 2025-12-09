@@ -525,8 +525,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div 
-                  className="text-center bg-gradient-to-br from-purple-500/30 to-violet-500/30 backdrop-blur-sm border border-purple-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center cursor-pointer hover:from-purple-500/40 hover:to-violet-500/40 transition-all"
-                  onClick={() => setLocation("/groups")}
+                  className="text-center bg-gradient-to-br from-purple-500/30 to-violet-500/30 backdrop-blur-sm border border-purple-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center"
                   data-testid="stat-groups"
                 >
                   <div className="text-xl md:text-3xl font-bold text-white">{groups?.length || 0}</div>
@@ -572,8 +571,8 @@ export default function Dashboard() {
                 title: "Reunions",
                 description: "Create a new reunion or join an existing one",
                 icon: GraduationCap,
-                createPath: "/groups?type=reunion",
-                joinPath: "/groups/join/",
+                createPath: "/events/create?type=private&category=reunion",
+                joinPath: "/events/join/",
                 createLabel: "Create New Reunion",
                 createDescription: "Start planning a school, college, or family reunion",
                 colors: {
@@ -658,8 +657,8 @@ export default function Dashboard() {
                 title: "Group Rides",
                 description: "Create a new ride or join an existing one",
                 icon: Bike,
-                createPath: "/groups?type=group_ride",
-                joinPath: "/groups/join/",
+                createPath: "/events/create?type=private&category=group_ride",
+                joinPath: "/events/join/",
                 createLabel: "Create Group Ride",
                 createDescription: "Plan a bike trip or adventure with friends",
                 colors: {
@@ -701,8 +700,8 @@ export default function Dashboard() {
                 title: "Fitness",
                 description: "Create a new fitness activity or join an existing one",
                 icon: Dumbbell,
-                createPath: "/groups?type=fitness",
-                joinPath: "/groups/join/",
+                createPath: "/events/create?type=private&category=fitness",
+                joinPath: "/events/join/",
                 createLabel: "Create Fitness Activity",
                 createDescription: "Plan yoga, gym sessions, or sports activities",
                 colors: {
@@ -787,8 +786,8 @@ export default function Dashboard() {
                 title: "Treks",
                 description: "Create a new trek or join an existing one",
                 icon: Mountain,
-                createPath: "/groups?type=trek",
-                joinPath: "/groups/join/",
+                createPath: "/events/create?type=private&category=trek",
+                joinPath: "/events/join/",
                 createLabel: "Create Trek",
                 createDescription: "Plan a hiking or adventure trip",
                 colors: {
@@ -830,8 +829,8 @@ export default function Dashboard() {
                 title: "Sports",
                 description: "Create a new sports event or join an existing one",
                 icon: Trophy,
-                createPath: "/groups?type=sports",
-                joinPath: "/groups/join/",
+                createPath: "/events/create?type=private&category=sports",
+                joinPath: "/events/join/",
                 createLabel: "Create Sports Event",
                 createDescription: "Plan matches, tournaments, or team sports",
                 colors: {
@@ -1200,31 +1199,6 @@ export default function Dashboard() {
               </CardHeader>
             </Card>
 
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30"
-              onClick={() => {
-                setCreateEventDialogOpen(false);
-                setLocation("/groups");
-              }}
-              data-testid="option-group-planning"
-            >
-              <CardHeader className="flex flex-row items-center gap-4 p-4">
-                <div className="p-3 bg-gradient-to-br from-purple-400 to-violet-400 rounded-xl shadow-md">
-                  <Vote className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg text-purple-700 dark:text-purple-100">Group Planning</CardTitle>
-                  <CardDescription className="text-purple-600 dark:text-purple-300">
-                    Collaborate with polls, itinerary & expense tracking
-                  </CardDescription>
-                </div>
-                <Badge className="bg-purple-400 text-white mr-2">
-                  <Users className="w-3 h-3 mr-1" />
-                  Team
-                </Badge>
-                <ArrowRight className="w-5 h-5 text-purple-400" />
-              </CardHeader>
-            </Card>
           </div>
         </DialogContent>
       </Dialog>

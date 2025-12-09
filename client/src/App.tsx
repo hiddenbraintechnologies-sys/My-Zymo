@@ -25,7 +25,6 @@ import VendorManagement from "@/pages/VendorManagement";
 import VendorLogin from "@/pages/VendorLogin";
 import VendorSignup from "@/pages/VendorSignup";
 import VendorDashboard from "@/pages/VendorDashboard";
-import GroupPlanning from "@/pages/GroupPlanning";
 import GroupDetail from "@/pages/GroupDetail";
 import Chat from "@/pages/Chat";
 import ChatInvite from "@/pages/ChatInvite";
@@ -58,7 +57,8 @@ function PostAuthRedirectHandler() {
       const pendingCode = sessionStorage.getItem('pendingJoinCode');
       if (pendingCode) {
         sessionStorage.removeItem('pendingJoinCode');
-        setLocation(`/groups?join=${pendingCode}`);
+        // Redirect to dashboard - user can join group from there
+        setLocation(`/dashboard`);
         return;
       }
       
@@ -102,7 +102,6 @@ function Router() {
       <Route path="/vendor/login" component={VendorLogin} />
       <Route path="/vendor/signup" component={VendorSignup} />
       <Route path="/vendor/dashboard" component={VendorDashboard} />
-      <Route path="/groups" component={GroupPlanning} />
       <Route path="/groups/:id" component={GroupDetail} />
       <Route path="/onboarding/preferences" component={EventPreferencesOnboarding} />
       <Route path="/split-expenses" component={ExpenseSplitDemo} />
