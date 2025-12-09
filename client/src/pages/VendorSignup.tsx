@@ -248,6 +248,7 @@ export default function VendorSignup() {
                     value={formData.password}
                     onChange={handleChange}
                     required
+                    maxLength={128}
                     data-testid="input-password"
                     className="pr-10"
                   />

@@ -46,16 +46,29 @@ const signupSchema = z.object({
     }),
   password: z.string()
     .min(6, "Password must be at least 6 characters")
+    .max(128, "Password cannot exceed 128 characters")
     .refine((password) => !password.includes(" "), {
       message: "Password cannot contain spaces",
     }),
   email: z.string()
+    .max(254, "Email cannot exceed 254 characters")
     .email("Please enter a valid email address")
     .refine((email) => {
       const localPart = email.split("@")[0];
       return localPart && /[a-zA-Z0-9]/.test(localPart);
     }, {
       message: "Email must contain at least one letter or number before the @",
+    })
+    .refine((email) => {
+      // Validate domain structure: must have a dot and valid TLD
+      const domain = email.split("@")[1];
+      if (!domain) return false;
+      const parts = domain.split(".");
+      if (parts.length < 2) return false;
+      const tld = parts[parts.length - 1];
+      return tld.length >= 2 && tld.length <= 10 && /^[a-zA-Z]+$/.test(tld);
+    }, {
+      message: "Please enter a valid email with a proper domain",
     }),
   firstName: z.string()
     .min(1, "First name is required")
