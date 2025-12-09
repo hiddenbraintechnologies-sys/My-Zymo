@@ -247,68 +247,6 @@ export default function Events() {
           </div>
         </div>
 
-        {/* Quick Action Cards */}
-        {user && (
-          <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 border-2 border-orange-200 dark:border-orange-800 shadow-md hover:shadow-lg transition-all" 
-              onClick={() => setCreateEventDialogOpen(true)} 
-              data-testid="card-quick-create-event"
-            >
-              <CardHeader className="p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2.5 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
-                    <Plus className="w-5 h-5 text-white" />
-                  </div>
-                  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs">Create</Badge>
-                </div>
-                <CardTitle className="text-lg font-bold text-orange-700 dark:text-orange-100">Create Event</CardTitle>
-                <CardDescription className="text-sm text-orange-600/80 dark:text-orange-200/80">
-                  Start planning your next celebration
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100 dark:from-purple-950/30 dark:via-violet-950/20 dark:to-purple-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all" 
-              onClick={() => setEventFilter("my-events")} 
-              data-testid="card-quick-my-events"
-            >
-              <CardHeader className="p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2.5 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
-                    <Calendar className="w-5 h-5 text-white" />
-                  </div>
-                  <Badge className="bg-gradient-to-r from-purple-500 to-violet-500 text-white text-xs">Personal</Badge>
-                </div>
-                <CardTitle className="text-lg font-bold text-purple-700 dark:text-purple-100">My Events</CardTitle>
-                <CardDescription className="text-sm text-purple-600/80 dark:text-purple-200/80">
-                  Manage your personal celebrations
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card 
-              className="hover-elevate cursor-pointer bg-gradient-to-br from-teal-50 via-cyan-50 to-teal-100 dark:from-teal-950/30 dark:via-cyan-950/20 dark:to-teal-950/30 border-2 border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg transition-all" 
-              onClick={() => setLocation("/groups")} 
-              data-testid="card-quick-groups"
-            >
-              <CardHeader className="p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2.5 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-xl shadow-md">
-                    <UsersRound className="w-5 h-5 text-white" />
-                  </div>
-                  <Badge className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs">Collaborate</Badge>
-                </div>
-                <CardTitle className="text-lg font-bold text-teal-700 dark:text-teal-100">Group Planning</CardTitle>
-                <CardDescription className="text-sm text-teal-600/80 dark:text-teal-200/80">
-                  Plan events together with friends
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        )}
-
         {/* Filter and Sort Controls */}
         <div className="mb-6 space-y-4">
           {user && (
