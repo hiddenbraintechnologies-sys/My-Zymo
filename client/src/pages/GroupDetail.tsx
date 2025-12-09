@@ -419,6 +419,7 @@ export default function GroupDetail() {
   const [, params] = useRoute("/groups/:id");
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [overviewDialogOpen, setOverviewDialogOpen] = useState(false);
   const [pollsDialogOpen, setPollsDialogOpen] = useState(false);
   const [itineraryDialogOpen, setItineraryDialogOpen] = useState(false);
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
@@ -977,7 +978,7 @@ Looking forward to planning together!`;
                   ? "border-orange-500 ring-2 ring-orange-500/30 shadow-lg scale-[1.02]" 
                   : "border-orange-200 dark:border-orange-800 shadow-md hover:shadow-lg"
               }`}
-              onClick={() => setActiveTab("overview")}
+              onClick={() => setOverviewDialogOpen(true)}
               data-testid="tab-overview"
             >
               <div 
@@ -1396,6 +1397,27 @@ Looking forward to planning together!`;
               {isUploadingBanner ? "Uploading..." : customizeMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Overview Dialog */}
+      <Dialog open={overviewDialogOpen} onOpenChange={setOverviewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-orange-400 to-amber-500 rounded-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              Group Overview
+            </DialogTitle>
+            <DialogDescription>
+              Quick summary of your group's activities and status
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto">
+            <OverviewTab group={group!} polls={polls} itinerary={itinerary} expenses={expenses} theme={eventTheme} />
+          </div>
         </DialogContent>
       </Dialog>
 
