@@ -6,6 +6,11 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import overviewBg from "@assets/stock_images/family_gathering_cel_69f4e3bd.jpg";
+import pollsBg from "@assets/stock_images/college_reunion_grad_32cdfc94.jpg";
+import itineraryBg from "@assets/stock_images/hiking_trek_mountain_b500039b.jpg";
+import membersBg from "@assets/stock_images/group_bike_ride_cycl_9f3949fe.jpg";
+import expensesBg from "@assets/stock_images/wedding_ceremony_cel_3d2131c8.jpg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -881,36 +886,186 @@ Looking forward to planning together!`;
 
         {/* Main Content with Tabs - Enhanced styling */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-xl md:text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-              Group Details
+              Quick Access
             </h2>
             <Badge variant="outline" className="text-xs">
               <Sparkles className="w-3 h-3 mr-1" />
               Interactive
             </Badge>
           </div>
-          <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-muted/50 rounded-xl">
-            <TabsTrigger value="overview" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-overview">
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden md:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="polls" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-polls">
-              <Vote className="w-4 h-4" />
-              <span className="hidden md:inline">Polls</span>
-            </TabsTrigger>
-            <TabsTrigger value="itinerary" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-itinerary">
-              <ClipboardList className="w-4 h-4" />
-              <span className="hidden md:inline">Itinerary</span>
-            </TabsTrigger>
-            <TabsTrigger value="members" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-members">
-              <UserCog className="w-4 h-4" />
-              <span className="hidden md:inline">Members</span>
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-expenses">
-              <IndianRupee className="w-4 h-4" />
-              <span className="hidden md:inline">Expenses</span>
-            </TabsTrigger>
+          
+          {/* Block Button Navigation - Dashboard Style */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+            {/* Overview Button */}
+            <Card 
+              className={`hover-elevate cursor-pointer overflow-hidden relative group border-2 transition-all ${
+                activeTab === "overview" 
+                  ? "border-orange-500 ring-2 ring-orange-500/30 shadow-lg scale-[1.02]" 
+                  : "border-orange-200 dark:border-orange-800 shadow-md hover:shadow-lg"
+              }`}
+              onClick={() => setActiveTab("overview")}
+              data-testid="tab-overview"
+            >
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${overviewBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-orange-900/90 via-orange-900/60 to-orange-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
+                <div className="mx-auto p-2.5 md:p-3 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <CardTitle className="text-sm md:text-base font-bold text-white">Overview</CardTitle>
+                <CardDescription className="text-xs text-orange-200 hidden sm:block">
+                  Quick summary
+                </CardDescription>
+                {activeTab === "overview" && (
+                  <Badge className="mt-2 bg-orange-400/80 text-white text-[10px]">
+                    <Check className="w-2.5 h-2.5 mr-1" />
+                    Active
+                  </Badge>
+                )}
+              </CardHeader>
+            </Card>
+
+            {/* Polls Button */}
+            <Card 
+              className={`hover-elevate cursor-pointer overflow-hidden relative group border-2 transition-all ${
+                activeTab === "polls" 
+                  ? "border-purple-500 ring-2 ring-purple-500/30 shadow-lg scale-[1.02]" 
+                  : "border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg"
+              }`}
+              onClick={() => setActiveTab("polls")}
+              data-testid="tab-polls"
+            >
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${pollsBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-900/90 via-purple-900/60 to-purple-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
+                <div className="mx-auto p-2.5 md:p-3 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
+                  <Vote className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <CardTitle className="text-sm md:text-base font-bold text-white">Polls</CardTitle>
+                <CardDescription className="text-xs text-purple-200 hidden sm:block">
+                  Vote & decide
+                </CardDescription>
+                {activeTab === "polls" && (
+                  <Badge className="mt-2 bg-purple-400/80 text-white text-[10px]">
+                    <Check className="w-2.5 h-2.5 mr-1" />
+                    Active
+                  </Badge>
+                )}
+              </CardHeader>
+            </Card>
+
+            {/* Itinerary Button */}
+            <Card 
+              className={`hover-elevate cursor-pointer overflow-hidden relative group border-2 transition-all ${
+                activeTab === "itinerary" 
+                  ? "border-teal-500 ring-2 ring-teal-500/30 shadow-lg scale-[1.02]" 
+                  : "border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg"
+              }`}
+              onClick={() => setActiveTab("itinerary")}
+              data-testid="tab-itinerary"
+            >
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${itineraryBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-teal-900/90 via-teal-900/60 to-teal-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
+                <div className="mx-auto p-2.5 md:p-3 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
+                  <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <CardTitle className="text-sm md:text-base font-bold text-white">Itinerary</CardTitle>
+                <CardDescription className="text-xs text-teal-200 hidden sm:block">
+                  Plan schedule
+                </CardDescription>
+                {activeTab === "itinerary" && (
+                  <Badge className="mt-2 bg-teal-400/80 text-white text-[10px]">
+                    <Check className="w-2.5 h-2.5 mr-1" />
+                    Active
+                  </Badge>
+                )}
+              </CardHeader>
+            </Card>
+
+            {/* Members Button */}
+            <Card 
+              className={`hover-elevate cursor-pointer overflow-hidden relative group border-2 transition-all ${
+                activeTab === "members" 
+                  ? "border-blue-500 ring-2 ring-blue-500/30 shadow-lg scale-[1.02]" 
+                  : "border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg"
+              }`}
+              onClick={() => setActiveTab("members")}
+              data-testid="tab-members"
+            >
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${membersBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/60 to-blue-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
+                <div className="mx-auto p-2.5 md:p-3 bg-gradient-to-br from-blue-400 to-sky-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
+                  <UserCog className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <CardTitle className="text-sm md:text-base font-bold text-white">Members</CardTitle>
+                <CardDescription className="text-xs text-blue-200 hidden sm:block">
+                  Manage team
+                </CardDescription>
+                {activeTab === "members" && (
+                  <Badge className="mt-2 bg-blue-400/80 text-white text-[10px]">
+                    <Check className="w-2.5 h-2.5 mr-1" />
+                    Active
+                  </Badge>
+                )}
+              </CardHeader>
+            </Card>
+
+            {/* Expenses Button */}
+            <Card 
+              className={`hover-elevate cursor-pointer overflow-hidden relative group border-2 transition-all col-span-2 md:col-span-1 ${
+                activeTab === "expenses" 
+                  ? "border-green-500 ring-2 ring-green-500/30 shadow-lg scale-[1.02]" 
+                  : "border-green-200 dark:border-green-800 shadow-md hover:shadow-lg"
+              }`}
+              onClick={() => setActiveTab("expenses")}
+              data-testid="tab-expenses"
+            >
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${expensesBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-green-900/90 via-green-900/60 to-green-900/30" />
+              <CardHeader className="p-3 md:p-4 text-center relative z-10">
+                <div className="mx-auto p-2.5 md:p-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
+                  <IndianRupee className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <CardTitle className="text-sm md:text-base font-bold text-white">Expenses</CardTitle>
+                <CardDescription className="text-xs text-green-200 hidden sm:block">
+                  Split & track
+                </CardDescription>
+                {activeTab === "expenses" && (
+                  <Badge className="mt-2 bg-green-400/80 text-white text-[10px]">
+                    <Check className="w-2.5 h-2.5 mr-1" />
+                    Active
+                  </Badge>
+                )}
+              </CardHeader>
+            </Card>
+          </div>
+          
+          {/* Hidden TabsList for accessibility - keeps Tabs component working */}
+          <TabsList className="hidden">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="polls">Polls</TabsTrigger>
+            <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="expenses">Expenses</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
