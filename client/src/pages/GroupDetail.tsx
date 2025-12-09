@@ -11,6 +11,10 @@ import pollsBg from "@assets/stock_images/voting_ballot_poll_d_7ec70ade.jpg";
 import itineraryBg from "@assets/stock_images/calendar_schedule_pl_e91332c5.jpg";
 import membersBg from "@assets/stock_images/team_members_people__7009dec8.jpg";
 import expensesBg from "@assets/stock_images/money_budget_expense_f5d2b625.jpg";
+import dateBg from "@assets/stock_images/calendar_date_event__81a53008.jpg";
+import locationBg from "@assets/stock_images/location_map_pin_des_5d18dfbb.jpg";
+import budgetBg from "@assets/stock_images/indian_rupee_money_c_c599aff9.jpg";
+import statsMembersBg from "@assets/stock_images/friends_group_people_76ba475f.jpg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -830,56 +834,76 @@ Looking forward to planning together!`;
           </div>
         </div>
         
-        {/* Quick Stats Cards - Dashboard Style Grid */}
+        {/* Quick Stats Cards - Dashboard Style Grid with Background Images */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-2">
           {group.eventDate && (
-            <Card className="hover-elevate bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 dark:from-blue-950/30 dark:via-sky-950/20 dark:to-blue-950/30 border-2 border-blue-200 dark:border-blue-800 shadow-md">
-              <CardContent className="p-4">
+            <Card className="hover-elevate overflow-hidden relative border-2 border-blue-200 dark:border-blue-800 shadow-md">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${dateBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/60 to-blue-900/30" />
+              <CardContent className="p-4 relative z-10">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-gradient-to-br from-blue-400 to-sky-500 rounded-xl shadow-md">
                     <Calendar className="w-4 h-4 text-white" />
                   </div>
                 </div>
-                <div className="text-xs text-blue-600/80 dark:text-blue-300/80 font-medium">Event Date</div>
-                <div className="font-bold text-blue-700 dark:text-blue-100 text-sm mt-0.5">{format(new Date(group.eventDate), "PPP")}</div>
+                <div className="text-xs text-blue-200 font-medium">Event Date</div>
+                <div className="font-bold text-white text-sm mt-0.5">{format(new Date(group.eventDate), "PPP")}</div>
               </CardContent>
             </Card>
           )}
           {group.locationPreference && (
-            <Card className="hover-elevate bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-md">
-              <CardContent className="p-4">
+            <Card className="hover-elevate overflow-hidden relative border-2 border-emerald-200 dark:border-emerald-800 shadow-md">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${locationBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/90 via-emerald-900/60 to-emerald-900/30" />
+              <CardContent className="p-4 relative z-10">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl shadow-md">
                     <MapPin className="w-4 h-4 text-white" />
                   </div>
                 </div>
-                <div className="text-xs text-emerald-600/80 dark:text-emerald-300/80 font-medium">Location</div>
-                <div className="font-bold text-emerald-700 dark:text-emerald-100 text-sm mt-0.5 truncate">{group.locationPreference}</div>
+                <div className="text-xs text-emerald-200 font-medium">Location</div>
+                <div className="font-bold text-white text-sm mt-0.5 truncate">{group.locationPreference}</div>
               </CardContent>
             </Card>
           )}
           {group.budget && (
-            <Card className="hover-elevate bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 border-2 border-orange-200 dark:border-orange-800 shadow-md">
-              <CardContent className="p-4">
+            <Card className="hover-elevate overflow-hidden relative border-2 border-orange-200 dark:border-orange-800 shadow-md">
+              <div 
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ backgroundImage: `url(${budgetBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-orange-900/90 via-orange-900/60 to-orange-900/30" />
+              <CardContent className="p-4 relative z-10">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl shadow-md">
                     <IndianRupee className="w-4 h-4 text-white" />
                   </div>
                 </div>
-                <div className="text-xs text-orange-600/80 dark:text-orange-300/80 font-medium">Budget</div>
-                <div className="font-bold text-orange-700 dark:text-orange-100 text-sm mt-0.5">{Number(group.budget).toLocaleString("en-IN")}</div>
+                <div className="text-xs text-orange-200 font-medium">Budget</div>
+                <div className="font-bold text-white text-sm mt-0.5">{Number(group.budget).toLocaleString("en-IN")}</div>
               </CardContent>
             </Card>
           )}
-          <Card className="hover-elevate bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100 dark:from-purple-950/30 dark:via-violet-950/20 dark:to-purple-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-md">
-            <CardContent className="p-4">
+          <Card className="hover-elevate overflow-hidden relative border-2 border-purple-200 dark:border-purple-800 shadow-md">
+            <div 
+              className="absolute inset-0 bg-cover bg-center" 
+              style={{ backgroundImage: `url(${statsMembersBg})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-purple-900/90 via-purple-900/60 to-purple-900/30" />
+            <CardContent className="p-4 relative z-10">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
                   <Users className="w-4 h-4 text-white" />
                 </div>
               </div>
-              <div className="text-xs text-purple-600/80 dark:text-purple-300/80 font-medium">Members</div>
-              <div className="font-bold text-purple-700 dark:text-purple-100 text-sm mt-0.5">{group.memberCount || group.members?.length || 1}</div>
+              <div className="text-xs text-purple-200 font-medium">Members</div>
+              <div className="font-bold text-white text-sm mt-0.5">{group.memberCount || group.members?.length || 1}</div>
             </CardContent>
           </Card>
         </div>
