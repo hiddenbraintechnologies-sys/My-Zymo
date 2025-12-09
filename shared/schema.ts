@@ -385,6 +385,13 @@ export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  title: z.string()
+    .min(2, "Event name must be at least 2 characters")
+    .max(100, "Event name cannot exceed 100 characters")
+    .refine((title) => /[a-zA-Z]/.test(title), {
+      message: "Event name must contain at least one letter",
+    }),
 });
 
 export const insertEventParticipantSchema = createInsertSchema(eventParticipants).omit({
