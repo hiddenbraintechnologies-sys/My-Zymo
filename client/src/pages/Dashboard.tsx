@@ -288,10 +288,20 @@ export default function Dashboard() {
   
   const handleCreateGroup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
       toast({
         title: "Name required",
         description: "Please enter a name for your group",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Validate that name contains at least one letter
+    if (!/[a-zA-Z]/.test(trimmedName)) {
+      toast({
+        title: "Invalid name",
+        description: "Name must contain at least one letter",
         variant: "destructive",
       });
       return;
