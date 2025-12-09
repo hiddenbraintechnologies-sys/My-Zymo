@@ -419,7 +419,10 @@ export default function GroupDetail() {
   const [, params] = useRoute("/groups/:id");
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [pollsDialogOpen, setPollsDialogOpen] = useState(false);
   const [itineraryDialogOpen, setItineraryDialogOpen] = useState(false);
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
+  const [expensesDialogOpen, setExpensesDialogOpen] = useState(false);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   const [selectedThemeColor, setSelectedThemeColor] = useState<string>("");
   const [customHexColor, setCustomHexColor] = useState("#f97316");
@@ -1006,7 +1009,7 @@ Looking forward to planning together!`;
                   ? "border-purple-500 ring-2 ring-purple-500/30 shadow-lg scale-[1.02]" 
                   : "border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg"
               }`}
-              onClick={() => setActiveTab("polls")}
+              onClick={() => setPollsDialogOpen(true)}
               data-testid="tab-polls"
             >
               <div 
@@ -1070,7 +1073,7 @@ Looking forward to planning together!`;
                   ? "border-blue-500 ring-2 ring-blue-500/30 shadow-lg scale-[1.02]" 
                   : "border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg"
               }`}
-              onClick={() => setActiveTab("members")}
+              onClick={() => setMembersDialogOpen(true)}
               data-testid="tab-members"
             >
               <div 
@@ -1102,7 +1105,7 @@ Looking forward to planning together!`;
                   ? "border-green-500 ring-2 ring-green-500/30 shadow-lg scale-[1.02]" 
                   : "border-green-200 dark:border-green-800 shadow-md hover:shadow-lg"
               }`}
-              onClick={() => setActiveTab("expenses")}
+              onClick={() => setExpensesDialogOpen(true)}
               data-testid="tab-expenses"
             >
               <div 
@@ -1396,6 +1399,27 @@ Looking forward to planning together!`;
         </DialogContent>
       </Dialog>
 
+      {/* Polls Dialog */}
+      <Dialog open={pollsDialogOpen} onOpenChange={setPollsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-purple-400 to-violet-500 rounded-lg">
+                <Vote className="w-5 h-5 text-white" />
+              </div>
+              Group Polls & Voting
+            </DialogTitle>
+            <DialogDescription>
+              Create polls and vote on decisions together
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto">
+            <PollsTab groupId={groupId!} polls={polls} isAdmin={isAdmin || isCreator} theme={eventTheme} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Itinerary Dialog */}
       <Dialog open={itineraryDialogOpen} onOpenChange={setItineraryDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -1417,6 +1441,55 @@ Looking forward to planning together!`;
               itinerary={itinerary} 
               isAdmin={isAdmin || isCreator} 
               groupLocation={group?.locationPreference || undefined} 
+              theme={eventTheme} 
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Members Dialog */}
+      <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-blue-400 to-sky-500 rounded-lg">
+                <UserCog className="w-5 h-5 text-white" />
+              </div>
+              Manage Members
+            </DialogTitle>
+            <DialogDescription>
+              View and manage group members and their roles
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto">
+            <MembersTab group={group!} isAdmin={isAdmin || isCreator} theme={eventTheme} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expenses Dialog */}
+      <Dialog open={expensesDialogOpen} onOpenChange={setExpensesDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg">
+                <IndianRupee className="w-5 h-5 text-white" />
+              </div>
+              Split Expenses
+            </DialogTitle>
+            <DialogDescription>
+              Track and split expenses among group members
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto">
+            <ExpensesTab 
+              groupId={groupId!} 
+              group={group!} 
+              expenses={expenses} 
+              members={group?.members || []} 
+              isAdmin={isAdmin || isCreator} 
               theme={eventTheme} 
             />
           </div>
