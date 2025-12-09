@@ -725,9 +725,9 @@ Looking forward to planning together!`;
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
-        {/* Group Header Banner - Uses event type theme colors */}
+        {/* Group Header Banner - Dashboard-style with floating icons */}
         <div 
-          className={`relative overflow-hidden rounded-2xl p-6 md:p-8 text-white shadow-xl mb-6 ${
+          className={`relative overflow-hidden rounded-2xl shadow-xl mb-6 ${
             group.bannerImageUrl ? "" : getBannerStyles(group.themeColor, group.eventType).gradientClass
           }`}
           style={
@@ -740,38 +740,71 @@ Looking forward to planning together!`;
         >
           {/* Dark overlay for custom banner images */}
           {group.bannerImageUrl && (
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
           )}
           {/* Pattern overlay for color backgrounds */}
           {!group.bannerImageUrl && (
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
           )}
           
-          <div className="relative">
+          {/* Floating Decorative Icons - Dashboard style */}
+          <div className="absolute top-4 left-4 md:top-6 md:left-8 z-10">
+            <div className={`bg-gradient-to-br ${eventTheme.gradient} backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce`} style={{ animationDuration: '3s' }}>
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute top-8 right-4 md:top-4 md:right-[200px] z-10 hidden sm:block">
+            <div className="bg-gradient-to-br from-pink-500/30 to-rose-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }}>
+              <PartyPopper className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-16 left-8 md:bottom-4 md:left-[120px] z-10 hidden md:block">
+            <div className="bg-gradient-to-br from-violet-500/30 to-purple-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '2.8s', animationDelay: '1s' }}>
+              <Users className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-4 right-4 md:bottom-6 md:right-8 z-10 hidden sm:block">
+            <div className="bg-gradient-to-br from-amber-500/30 to-yellow-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '0.3s' }}>
+              <Star className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          
+          <div className="relative z-10 p-6 md:p-8 min-h-[200px] md:min-h-[240px]">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div>
+              <div className="flex-1">
+                {/* Category Badge */}
+                <div className="mb-3 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-sm border border-white/20 text-xs font-medium text-white">
+                  <Sparkles className="w-3 h-3 mr-1.5" />
+                  {group.eventType?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Group Planning'}
+                </div>
+                
                 <div className="flex items-center gap-3 mb-2">
-                  <Badge className={`${STATUS_COLORS[group.status as keyof typeof STATUS_COLORS]} bg-white/20 backdrop-blur border-0`}>
+                  <Badge className="bg-white/20 backdrop-blur border-0 text-white text-xs">
                     {group.status}
                   </Badge>
                 </div>
                 
-                <h1 className="text-2xl md:text-3xl font-heading font-bold mb-2" data-testid="text-group-name">
+                <h1 className="text-2xl md:text-4xl font-heading font-bold mb-3 text-white drop-shadow-lg" data-testid="text-group-name">
                   {group.name}
                 </h1>
                 
                 {group.description && (
-                  <p className="text-white/80 max-w-2xl">{group.description}</p>
+                  <p className="text-white/90 max-w-2xl text-sm md:text-base leading-relaxed">{group.description}</p>
                 )}
               </div>
               
               {group.inviteCode && (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center min-w-[180px]">
-                  <div className="text-sm text-white/70 mb-1">Invite Code</div>
-                  <div className="font-mono text-2xl font-bold tracking-widest mb-2" data-testid="text-invite-code">
+                <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 text-center min-w-[180px] border border-white/20 shadow-lg">
+                  <div className="flex items-center justify-center gap-1.5 text-sm text-white/80 mb-2">
+                    <Link2 className="w-3.5 h-3.5" />
+                    Invite Code
+                  </div>
+                  <div className="font-mono text-2xl font-bold tracking-widest mb-3 text-white" data-testid="text-invite-code">
                     {group.inviteCode}
                   </div>
-                  <button
+                  <Button
+                    size="sm"
+                    variant="secondary"
                     onClick={() => {
                       const joinUrl = `${window.location.origin}/groups?join=${group.inviteCode}`;
                       navigator.clipboard.writeText(joinUrl);
@@ -780,67 +813,101 @@ Looking forward to planning together!`;
                         description: "Invite link copied to clipboard",
                       });
                     }}
-                    className="text-xs text-white/60 hover:text-white underline underline-offset-2 transition-colors cursor-pointer"
+                    className="bg-white/20 hover:bg-white/30 text-white border-0 text-xs gap-1.5"
                     data-testid="button-copy-invite-link"
                   >
-                    Copy invite link
-                  </button>
+                    <Copy className="w-3 h-3" />
+                    Copy Link
+                  </Button>
                 </div>
               )}
-            </div>
-            
-            {/* Quick Stats */}
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {group.eventDate && (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                  <Calendar className="w-5 h-5 mb-2 text-white/70" />
-                  <div className="text-sm text-white/70">Event Date</div>
-                  <div className="font-semibold">{format(new Date(group.eventDate), "PPP")}</div>
-                </div>
-              )}
-              {group.locationPreference && (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                  <MapPin className="w-5 h-5 mb-2 text-white/70" />
-                  <div className="text-sm text-white/70">Location</div>
-                  <div className="font-semibold">{group.locationPreference}</div>
-                </div>
-              )}
-              {group.budget && (
-                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                  <IndianRupee className="w-5 h-5 mb-2 text-white/70" />
-                  <div className="text-sm text-white/70">Budget</div>
-                  <div className="font-semibold">{Number(group.budget).toLocaleString("en-IN")}</div>
-                </div>
-              )}
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                <Users className="w-5 h-5 mb-2 text-white/70" />
-                <div className="text-sm text-white/70">Members</div>
-                <div className="font-semibold">{group.memberCount || group.members?.length || 1}</div>
-              </div>
             </div>
           </div>
         </div>
+        
+        {/* Quick Stats Cards - Dashboard Style Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-2">
+          {group.eventDate && (
+            <Card className="hover-elevate bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 dark:from-blue-950/30 dark:via-sky-950/20 dark:to-blue-950/30 border-2 border-blue-200 dark:border-blue-800 shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-br from-blue-400 to-sky-500 rounded-xl shadow-md">
+                    <Calendar className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <div className="text-xs text-blue-600/80 dark:text-blue-300/80 font-medium">Event Date</div>
+                <div className="font-bold text-blue-700 dark:text-blue-100 text-sm mt-0.5">{format(new Date(group.eventDate), "PPP")}</div>
+              </CardContent>
+            </Card>
+          )}
+          {group.locationPreference && (
+            <Card className="hover-elevate bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl shadow-md">
+                    <MapPin className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <div className="text-xs text-emerald-600/80 dark:text-emerald-300/80 font-medium">Location</div>
+                <div className="font-bold text-emerald-700 dark:text-emerald-100 text-sm mt-0.5 truncate">{group.locationPreference}</div>
+              </CardContent>
+            </Card>
+          )}
+          {group.budget && (
+            <Card className="hover-elevate bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 border-2 border-orange-200 dark:border-orange-800 shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl shadow-md">
+                    <IndianRupee className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <div className="text-xs text-orange-600/80 dark:text-orange-300/80 font-medium">Budget</div>
+                <div className="font-bold text-orange-700 dark:text-orange-100 text-sm mt-0.5">{Number(group.budget).toLocaleString("en-IN")}</div>
+              </CardContent>
+            </Card>
+          )}
+          <Card className="hover-elevate bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100 dark:from-purple-950/30 dark:via-violet-950/20 dark:to-purple-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
+              </div>
+              <div className="text-xs text-purple-600/80 dark:text-purple-300/80 font-medium">Members</div>
+              <div className="font-bold text-purple-700 dark:text-purple-100 text-sm mt-0.5">{group.memberCount || group.members?.length || 1}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Main Content with Tabs */}
+        {/* Main Content with Tabs - Enhanced styling */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto p-1">
-            <TabsTrigger value="overview" className="gap-2 py-3" data-testid="tab-overview">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-heading font-semibold text-xl md:text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+              Group Details
+            </h2>
+            <Badge variant="outline" className="text-xs">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Interactive
+            </Badge>
+          </div>
+          <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-muted/50 rounded-xl">
+            <TabsTrigger value="overview" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-overview">
               <Sparkles className="w-4 h-4" />
               <span className="hidden md:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="polls" className="gap-2 py-3" data-testid="tab-polls">
+            <TabsTrigger value="polls" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-polls">
               <Vote className="w-4 h-4" />
               <span className="hidden md:inline">Polls</span>
             </TabsTrigger>
-            <TabsTrigger value="itinerary" className="gap-2 py-3" data-testid="tab-itinerary">
+            <TabsTrigger value="itinerary" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-itinerary">
               <ClipboardList className="w-4 h-4" />
               <span className="hidden md:inline">Itinerary</span>
             </TabsTrigger>
-            <TabsTrigger value="members" className="gap-2 py-3" data-testid="tab-members">
+            <TabsTrigger value="members" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-members">
               <UserCog className="w-4 h-4" />
               <span className="hidden md:inline">Members</span>
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-2 py-3" data-testid="tab-expenses">
+            <TabsTrigger value="expenses" className="gap-2 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md" data-testid="tab-expenses">
               <IndianRupee className="w-4 h-4" />
               <span className="hidden md:inline">Expenses</span>
             </TabsTrigger>
@@ -858,7 +925,7 @@ Looking forward to planning together!`;
 
           {/* Itinerary Tab */}
           <TabsContent value="itinerary" className="space-y-6">
-            <ItineraryTab groupId={groupId!} itinerary={itinerary} isAdmin={isAdmin || isCreator} groupLocation={group.locationPreference} theme={eventTheme} />
+            <ItineraryTab groupId={groupId!} itinerary={itinerary} isAdmin={isAdmin || isCreator} groupLocation={group.locationPreference || undefined} theme={eventTheme} />
           </TabsContent>
 
           {/* Members Tab */}
@@ -1131,50 +1198,59 @@ function OverviewTab({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Active Polls Card */}
-      <Card>
+      {/* Active Polls Card - Dashboard style */}
+      <Card className="hover-elevate bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100 dark:from-purple-950/30 dark:via-violet-950/20 dark:to-purple-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Vote className={`w-5 h-5 ${theme.iconColor}`} />
-            Active Polls
-          </CardTitle>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md">
+              <Vote className="w-5 h-5 text-white" />
+            </div>
+            <Badge className="bg-gradient-to-r from-purple-500 to-violet-500 text-white text-xs">Votes</Badge>
+          </div>
+          <CardTitle className="text-lg font-bold text-purple-700 dark:text-purple-100">Active Polls</CardTitle>
         </CardHeader>
         <CardContent>
           {activePolls.length > 0 ? (
             <div className="space-y-3">
               {activePolls.slice(0, 3).map(poll => (
-                <div key={poll.id} className="p-3 bg-muted rounded-lg">
-                  <div className="font-medium truncate">{poll.question}</div>
-                  <div className="text-sm text-muted-foreground mt-1">
+                <div key={poll.id} className="p-3 bg-white/50 dark:bg-white/10 rounded-lg border border-purple-200/50 dark:border-purple-700/50">
+                  <div className="font-medium truncate text-purple-800 dark:text-purple-100">{poll.question}</div>
+                  <div className="text-sm text-purple-600/80 dark:text-purple-300/80 mt-1">
                     {poll.totalVotes} votes
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-muted-foreground">
-              <Vote className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p>No active polls</p>
+            <div className="text-center py-6 text-purple-600/70 dark:text-purple-300/70">
+              <div className="mx-auto w-12 h-12 bg-purple-100 dark:bg-purple-800/30 rounded-full flex items-center justify-center mb-3">
+                <Vote className="w-6 h-6 text-purple-400" />
+              </div>
+              <p className="font-medium">No active polls</p>
+              <p className="text-xs mt-1">Create a poll to get started</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Upcoming Activities Card */}
-      <Card>
+      {/* Upcoming Activities Card - Dashboard style */}
+      <Card className="hover-elevate bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-amber-950/30 border-2 border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-all">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-amber-500" />
-            Upcoming Activities
-          </CardTitle>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-xl shadow-md">
+              <ClipboardList className="w-5 h-5 text-white" />
+            </div>
+            <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs">Schedule</Badge>
+          </div>
+          <CardTitle className="text-lg font-bold text-amber-700 dark:text-amber-100">Upcoming Activities</CardTitle>
         </CardHeader>
         <CardContent>
           {upcomingItems.length > 0 ? (
             <div className="space-y-3">
               {upcomingItems.map(item => (
-                <div key={item.id} className="p-3 bg-muted rounded-lg">
-                  <div className="font-medium truncate">{item.title}</div>
-                  <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                <div key={item.id} className="p-3 bg-white/50 dark:bg-white/10 rounded-lg border border-amber-200/50 dark:border-amber-700/50">
+                  <div className="font-medium truncate text-amber-800 dark:text-amber-100">{item.title}</div>
+                  <div className="text-sm text-amber-600/80 dark:text-amber-300/80 mt-1 flex items-center gap-2">
                     <Clock className="w-3 h-3" />
                     {format(new Date(item.startTime), "PPp")}
                   </div>
@@ -1182,40 +1258,46 @@ function OverviewTab({
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-muted-foreground">
-              <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p>No upcoming activities</p>
+            <div className="text-center py-6 text-amber-600/70 dark:text-amber-300/70">
+              <div className="mx-auto w-12 h-12 bg-amber-100 dark:bg-amber-800/30 rounded-full flex items-center justify-center mb-3">
+                <ClipboardList className="w-6 h-6 text-amber-400" />
+              </div>
+              <p className="font-medium">No upcoming activities</p>
+              <p className="text-xs mt-1">Add to your itinerary</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Budget Overview Card */}
-      <Card>
+      {/* Budget Overview Card - Dashboard style */}
+      <Card className="hover-elevate bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950/30 dark:via-emerald-950/20 dark:to-green-950/30 border-2 border-green-200 dark:border-green-800 shadow-md hover:shadow-lg transition-all">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <IndianRupee className="w-5 h-5 text-green-500" />
-            Budget Overview
-          </CardTitle>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-md">
+              <IndianRupee className="w-5 h-5 text-white" />
+            </div>
+            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs">Finance</Badge>
+          </div>
+          <CardTitle className="text-lg font-bold text-green-700 dark:text-green-100">Budget Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
+            <div className="bg-white/50 dark:bg-white/10 rounded-lg p-3 border border-green-200/50 dark:border-green-700/50">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Total Budget</span>
-                <span className="font-medium">{Number(group.budget || 0).toLocaleString("en-IN")}</span>
+                <span className="text-green-600/80 dark:text-green-300/80">Total Budget</span>
+                <span className="font-bold text-green-700 dark:text-green-100">{Number(group.budget || 0).toLocaleString("en-IN")}</span>
               </div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Spent</span>
-                <span className="font-medium text-orange-600">{totalExpenses.toLocaleString("en-IN")}</span>
+                <span className="text-green-600/80 dark:text-green-300/80">Spent</span>
+                <span className="font-bold text-orange-600 dark:text-orange-400">{totalExpenses.toLocaleString("en-IN")}</span>
               </div>
               {group.budget && (
                 <>
                   <Progress 
                     value={(totalExpenses / Number(group.budget)) * 100} 
-                    className="h-2"
+                    className="h-2 bg-green-200 dark:bg-green-800"
                   />
-                  <div className="text-xs text-muted-foreground mt-1 text-right">
+                  <div className="text-xs text-green-600/80 dark:text-green-300/80 mt-1 text-right">
                     {Math.round((totalExpenses / Number(group.budget)) * 100)}% used
                   </div>
                 </>
@@ -1225,33 +1307,41 @@ function OverviewTab({
         </CardContent>
       </Card>
 
-      {/* Recent Members */}
-      <Card className="md:col-span-2 lg:col-span-3">
+      {/* Recent Members - Dashboard style */}
+      <Card className="md:col-span-2 lg:col-span-3 hover-elevate bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 dark:from-blue-950/30 dark:via-sky-950/20 dark:to-blue-950/30 border-2 border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-all">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-500" />
-            Group Members ({group.members?.length || 0})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-blue-400 to-sky-500 rounded-xl shadow-md">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-blue-700 dark:text-blue-100">Group Members</CardTitle>
+                <CardDescription className="text-blue-600/80 dark:text-blue-300/80">{group.members?.length || 0} people joined</CardDescription>
+              </div>
+            </div>
+            <Badge className="bg-gradient-to-r from-blue-500 to-sky-500 text-white text-xs">Team</Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
             {group.members?.map(member => (
-              <div key={member.id} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                <Avatar className="w-8 h-8">
+              <div key={member.id} className="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/10 rounded-xl border border-blue-200/50 dark:border-blue-700/50 shadow-sm">
+                <Avatar className="w-10 h-10 border-2 border-blue-300 dark:border-blue-600">
                   <AvatarImage src={member.user?.profileImageUrl || undefined} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-sky-500 text-white font-bold">
                     {member.user?.firstName?.[0] || member.user?.username?.[0] || "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="text-sm font-medium">
+                  <div className="text-sm font-semibold text-blue-800 dark:text-blue-100">
                     {member.user?.firstName || member.user?.username}
                   </div>
-                  <div className="text-xs text-muted-foreground capitalize">{member.role}</div>
+                  <div className="text-xs text-blue-600/80 dark:text-blue-300/80 capitalize flex items-center gap-1">
+                    {member.role === "admin" && <Crown className="w-3 h-3 text-amber-500" />}
+                    {member.role}
+                  </div>
                 </div>
-                {member.role === "admin" && (
-                  <Crown className="w-4 h-4 text-amber-500" />
-                )}
               </div>
             ))}
           </div>
