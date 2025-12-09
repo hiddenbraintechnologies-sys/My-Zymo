@@ -419,6 +419,7 @@ export default function GroupDetail() {
   const [, params] = useRoute("/groups/:id");
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [itineraryDialogOpen, setItineraryDialogOpen] = useState(false);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   const [selectedThemeColor, setSelectedThemeColor] = useState<string>("");
   const [customHexColor, setCustomHexColor] = useState("#f97316");
@@ -1037,7 +1038,7 @@ Looking forward to planning together!`;
                   ? "border-teal-500 ring-2 ring-teal-500/30 shadow-lg scale-[1.02]" 
                   : "border-teal-200 dark:border-teal-800 shadow-md hover:shadow-lg"
               }`}
-              onClick={() => setActiveTab("itinerary")}
+              onClick={() => setItineraryDialogOpen(true)}
               data-testid="tab-itinerary"
             >
               <div 
@@ -1392,6 +1393,33 @@ Looking forward to planning together!`;
               {isUploadingBanner ? "Uploading..." : customizeMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Itinerary Dialog */}
+      <Dialog open={itineraryDialogOpen} onOpenChange={setItineraryDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg">
+                <ClipboardList className="w-5 h-5 text-white" />
+              </div>
+              Plan Your Itinerary
+            </DialogTitle>
+            <DialogDescription>
+              Add activities and schedule your event timeline
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto">
+            <ItineraryTab 
+              groupId={groupId!} 
+              itinerary={itinerary} 
+              isAdmin={isAdmin || isCreator} 
+              groupLocation={group?.locationPreference || undefined} 
+              theme={eventTheme} 
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
