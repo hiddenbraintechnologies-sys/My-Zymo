@@ -342,10 +342,12 @@ export default function Dashboard() {
     // Collect all validation errors
     const errors: string[] = [];
     
-    // Validate name - required
+    // Validate name - required and minimum 6 characters
     const trimmedName = formData.name.trim();
     if (!trimmedName) {
       errors.push("Group name is required");
+    } else if (trimmedName.length < 6) {
+      errors.push("Name must be at least 6 characters");
     } else if (!/[a-zA-Z]/.test(trimmedName)) {
       errors.push("Name must contain at least one letter");
     }
