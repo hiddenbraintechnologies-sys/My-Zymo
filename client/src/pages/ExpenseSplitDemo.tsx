@@ -19,10 +19,13 @@ import {
   Sparkles,
   UserPlus,
   Lock,
-  PartyPopper
+  PartyPopper,
+  FileDown
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Member {
   id: string;
@@ -543,31 +546,92 @@ export default function ExpenseSplitDemo() {
                     variant="outline"
                     className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30"
                     onClick={() => {
-                      // Export as text summary
-                      const summary = {
-                        members: members.map(m => m.name),
-                        expenses: expenses.map(e => ({
-                          description: e.description,
-                          amount: e.amount,
-                          paidBy: members.find(m => m.id === e.paidBy)?.name,
-                        })),
-                        settlements: balances.map(b => ({
-                          from: members.find(m => m.id === b.from)?.name,
-                          to: members.find(m => m.id === b.to)?.name,
-                          amount: b.amount,
-                        })),
-                      };
-                      const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'expense-summary.json';
-                      a.click();
+                      // Export as PDF
+                      const doc = new jsPDF();
+                      const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+                      const date = new Date().toLocaleDateString('en-IN', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      });
+                      
+                      // Title
+                      doc.setFontSize(20);
+                      doc.setTextColor(234, 88, 12); // Orange color
+                      doc.text('Myzymo Expense Summary', 105, 20, { align: 'center' });
+                      
+                      // Date
+                      doc.setFontSize(10);
+                      doc.setTextColor(100, 100, 100);
+                      doc.text(`Generated on ${date}`, 105, 28, { align: 'center' });
+                      
+                      // Members section
+                      doc.setFontSize(14);
+                      doc.setTextColor(0, 0, 0);
+                      doc.text('Group Members', 14, 42);
+                      doc.setFontSize(11);
+                      doc.setTextColor(60, 60, 60);
+                      doc.text(members.map(m => m.name).join(', '), 14, 50);
+                      
+                      // Expenses table
+                      doc.setFontSize(14);
+                      doc.setTextColor(0, 0, 0);
+                      doc.text('Expenses', 14, 65);
+                      
+                      const expenseRows = expenses.map(e => [
+                        e.description,
+                        members.find(m => m.id === e.paidBy)?.name || 'Unknown',
+                        `₹${e.amount.toLocaleString('en-IN')}`,
+                        e.splitAmong.map(id => members.find(m => m.id === id)?.name).join(', ')
+                      ]);
+                      
+                      autoTable(doc, {
+                        startY: 70,
+                        head: [['Description', 'Paid By', 'Amount', 'Split Among']],
+                        body: expenseRows,
+                        theme: 'striped',
+                        headStyles: { fillColor: [234, 88, 12] },
+                        styles: { fontSize: 10 },
+                      });
+                      
+                      // Settlement section
+                      const finalY = (doc as any).lastAutoTable.finalY + 15;
+                      doc.setFontSize(14);
+                      doc.setTextColor(0, 0, 0);
+                      doc.text('Settlement Summary', 14, finalY);
+                      
+                      const settlementRows = balances.map(b => [
+                        members.find(m => m.id === b.from)?.name || 'Unknown',
+                        members.find(m => m.id === b.to)?.name || 'Unknown',
+                        `₹${b.amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+                      ]);
+                      
+                      autoTable(doc, {
+                        startY: finalY + 5,
+                        head: [['From', 'Pays To', 'Amount']],
+                        body: settlementRows.length > 0 ? settlementRows : [['All settled!', '', '']],
+                        theme: 'striped',
+                        headStyles: { fillColor: [22, 163, 74] }, // Green
+                        styles: { fontSize: 10 },
+                      });
+                      
+                      // Total
+                      const totalY = (doc as any).lastAutoTable.finalY + 15;
+                      doc.setFontSize(12);
+                      doc.setTextColor(0, 0, 0);
+                      doc.text(`Total Expenses: ₹${totalAmount.toLocaleString('en-IN')}`, 14, totalY);
+                      
+                      // Footer
+                      doc.setFontSize(9);
+                      doc.setTextColor(150, 150, 150);
+                      doc.text('Generated by Myzymo - Bringing People Together', 105, 285, { align: 'center' });
+                      
+                      doc.save('myzymo-expense-summary.pdf');
                     }}
                     data-testid="button-export"
                   >
-                    <Calculator className="w-3 h-3 mr-1" />
-                    Export Summary
+                    <FileDown className="w-3 h-3 mr-1" />
+                    Export PDF
                   </Button>
                 </div>
               </div>
