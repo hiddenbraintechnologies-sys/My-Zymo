@@ -338,78 +338,65 @@ export default function Dashboard() {
 
   const handleCreateGroup = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Collect all validation errors
+    const errors: string[] = [];
+    
+    // Validate name - required
     const trimmedName = formData.name.trim();
     if (!trimmedName) {
-      toast({
-        title: "Name required",
-        description: "Please enter a name for your group",
-        variant: "destructive",
-      });
-      return;
-    }
-    // Validate that name contains at least one letter
-    if (!/[a-zA-Z]/.test(trimmedName)) {
-      toast({
-        title: "Invalid name",
-        description: "Name must contain at least one letter",
-        variant: "destructive",
-      });
-      return;
+      errors.push("Group name is required");
+    } else if (!/[a-zA-Z]/.test(trimmedName)) {
+      errors.push("Name must contain at least one letter");
     }
     
-    // Validate description - reject HTML/script tags
-    const trimmedDescription = formData.description.trim();
-    if (trimmedDescription) {
-      const htmlTagPattern = /<[^>]*>/;
-      if (htmlTagPattern.test(trimmedDescription)) {
-        toast({
-          title: "Invalid description",
-          description: "Description cannot contain HTML tags or special code",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-    
-    // Validate event date - must be today or future
-    if (formData.eventDate) {
+    // Validate event date - required
+    if (!formData.eventDate) {
+      errors.push("Event date is required");
+    } else {
       const selectedDate = new Date(formData.eventDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       selectedDate.setHours(0, 0, 0, 0);
       
       if (selectedDate < today) {
-        toast({
-          title: "Invalid date",
-          description: "Event date must be today or a future date",
-          variant: "destructive",
-        });
-        return;
+        errors.push("Event date must be today or a future date");
       }
     }
     
-    // Validate location - must contain at least one letter
+    // Validate location - required
     const trimmedLocation = formData.locationPreference.trim();
-    if (trimmedLocation && !/[a-zA-Z]/.test(trimmedLocation)) {
-      toast({
-        title: "Invalid location",
-        description: "Location must contain letters, not just numbers",
-        variant: "destructive",
-      });
-      return;
+    if (!trimmedLocation) {
+      errors.push("Location is required");
+    } else if (!/[a-zA-Z]/.test(trimmedLocation)) {
+      errors.push("Location must contain letters, not just numbers");
     }
     
-    // Validate budget - must be non-negative
+    // Validate description - optional but reject HTML/script tags if provided
+    const trimmedDescription = formData.description.trim();
+    if (trimmedDescription) {
+      const htmlTagPattern = /<[^>]*>/;
+      if (htmlTagPattern.test(trimmedDescription)) {
+        errors.push("Description cannot contain HTML tags or special code");
+      }
+    }
+    
+    // Validate budget - optional but must be valid if provided
     if (formData.budget) {
       const budgetValue = parseFloat(formData.budget);
       if (isNaN(budgetValue) || budgetValue < 0) {
-        toast({
-          title: "Invalid budget",
-          description: "Budget must be a positive number",
-          variant: "destructive",
-        });
-        return;
+        errors.push("Budget must be a positive number");
       }
+    }
+    
+    // Show errors if any
+    if (errors.length > 0) {
+      toast({
+        title: "Please fill required fields",
+        description: errors[0],
+        variant: "destructive",
+      });
+      return;
     }
     
     createGroupMutation.mutate(formData);
@@ -1518,7 +1505,7 @@ export default function Dashboard() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="event-date">Event Date</Label>
+                    <Label htmlFor="event-date">Event Date *</Label>
                     <Input
                       id="event-date"
                       type="date"
@@ -1532,7 +1519,7 @@ export default function Dashboard() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="location">Preferred Location</Label>
+                    <Label htmlFor="location">Preferred Location *</Label>
                     <Input
                       id="location"
                       placeholder={createFormCategory && FORM_CONTENT[createFormCategory] 
