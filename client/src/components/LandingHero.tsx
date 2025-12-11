@@ -16,7 +16,7 @@ export default function LandingHero() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background" />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-20 pb-8 md:pt-28 md:pb-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-12 pb-6 md:pt-16 md:pb-10">
         <div className="text-center text-white mb-8 md:mb-12">
           <Badge className="mb-4 bg-white/20 border-white/30 text-white">
             <Sparkles className="w-3 h-3 mr-1" />

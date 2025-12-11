@@ -526,9 +526,9 @@ export default function Dashboard() {
       {/* Desktop Dashboard */}
       <div className="hidden md:block min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
+        <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 md:pb-8">
         {/* Welcome Banner - Enhanced Hero Design with Floating Icons */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
+        <div className="mb-6 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
             alt="Celebration" 
@@ -558,7 +558,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="relative z-10 p-4 md:p-6 min-h-[120px] md:min-h-[150px] flex items-center">
+          <div className="relative z-10 pt-3 pb-4 px-4 md:pt-4 md:pb-5 md:px-6 min-h-[100px] md:min-h-[130px] flex items-center">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
               <div>
                 {/* Category Badge */}

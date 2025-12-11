@@ -827,7 +827,7 @@ Looking forward to planning together!`;
             </div>
           </div>
           
-          <div className="relative z-10 p-4 md:p-6 min-h-[160px] md:min-h-[200px]">
+          <div className="relative z-10 pt-3 pb-4 px-4 md:pt-4 md:pb-5 md:px-6 min-h-[140px] md:min-h-[170px]">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
               <div className="flex-1">
                 {/* Category Badge */}

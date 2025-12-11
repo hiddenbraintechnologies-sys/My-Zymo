@@ -196,16 +196,16 @@ export default function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
+      <main className="max-w-4xl mx-auto px-4 pt-4 pb-24 md:pb-8">
         {/* Hero Banner - Hero Image Design */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
+        <div className="mb-6 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
             alt="Celebration" 
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
-          <div className="relative z-10 p-4 md:p-6 min-h-[100px] md:min-h-[120px] flex items-center">
+          <div className="relative z-10 pt-3 pb-4 px-4 md:pt-4 md:pb-5 md:px-6 min-h-[80px] md:min-h-[100px] flex items-center">
             <div>
               <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 flex items-center gap-2 text-white" data-testid="text-page-title">
                 <UserIcon className="w-6 h-6 md:w-8 md:h-8" />

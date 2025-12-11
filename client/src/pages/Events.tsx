@@ -176,9 +176,9 @@ export default function Events() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-background to-amber-50 dark:from-background dark:via-background dark:to-background pb-20 md:pb-0">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 pt-4 pb-8">
         {/* Hero Banner - Enhanced Design with Floating Icons */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
+        <div className="mb-6 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
             src={heroImage} 
             alt="Celebration" 
@@ -208,7 +208,7 @@ export default function Events() {
             </div>
           </div>
           
-          <div className="relative z-10 p-4 md:p-6 min-h-[120px] md:min-h-[150px] flex items-center">
+          <div className="relative z-10 pt-3 pb-4 px-4 md:pt-4 md:pb-5 md:px-6 min-h-[100px] md:min-h-[130px] flex items-center">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 w-full">
               <div>
                 <div className="mb-2 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/40 to-orange-500/40 backdrop-blur-sm border border-amber-300/50 text-xs font-medium text-white">
