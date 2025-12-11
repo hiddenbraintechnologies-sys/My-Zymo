@@ -9,7 +9,7 @@ export default function LandingHero() {
   const [, navigate] = useLocation();
 
   return (
-    <section className="relative min-h-[600px] md:min-h-[700px]" data-testid="section-hero">
+    <section className="relative min-h-[480px] md:min-h-[550px]" data-testid="section-hero">
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}

@@ -261,7 +261,7 @@ export default function Hero() {
   const ThemeIcon = theme.icon;
 
   return (
-    <div className="relative h-[70vh] md:h-[80vh] w-full overflow-hidden">
+    <div className="relative h-[55vh] md:h-[65vh] w-full overflow-hidden">
       {/* Background Images */}
       {heroSlides.map((s, index) => (
         <img

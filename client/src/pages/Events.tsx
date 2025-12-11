@@ -208,7 +208,7 @@ export default function Events() {
             </div>
           </div>
           
-          <div className="relative z-10 p-4 md:p-8 min-h-[140px] md:min-h-[180px] flex items-center">
+          <div className="relative z-10 p-4 md:p-6 min-h-[120px] md:min-h-[150px] flex items-center">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 w-full">
               <div>
                 <div className="mb-2 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/40 to-orange-500/40 backdrop-blur-sm border border-amber-300/50 text-xs font-medium text-white">

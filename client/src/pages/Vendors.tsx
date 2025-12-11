@@ -70,7 +70,7 @@ export default function Vendors() {
             </div>
           </div>
           
-          <div className="relative z-10 p-4 md:p-8 min-h-[140px] md:min-h-[180px] flex items-center">
+          <div className="relative z-10 p-4 md:p-6 min-h-[120px] md:min-h-[150px] flex items-center">
             <div>
               {/* Category Badge */}
               <div className="mb-2 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-teal-500/40 to-cyan-500/40 backdrop-blur-sm border border-teal-300/50 text-xs font-medium text-white">
