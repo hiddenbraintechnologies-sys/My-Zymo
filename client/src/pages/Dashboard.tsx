@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Event, EventGroup } from "@shared/schema";
 import Navbar from "@/components/Navbar";
+import MobileDashboard from "@/components/MobileDashboard";
 import {
   Dialog,
   DialogContent,
@@ -510,9 +511,22 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
+    <>
+      {/* Mobile Dashboard - Swiggy-inspired layout */}
+      <div className="md:hidden">
+        <MobileDashboard 
+          onOpenEventDialog={openEventDialog}
+          privateEvents={privateEvents}
+          publicEvents={publicEvents}
+          groups={groups}
+        />
+        <Navbar />
+      </div>
+      
+      {/* Desktop Dashboard */}
+      <div className="hidden md:block min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 py-8 pb-24 md:pb-8">
         {/* Welcome Banner - Enhanced Hero Design with Floating Icons */}
         <div className="mb-8 relative overflow-hidden rounded-2xl shadow-xl">
           <img 
@@ -1183,11 +1197,13 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-      {/* Floating Free Quote Button - Cute FAB */}
+      </div>
+      
+      {/* Floating Free Quote Button - Cute FAB - Desktop only */}
       <button
         onClick={() => setQuoteDialogOpen(true)}
         data-testid="fab-free-quote"
-        className="fixed right-4 md:right-8 bottom-24 md:bottom-8 z-40 group flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+        className="hidden md:flex fixed right-4 md:right-8 bottom-24 md:bottom-8 z-40 group items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
       >
         <div className="relative">
           <IndianRupee className="w-5 h-5" />
@@ -1555,6 +1571,6 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
