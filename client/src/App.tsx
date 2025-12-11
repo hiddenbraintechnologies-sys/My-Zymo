@@ -27,6 +27,7 @@ import VendorLogin from "@/pages/VendorLogin";
 import VendorSignup from "@/pages/VendorSignup";
 import VendorDashboard from "@/pages/VendorDashboard";
 import GroupDetail from "@/pages/GroupDetail";
+import Expenses from "@/pages/Expenses";
 import Chat from "@/pages/Chat";
 import ChatInvite from "@/pages/ChatInvite";
 import EventPreferencesOnboarding from "@/pages/EventPreferencesOnboarding";
@@ -91,6 +92,7 @@ function Router() {
       <Route path="/vendors" component={Vendors} />
       <Route path="/vendors/:id" component={VendorDetail} />
       <Route path="/bookings" component={Bookings} />
+      <Route path="/expenses" component={Expenses} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/profile" component={Profile} />
       <Route path="/messages/:userId" component={Messages} />
