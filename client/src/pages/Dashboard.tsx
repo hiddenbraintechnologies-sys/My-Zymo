@@ -346,8 +346,8 @@ export default function Dashboard() {
     const trimmedName = formData.name.trim();
     if (!trimmedName) {
       errors.push("Group name is required");
-    } else if (trimmedName.length < 6) {
-      errors.push("Name must be at least 6 characters");
+    } else if (trimmedName.length < 4) {
+      errors.push("Name must be at least 4 characters");
     } else if (!/[a-zA-Z]/.test(trimmedName)) {
       errors.push("Name must contain at least one letter");
     }
