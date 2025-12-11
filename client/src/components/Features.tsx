@@ -1,7 +1,8 @@
 import { useLocation } from "wouter";
-import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users, Star, Bike, Dumbbell, Camera } from "lucide-react";
+import { Calendar, MessageCircle, IndianRupee, Store, Bell, Users, Star, Bike, Dumbbell, Camera, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Feature {
   icon: any;
@@ -91,14 +92,121 @@ export default function Features() {
             All the tools to make your celebration planning stress-free and enjoyable
           </p>
         </div>
+
+        {/* SPLIT EXPENSES - Hero Feature Section */}
+        <div 
+          className="mb-10 relative overflow-hidden rounded-3xl cursor-pointer group"
+          onClick={() => navigate("/split-expenses")}
+          data-testid="card-feature-split-expenses-hero"
+        >
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 opacity-95" />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.1%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-30" />
+          
+          {/* Floating Rupee Icons */}
+          <div className="absolute top-6 right-6 md:top-8 md:right-12 opacity-20">
+            <IndianRupee className="w-24 h-24 md:w-40 md:h-40 text-white animate-pulse" />
+          </div>
+          <div className="absolute bottom-4 left-4 opacity-10 hidden md:block">
+            <IndianRupee className="w-20 h-20 text-white" />
+          </div>
+          
+          <div className="relative z-10 p-6 md:p-10 lg:p-12">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-start lg:items-center">
+              {/* Left Content */}
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <Badge className="bg-white/20 text-white border-0 text-sm px-3 py-1">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Most Loved Feature
+                  </Badge>
+                  <Badge className="bg-yellow-400 text-yellow-900 border-0 text-sm px-3 py-1">
+                    <Star className="w-3 h-3 mr-1 fill-yellow-900" />
+                    Essential
+                  </Badge>
+                </div>
+                
+                <h3 className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl text-white mb-4">
+                  Split Expenses <span className="text-yellow-300">Easily</span>
+                </h3>
+                
+                <p className="text-white/90 text-lg md:text-xl mb-6 max-w-xl leading-relaxed">
+                  No more awkward "who owes whom" conversations! Track every expense, split bills fairly, and see exactly who needs to pay what.
+                </p>
+                
+                {/* Benefits */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  <div className="flex items-center gap-2 text-white/90">
+                    <CheckCircle2 className="w-5 h-5 text-yellow-300 flex-shrink-0" />
+                    <span>Auto-split among members</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <CheckCircle2 className="w-5 h-5 text-yellow-300 flex-shrink-0" />
+                    <span>Track who paid what</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <CheckCircle2 className="w-5 h-5 text-yellow-300 flex-shrink-0" />
+                    <span>Settlement suggestions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <CheckCircle2 className="w-5 h-5 text-yellow-300 flex-shrink-0" />
+                    <span>UPI payment ready</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  size="lg" 
+                  className="bg-white text-green-600 hover:bg-yellow-50 font-semibold shadow-lg group-hover:scale-105 transition-transform"
+                  data-testid="button-try-split-expenses"
+                >
+                  Try Split Expenses Free
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+              
+              {/* Right Side - Visual */}
+              <div className="hidden lg:block relative">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-2xl">
+                  <div className="text-white/80 text-sm mb-3">Example Split</div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-6 bg-white/10 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center text-white text-sm font-bold">R</div>
+                        <span className="text-white font-medium">Rahul</span>
+                      </div>
+                      <span className="text-green-300 font-bold">+₹500</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-6 bg-white/10 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold">P</div>
+                        <span className="text-white font-medium">Priya</span>
+                      </div>
+                      <span className="text-red-300 font-bold">-₹250</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-6 bg-white/10 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center text-white text-sm font-bold">A</div>
+                        <span className="text-white font-medium">Amit</span>
+                      </div>
+                      <span className="text-red-300 font-bold">-₹250</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/20 text-center">
+                    <span className="text-white/70 text-sm">Priya & Amit owe Rahul ₹250 each</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         
-        {/* Highlighted Features - Top Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {features.filter(f => f.highlighted).slice(0, 2).map((feature, index) => (
+        {/* Manage Events - Second Highlight */}
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          {features.filter(f => f.title === "Manage Events").map((feature, index) => (
             <Card 
-              key={index} 
+              key={`events-${index}`} 
               className="p-6 md:p-8 hover-elevate cursor-pointer relative overflow-hidden border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 shadow-lg"
-              data-testid={`card-feature-highlighted-${index}`}
+              data-testid="card-feature-highlighted-events"
               onClick={() => handleFeatureClick(feature)}
             >
               {feature.badge && (
@@ -112,15 +220,15 @@ export default function Features() {
                   Try It Free
                 </Badge>
               )}
-              <div className="flex flex-col gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center shadow-md">
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center shadow-md flex-shrink-0">
                   <feature.icon className="w-7 h-7 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-heading font-bold text-2xl mb-3 text-orange-700 dark:text-orange-100">
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-orange-700 dark:text-orange-100">
                     {feature.title}
                   </h3>
-                  <p className="text-orange-600/80 dark:text-orange-200/80 text-base leading-relaxed">
+                  <p className="text-orange-600/80 dark:text-orange-200/80 text-base leading-relaxed max-w-2xl">
                     {feature.description}
                   </p>
                 </div>
