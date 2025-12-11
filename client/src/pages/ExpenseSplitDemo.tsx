@@ -699,20 +699,20 @@ export default function ExpenseSplitDemo() {
                   <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                     <Button 
                       size="lg" 
-                      onClick={() => navigate("/groups")}
-                      data-testid="button-go-to-groups"
+                      onClick={() => navigate("/dashboard")}
+                      data-testid="button-go-to-dashboard"
                     >
                       <Users className="w-4 h-4 mr-2" />
-                      Go to Group Planning
+                      Go to Dashboard
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                     <Button 
                       size="lg" 
                       variant="outline"
-                      onClick={() => navigate("/dashboard")}
-                      data-testid="button-go-to-dashboard"
+                      onClick={() => navigate("/expenses")}
+                      data-testid="button-go-to-expenses"
                     >
-                      Back to Dashboard
+                      View Expenses
                     </Button>
                   </div>
                 </div>
