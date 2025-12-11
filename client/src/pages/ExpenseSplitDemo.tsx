@@ -96,7 +96,7 @@ export default function ExpenseSplitDemo() {
   };
 
   const removeMember = (id: string) => {
-    if (members.length <= 2) return;
+    if (id === "1") return; // Can't remove yourself
     setMembers(members.filter(m => m.id !== id));
     // Reassign expenses paid by removed member to "You" (id "1") instead of deleting
     setExpenses(expenses.map(e => ({
@@ -263,7 +263,7 @@ export default function ExpenseSplitDemo() {
                       </Avatar>
                       <span className="font-medium">{member.name}</span>
                     </div>
-                    {member.id !== "1" && members.length > 2 && (
+                    {member.id !== "1" && (
                       <Button 
                         size="icon" 
                         variant="ghost" 
