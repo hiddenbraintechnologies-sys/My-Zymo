@@ -366,12 +366,14 @@ export default function Dashboard() {
       }
     }
     
-    // Validate location - required
+    // Validate location - required, only letters, spaces, commas, and hyphens allowed
     const trimmedLocation = formData.locationPreference.trim();
     if (!trimmedLocation) {
       errors.push("Location is required");
-    } else if (!/[a-zA-Z]/.test(trimmedLocation)) {
-      errors.push("Location must contain letters, not just numbers");
+    } else if (!/^[a-zA-Z\s,\-]+$/.test(trimmedLocation)) {
+      errors.push("Location can only contain letters, spaces, commas, and hyphens");
+    } else if (trimmedLocation.length < 3) {
+      errors.push("Location must be at least 3 characters");
     }
     
     // Validate description - optional but must meet requirements if provided
