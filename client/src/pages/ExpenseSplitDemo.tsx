@@ -680,23 +680,23 @@ export default function ExpenseSplitDemo() {
 
         <Separator />
 
-        {/* CTA Section */}
-        <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5" data-testid="card-cta">
-          <CardContent className="p-6 md:p-8">
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center flex-shrink-0">
-                <PartyPopper className="w-8 h-8 text-white" />
-              </div>
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="font-heading font-bold text-2xl mb-2">
-                  Unlock Full Features
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Sign up to save your expenses, sync across devices, manage multiple events, 
-                  track payments, send reminders, and much more!
-                </p>
-                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                  {user ? (
+        {/* CTA Section - Different for logged in vs logged out */}
+        {user ? (
+          <Card className="border-2 border-green-300 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20" data-testid="card-cta">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="font-heading font-bold text-2xl mb-2 text-green-700 dark:text-green-300">
+                    You're All Set!
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    This is a demo tool. To save expenses permanently and collaborate with your group, 
+                    use the full Group Planning feature.
+                  </p>
+                  <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                     <Button 
                       size="lg" 
                       onClick={() => navigate("/groups")}
@@ -706,47 +706,73 @@ export default function ExpenseSplitDemo() {
                       Go to Group Planning
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
-                  ) : (
-                    <>
-                      <Button 
-                        size="lg" 
-                        onClick={() => navigate("/signup")}
-                        data-testid="button-signup-cta"
-                      >
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Sign Up Free
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
-                        onClick={() => navigate("/login")}
-                        data-testid="button-login-cta"
-                      >
-                        Already have an account? Log in
-                      </Button>
-                    </>
-                  )}
+                    <Button 
+                      size="lg" 
+                      variant="outline"
+                      onClick={() => navigate("/dashboard")}
+                      data-testid="button-go-to-dashboard"
+                    >
+                      Back to Dashboard
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Feature highlights */}
-            <div className="mt-6 pt-6 border-t grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { icon: Users, label: "Multiple Events" },
-                { icon: IndianRupee, label: "Payment Tracking" },
-                { icon: Lock, label: "Secure & Private" },
-                { icon: Sparkles, label: "AI Suggestions" },
-              ].map((feature, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <feature.icon className="w-4 h-4 text-primary" />
-                  <span>{feature.label}</span>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5" data-testid="card-cta">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center flex-shrink-0">
+                  <PartyPopper className="w-8 h-8 text-white" />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="font-heading font-bold text-2xl mb-2">
+                    Unlock Full Features
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Sign up to save your expenses, sync across devices, manage multiple events, 
+                    track payments, send reminders, and much more!
+                  </p>
+                  <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                    <Button 
+                      size="lg" 
+                      onClick={() => navigate("/signup")}
+                      data-testid="button-signup-cta"
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Sign Up Free
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      variant="outline" 
+                      onClick={() => navigate("/login")}
+                      data-testid="button-login-cta"
+                    >
+                      Already have an account? Log in
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Feature highlights */}
+              <div className="mt-6 pt-6 border-t grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { icon: Users, label: "Multiple Events" },
+                  { icon: IndianRupee, label: "Payment Tracking" },
+                  { icon: Lock, label: "Secure & Private" },
+                  { icon: Sparkles, label: "AI Suggestions" },
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <feature.icon className="w-4 h-4 text-primary" />
+                    <span>{feature.label}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
