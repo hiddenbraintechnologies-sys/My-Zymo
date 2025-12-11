@@ -30,6 +30,7 @@ import GroupDetail from "@/pages/GroupDetail";
 import Expenses from "@/pages/Expenses";
 import Chat from "@/pages/Chat";
 import ChatInvite from "@/pages/ChatInvite";
+import JoinEvent from "@/pages/JoinEvent";
 import EventPreferencesOnboarding from "@/pages/EventPreferencesOnboarding";
 import ExpenseSplitDemo from "@/pages/ExpenseSplitDemo";
 import EventsDemo from "@/pages/EventsDemo";
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/events" component={Events} />
       <Route path="/events/create" component={CreateEvent} />
       <Route path="/events/:id/edit" component={EditEvent} />
+      <Route path="/events/join/:code" component={JoinEvent} />
       <Route path="/events/:id" component={EventDetail} />
       <Route path="/vendors" component={Vendors} />
       <Route path="/vendors/:id" component={VendorDetail} />
