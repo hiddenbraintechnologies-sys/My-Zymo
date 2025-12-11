@@ -64,34 +64,37 @@ export default function EventBookingWidget() {
     <Card className="shadow-2xl border-0 bg-white/95 dark:bg-card/95 backdrop-blur-sm" data-testid="card-booking-widget">
       <CardContent className="p-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0 gap-0">
+          <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-transparent h-auto p-0 gap-0">
             <TabsTrigger 
               value="create" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 text-base font-medium"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 md:px-6 py-3 text-xs sm:text-sm md:text-base font-medium"
               data-testid="tab-create-event"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Event
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Create Event</span>
+              <span className="sm:hidden">Create</span>
             </TabsTrigger>
             <TabsTrigger 
               value="find" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 text-base font-medium"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 md:px-6 py-3 text-xs sm:text-sm md:text-base font-medium"
               data-testid="tab-find-events"
             >
-              <Search className="w-4 h-4 mr-2" />
-              Find Events
+              <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Find Events</span>
+              <span className="sm:hidden">Find</span>
             </TabsTrigger>
             <TabsTrigger 
               value="expenses" 
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 text-base font-medium"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 md:px-6 py-3 text-xs sm:text-sm md:text-base font-medium"
               data-testid="tab-split-expenses"
             >
-              <IndianRupee className="w-4 h-4 mr-2" />
-              Split Expenses
+              <IndianRupee className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="hidden sm:inline">Split Expenses</span>
+              <span className="sm:hidden">Split</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="create" className="p-6 space-y-6 mt-0">
+          <TabsContent value="create" className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-0">
             <div className="flex flex-wrap gap-2 pb-4 border-b">
               {eventTypes.map((type) => (
                 <Button
@@ -181,7 +184,7 @@ export default function EventBookingWidget() {
             </div>
           </TabsContent>
 
-          <TabsContent value="find" className="p-6 space-y-6 mt-0">
+          <TabsContent value="find" className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">Search Events</Label>
@@ -226,7 +229,7 @@ export default function EventBookingWidget() {
             </div>
           </TabsContent>
 
-          <TabsContent value="expenses" className="p-6 mt-0">
+          <TabsContent value="expenses" className="p-4 sm:p-6 mt-0">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="flex-1 space-y-3">
                 <h3 className="text-xl font-semibold">Split Bills Easily</h3>
