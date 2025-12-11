@@ -126,11 +126,18 @@ const signupFormSchema = z.object({
     .max(254, "Email cannot exceed 254 characters")
     .email("Please enter a valid email address")
     .refine((email) => {
-      // Validate that the local part (before @) contains at least one letter or number
+      // Validate that the local part (before @) starts with a letter or number
       const localPart = email.split("@")[0];
-      return localPart && /[a-zA-Z0-9]/.test(localPart);
+      if (!localPart) return false;
+      // Must start with alphanumeric character
+      if (!/^[a-zA-Z0-9]/.test(localPart)) return false;
+      // Must contain at least one letter or number (not just special chars)
+      if (!/[a-zA-Z0-9]/.test(localPart)) return false;
+      // Cannot be only special characters
+      if (/^[^a-zA-Z0-9]+$/.test(localPart)) return false;
+      return true;
     }, {
-      message: "Email must contain at least one letter or number before the @",
+      message: "Email must start with a letter or number",
     })
     .refine((email) => {
       // Validate domain structure: must have a dot and valid TLD
