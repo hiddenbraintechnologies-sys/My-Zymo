@@ -137,7 +137,12 @@ export default function PromotionsCarousel() {
                   <CardContent className="p-4">
                     <h3 className="font-semibold text-lg mb-1">{promo.title}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{promo.description}</p>
-                    <Button size="sm" variant="outline" className="w-full gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full gap-2"
+                      data-testid={`button-promo-cta-${promo.id}`}
+                    >
                       {promo.cta}
                       <ArrowRight className="w-3 h-3" />
                     </Button>

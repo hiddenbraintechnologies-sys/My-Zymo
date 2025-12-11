@@ -146,6 +146,7 @@ export default function EventDiscoveryGrid() {
               key={dest.id} 
               className="cursor-pointer hover:text-primary transition-colors"
               onClick={() => navigate("/events/create")}
+              data-testid={`link-discover-subtitle-${dest.id}`}
             >
               {dest.subtitle}
             </span>
