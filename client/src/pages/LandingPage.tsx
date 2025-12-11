@@ -1,7 +1,8 @@
 import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import HowItWorks from "@/components/HowItWorks";
+import LandingHero from "@/components/LandingHero";
+import PromotionsCarousel from "@/components/PromotionsCarousel";
+import EventDiscoveryGrid from "@/components/EventDiscoveryGrid";
+import PlatformAddOnsRail from "@/components/PlatformAddOnsRail";
 import PublicEventsShowcase from "@/components/PublicEventsShowcase";
 import VendorShowcase from "@/components/VendorShowcase";
 import Testimonials from "@/components/Testimonials";
@@ -11,10 +12,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
-      <Hero />
-      <Features />
+      <LandingHero />
+      <PromotionsCarousel />
+      <EventDiscoveryGrid />
+      <PlatformAddOnsRail />
       <PublicEventsShowcase />
-      <HowItWorks />
       <VendorShowcase />
       <Testimonials />
       <Footer />
