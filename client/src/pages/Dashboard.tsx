@@ -355,6 +355,62 @@ export default function Dashboard() {
       });
       return;
     }
+    
+    // Validate description - reject HTML/script tags
+    const trimmedDescription = formData.description.trim();
+    if (trimmedDescription) {
+      const htmlTagPattern = /<[^>]*>/;
+      if (htmlTagPattern.test(trimmedDescription)) {
+        toast({
+          title: "Invalid description",
+          description: "Description cannot contain HTML tags or special code",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // Validate event date - must be today or future
+    if (formData.eventDate) {
+      const selectedDate = new Date(formData.eventDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        toast({
+          title: "Invalid date",
+          description: "Event date must be today or a future date",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // Validate location - must contain at least one letter
+    const trimmedLocation = formData.locationPreference.trim();
+    if (trimmedLocation && !/[a-zA-Z]/.test(trimmedLocation)) {
+      toast({
+        title: "Invalid location",
+        description: "Location must contain letters, not just numbers",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate budget - must be non-negative
+    if (formData.budget) {
+      const budgetValue = parseFloat(formData.budget);
+      if (isNaN(budgetValue) || budgetValue < 0) {
+        toast({
+          title: "Invalid budget",
+          description: "Budget must be a positive number",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     createGroupMutation.mutate(formData);
   };
   
@@ -1450,6 +1506,7 @@ export default function Dashboard() {
                     <Input
                       id="event-date"
                       type="date"
+                      min={new Date().toISOString().split('T')[0]}
                       value={formData.eventDate}
                       onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
                       data-testid="input-event-date"
@@ -1476,6 +1533,7 @@ export default function Dashboard() {
                     <Input
                       id="budget"
                       type="number"
+                      min="0"
                       placeholder="e.g., 50000"
                       value={formData.budget}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
