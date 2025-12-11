@@ -306,14 +306,16 @@ const InvitationCardPreview = ({
           <Check className="w-4 h-4" />
         </div>
       )}
-      <div
-        className={`bg-gradient-to-br ${template.gradient} p-6 aspect-[4/3] flex flex-col justify-between`}
-        style={{
-          backgroundImage: `url("${patternDataUrl}")`,
-          backgroundRepeat: "repeat",
-        }}
-      >
-        <div className="text-center">
+      <div className={`relative bg-gradient-to-br ${template.gradient} p-6 aspect-[4/3] flex flex-col justify-between`}>
+        {/* Pattern overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url("${patternDataUrl}")`,
+            backgroundRepeat: "repeat",
+          }}
+        />
+        <div className="relative z-10 text-center">
           <Badge 
             variant="outline" 
             className="border-white/30 mb-2"
@@ -325,7 +327,7 @@ const InvitationCardPreview = ({
             You're Invited
           </Badge>
         </div>
-        <div className="text-center space-y-2">
+        <div className="relative z-10 text-center space-y-2">
           <h3 
             className="text-lg font-bold drop-shadow-md line-clamp-2"
             style={{ color: textColor }}
@@ -345,7 +347,7 @@ const InvitationCardPreview = ({
             {eventLocation || "Event Location"}
           </p>
         </div>
-        <div className="text-center">
+        <div className="relative z-10 text-center">
           <span 
             className="text-xs"
             style={{ color: textColorLight }}
