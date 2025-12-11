@@ -502,6 +502,77 @@ export default function ExpenseSplitDemo() {
               </div>
             )}
             
+            {/* Features for authenticated users */}
+            {user && balances.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30"
+                    onClick={() => {
+                      // Mark all as paid - clear balances
+                      setExpenses([]);
+                    }}
+                    data-testid="button-mark-paid"
+                  >
+                    <Check className="w-3 h-3 mr-1" />
+                    Mark as Paid
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30"
+                    onClick={() => {
+                      // Copy settlement summary for sharing
+                      const summary = balances.map(b => {
+                        const fromMember = members.find(m => m.id === b.from);
+                        const toMember = members.find(m => m.id === b.to);
+                        return `${fromMember?.name} pays ${toMember?.name}: ₹${b.amount.toFixed(0)}`;
+                      }).join('\n');
+                      navigator.clipboard.writeText(summary);
+                      alert('Settlement summary copied! Share via WhatsApp or SMS.');
+                    }}
+                    data-testid="button-send-reminder"
+                  >
+                    <ArrowRight className="w-3 h-3 mr-1" />
+                    Share Summary
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30"
+                    onClick={() => {
+                      // Export as text summary
+                      const summary = {
+                        members: members.map(m => m.name),
+                        expenses: expenses.map(e => ({
+                          description: e.description,
+                          amount: e.amount,
+                          paidBy: members.find(m => m.id === e.paidBy)?.name,
+                        })),
+                        settlements: balances.map(b => ({
+                          from: members.find(m => m.id === b.from)?.name,
+                          to: members.find(m => m.id === b.to)?.name,
+                          amount: b.amount,
+                        })),
+                      };
+                      const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'expense-summary.json';
+                      a.click();
+                    }}
+                    data-testid="button-export"
+                  >
+                    <Calculator className="w-3 h-3 mr-1" />
+                    Export Summary
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             {/* Premium features locked for non-authenticated users */}
             {!user && balances.length > 0 && (
               <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700">
