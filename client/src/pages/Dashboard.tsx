@@ -374,12 +374,24 @@ export default function Dashboard() {
       errors.push("Location must contain letters, not just numbers");
     }
     
-    // Validate description - optional but reject HTML/script tags if provided
+    // Validate description - optional but must meet requirements if provided
     const trimmedDescription = formData.description.trim();
     if (trimmedDescription) {
-      const htmlTagPattern = /<[^>]*>/;
-      if (htmlTagPattern.test(trimmedDescription)) {
-        errors.push("Description cannot contain HTML tags or special code");
+      // Must be at least 20 characters if provided
+      if (trimmedDescription.length < 20) {
+        errors.push("Description must be at least 20 characters");
+      }
+      // Must contain at least some letters (not just special characters/numbers)
+      else if (!/[a-zA-Z]{3,}/.test(trimmedDescription)) {
+        errors.push("Description must contain meaningful text, not just special characters");
+      }
+      // Reject HTML/script tags
+      else if (/<[^>]*>/.test(trimmedDescription)) {
+        errors.push("Description cannot contain HTML tags");
+      }
+      // Limit consecutive special characters (max 5 in a row)
+      else if (/[^a-zA-Z0-9\s]{6,}/.test(trimmedDescription)) {
+        errors.push("Description contains too many consecutive special characters");
       }
     }
     
