@@ -157,32 +157,30 @@ export default function EventBookingWidget() {
   const [selectedEventType, setSelectedEventType] = useState("reunions");
   const [date, setDate] = useState<Date>();
   const [location, setLocation] = useState("");
-  const [locationSearch, setLocationSearch] = useState("");
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
-  const [findLocationSearch, setFindLocationSearch] = useState("");
+  const [findLocation, setFindLocation] = useState("");
   const [showFindLocationSuggestions, setShowFindLocationSuggestions] = useState(false);
   const [attendees, setAttendees] = useState("10-20");
   const [showAllEventTypes, setShowAllEventTypes] = useState(false);
 
   const visibleEventTypes = showAllEventTypes ? eventTypes : eventTypes.slice(0, 6);
 
-  // Filter cities based on search input
-  const filteredCities = locationSearch.trim() 
-    ? cities.filter(city => city.toLowerCase().includes(locationSearch.toLowerCase())).slice(0, 8)
-    : cities.slice(0, 8);
+  // Filter cities based on search input - only show suggestions when there's input
+  const filteredCities = location.trim().length >= 2
+    ? cities.filter(city => city.toLowerCase().includes(location.toLowerCase())).slice(0, 6)
+    : [];
 
-  const filteredFindCities = findLocationSearch.trim()
-    ? cities.filter(city => city.toLowerCase().includes(findLocationSearch.toLowerCase())).slice(0, 8)
-    : cities.slice(0, 8);
+  const filteredFindCities = findLocation.trim().length >= 2
+    ? cities.filter(city => city.toLowerCase().includes(findLocation.toLowerCase())).slice(0, 6)
+    : [];
 
   const handleSelectCity = (city: string) => {
     setLocation(city);
-    setLocationSearch(city);
     setShowLocationSuggestions(false);
   };
 
   const handleSelectFindCity = (city: string) => {
-    setFindLocationSearch(city);
+    setFindLocation(city);
     setShowFindLocationSuggestions(false);
   };
 
@@ -272,11 +270,11 @@ export default function EventBookingWidget() {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search city..."
+                    placeholder="Type any location..."
                     className="h-12 pl-10"
-                    value={locationSearch}
+                    value={location}
                     onChange={(e) => {
-                      setLocationSearch(e.target.value);
+                      setLocation(e.target.value);
                       setShowLocationSuggestions(true);
                     }}
                     onFocus={() => setShowLocationSuggestions(true)}
@@ -377,11 +375,11 @@ export default function EventBookingWidget() {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search city..."
+                    placeholder="Type any location..."
                     className="h-12 pl-10"
-                    value={findLocationSearch}
+                    value={findLocation}
                     onChange={(e) => {
-                      setFindLocationSearch(e.target.value);
+                      setFindLocation(e.target.value);
                       setShowFindLocationSuggestions(true);
                     }}
                     onFocus={() => setShowFindLocationSuggestions(true)}
