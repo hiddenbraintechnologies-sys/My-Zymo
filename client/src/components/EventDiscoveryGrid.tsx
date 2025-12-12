@@ -79,8 +79,6 @@ const destinations = [
   },
 ];
 
-const cityAbbreviations = ["MUM", "DEL", "BLR", "HYD", "CHE", "GOA", "JAI", "PUN", "KOL", "AHM"];
-
 export default function EventDiscoveryGrid() {
   const [, navigate] = useLocation();
 
@@ -88,16 +86,6 @@ export default function EventDiscoveryGrid() {
     <section className="py-12 md:py-16" data-testid="section-discovery">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-            {cityAbbreviations.map((city, i) => (
-              <span 
-                key={city} 
-                className="text-xs font-medium text-muted-foreground hover:text-primary cursor-pointer transition-colors"
-              >
-                {city}
-              </span>
-            ))}
-          </div>
           <p className="text-muted-foreground text-lg">
             Embark on a journey of celebration with Myzymo, where memories meet magic.
           </p>
