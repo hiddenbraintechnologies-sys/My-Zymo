@@ -656,211 +656,155 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* What are you planning? - Interactive Event Type Selection */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading font-semibold text-xl md:text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">What are you planning?</h2>
-            <Badge variant="outline" className="text-xs">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Choose Event Type
-            </Badge>
+        {/* Quick Actions */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Button
+              size="lg"
+              className="h-16 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
+              onClick={() => setLocation("/events/create")}
+              data-testid="button-quick-create-event"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create New Event
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-16 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+              onClick={() => setLocation("/events")}
+              data-testid="button-quick-browse-events"
+            >
+              <Globe className="w-5 h-5 mr-2 text-purple-500" />
+              Browse Public Events
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-16 border-2 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+              onClick={() => setLocation("/split-expenses")}
+              data-testid="button-quick-split-expenses"
+            >
+              <IndianRupee className="w-5 h-5 mr-2 text-emerald-500" />
+              Split Expenses
+            </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-            {/* Reunions */}
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
-              onClick={() => openEventDialog({
-                type: "reunion",
-                title: "Reunions",
-                description: "Create a new reunion or join an existing one",
-                icon: GraduationCap,
-                createPath: "/events/create?type=private&category=reunion",
-                joinPath: "/events/join/",
-                createLabel: "Create New Reunion",
-                createDescription: "Start planning a school, college, or family reunion",
-                colors: {
-                  gradient: "from-purple-400 to-violet-500",
-                  border: "border-purple-200 dark:border-purple-800",
-                  text: "text-purple-700 dark:text-purple-100",
-                  textMuted: "text-purple-600 dark:text-purple-300",
-                  button: "from-purple-500 to-violet-500",
-                  buttonHover: "from-purple-600 to-violet-600"
-                }
-              })}
-              data-testid="card-event-type-reunion"
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-center" 
-                style={{ backgroundImage: `url(${reunionBg})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-purple-900/90 via-purple-900/60 to-purple-900/30" />
-              <CardHeader className="p-3 md:p-4 text-center relative z-10">
-                <div className="mx-auto p-3 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-sm md:text-base font-bold text-white">Reunions</CardTitle>
-                <CardDescription className="text-xs text-purple-200 hidden sm:block">
-                  School, college & family
-                </CardDescription>
-                <Badge className="mt-2 bg-purple-400/80 text-white text-[10px]">
-                  <UsersRound className="w-2.5 h-2.5 mr-1" />
-                  Group
-                </Badge>
+        </div>
+
+        {/* Your Upcoming Events */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading font-semibold text-xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Your Upcoming Events</h2>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/events")} data-testid="link-view-all-events">
+              View All <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+          
+          {privateEvents && privateEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {privateEvents.slice(0, 3).map((event) => (
+                <Card 
+                  key={event.id} 
+                  className="hover-elevate cursor-pointer border shadow-sm hover:shadow-md transition-all"
+                  onClick={() => setLocation(`/events/${event.id}`)}
+                  data-testid={`card-event-${event.id}`}
+                >
+                  <CardHeader className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base font-semibold truncate">{event.title}</CardTitle>
+                        <CardDescription className="text-sm mt-1 line-clamp-2">{event.description}</CardDescription>
+                      </div>
+                      <Badge variant={event.isPublic ? "default" : "secondary"} className="shrink-0">
+                        {event.isPublic ? <Globe className="w-3 h-3 mr-1" /> : <Lock className="w-3 h-3 mr-1" />}
+                        {event.isPublic ? "Public" : "Private"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="truncate max-w-[120px]">{event.location || 'TBD'}</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-dashed border-2 bg-muted/30">
+              <CardHeader className="text-center py-8">
+                <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                <CardTitle className="text-lg text-muted-foreground">No events yet</CardTitle>
+                <CardDescription>Create your first event to get started!</CardDescription>
+                <Button 
+                  className="mt-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                  onClick={() => setLocation("/events/create")}
+                  data-testid="button-create-first-event"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Event
+                </Button>
               </CardHeader>
             </Card>
+          )}
+        </div>
 
-            {/* Birthday Parties */}
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-pink-200 dark:border-pink-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
-              onClick={() => openEventDialog({
-                type: "birthday",
-                title: "Birthday Party",
-                description: "Create a new birthday event or join an existing one",
-                icon: Cake,
-                createPath: "/events/create?type=private&category=birthday",
-                joinPath: "/events/join/",
-                createLabel: "Create Birthday Event",
-                createDescription: "Plan a memorable birthday celebration",
-                colors: {
-                  gradient: "from-pink-400 to-rose-500",
-                  border: "border-pink-200 dark:border-pink-800",
-                  text: "text-pink-700 dark:text-pink-100",
-                  textMuted: "text-pink-600 dark:text-pink-300",
-                  button: "from-pink-500 to-rose-500",
-                  buttonHover: "from-pink-600 to-rose-600"
-                }
-              })}
-              data-testid="card-event-type-birthday"
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-center" 
-                style={{ backgroundImage: `url(${birthdayBg})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-pink-900/90 via-pink-900/60 to-pink-900/30" />
-              <CardHeader className="p-3 md:p-4 text-center relative z-10">
-                <div className="mx-auto p-3 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
-                  <Cake className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-sm md:text-base font-bold text-white">Birthday Party</CardTitle>
-                <CardDescription className="text-xs text-pink-200 hidden sm:block">
-                  Celebrate in style
-                </CardDescription>
-                <Badge className="mt-2 bg-pink-400/80 text-white text-[10px]">
-                  <PartyPopper className="w-2.5 h-2.5 mr-1" />
-                  Party
-                </Badge>
+        {/* Your Planning Groups */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading font-semibold text-xl bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent">Your Planning Groups</h2>
+          </div>
+          
+          {groups && groups.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {groups.slice(0, 3).map((group) => (
+                <Card 
+                  key={group.id} 
+                  className="hover-elevate cursor-pointer border shadow-sm hover:shadow-md transition-all bg-gradient-to-br from-purple-50/50 to-violet-50/50 dark:from-purple-950/20 dark:to-violet-950/20"
+                  onClick={() => setLocation(`/groups/${group.id}`)}
+                  data-testid={`card-group-${group.id}`}
+                >
+                  <CardHeader className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-gradient-to-br from-purple-400 to-violet-500 rounded-lg">
+                        <UsersRound className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base font-semibold truncate">{group.name}</CardTitle>
+                        <CardDescription className="text-sm mt-1 capitalize">{group.eventType?.replace(/_/g, ' ') || 'Event'}</CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {group.eventDate ? new Date(group.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="truncate max-w-[100px]">{group.locationPreference || 'TBD'}</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-dashed border-2 bg-muted/30">
+              <CardHeader className="text-center py-8">
+                <UsersRound className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                <CardTitle className="text-lg text-muted-foreground">No planning groups yet</CardTitle>
+                <CardDescription>Create a group to plan events with friends!</CardDescription>
               </CardHeader>
             </Card>
+          )}
+        </div>
 
-            {/* Group Rides */}
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
-              onClick={() => openEventDialog({
-                type: "group_ride",
-                title: "Group Rides",
-                description: "Create a new ride or join an existing one",
-                icon: Bike,
-                createPath: "/events/create?type=private&category=group_ride",
-                joinPath: "/events/join/",
-                createLabel: "Create Group Ride",
-                createDescription: "Plan a bike trip or adventure with friends",
-                colors: {
-                  gradient: "from-blue-400 to-cyan-500",
-                  border: "border-blue-200 dark:border-blue-800",
-                  text: "text-blue-700 dark:text-blue-100",
-                  textMuted: "text-blue-600 dark:text-blue-300",
-                  button: "from-blue-500 to-cyan-500",
-                  buttonHover: "from-blue-600 to-cyan-600"
-                }
-              })}
-              data-testid="card-event-type-group-ride"
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-center" 
-                style={{ backgroundImage: `url(${groupRideBg})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/60 to-blue-900/30" />
-              <CardHeader className="p-3 md:p-4 text-center relative z-10">
-                <div className="mx-auto p-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
-                  <Bike className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-sm md:text-base font-bold text-white">Group Rides</CardTitle>
-                <CardDescription className="text-xs text-blue-200 hidden sm:block">
-                  Bike trips & adventures
-                </CardDescription>
-                <Badge className="mt-2 bg-blue-400/80 text-white text-[10px]">
-                  <UsersRound className="w-2.5 h-2.5 mr-1" />
-                  Group
-                </Badge>
-              </CardHeader>
-            </Card>
-
-            {/* Fitness Activities */}
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-emerald-200 dark:border-emerald-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
-              onClick={() => openEventDialog({
-                type: "fitness",
-                title: "Fitness",
-                description: "Create a new fitness activity or join an existing one",
-                icon: Dumbbell,
-                createPath: "/events/create?type=private&category=fitness",
-                joinPath: "/events/join/",
-                createLabel: "Create Fitness Activity",
-                createDescription: "Plan yoga, gym sessions, or sports activities",
-                colors: {
-                  gradient: "from-emerald-400 to-green-500",
-                  border: "border-emerald-200 dark:border-emerald-800",
-                  text: "text-emerald-700 dark:text-emerald-100",
-                  textMuted: "text-emerald-600 dark:text-emerald-300",
-                  button: "from-emerald-500 to-green-500",
-                  buttonHover: "from-emerald-600 to-green-600"
-                }
-              })}
-              data-testid="card-event-type-fitness"
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-center" 
-                style={{ backgroundImage: `url(${fitnessBg})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/90 via-emerald-900/60 to-emerald-900/30" />
-              <CardHeader className="p-3 md:p-4 text-center relative z-10">
-                <div className="mx-auto p-3 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl shadow-md mb-2 group-hover:scale-110 transition-transform">
-                  <Dumbbell className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-sm md:text-base font-bold text-white">Fitness</CardTitle>
-                <CardDescription className="text-xs text-emerald-200 hidden sm:block">
-                  Yoga, gym & sports
-                </CardDescription>
-                <Badge className="mt-2 bg-emerald-400/80 text-white text-[10px]">
-                  <UsersRound className="w-2.5 h-2.5 mr-1" />
-                  Group
-                </Badge>
-              </CardHeader>
-            </Card>
-
-            {/* Weddings */}
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-all group overflow-hidden relative" 
-              onClick={() => openEventDialog({
-                type: "wedding",
-                title: "Wedding",
-                description: "Create a new wedding event or join an existing one",
-                icon: Gem,
-                createPath: "/events/create?type=private&category=wedding",
-                joinPath: "/events/join/",
-                createLabel: "Create Wedding Event",
-                createDescription: "Plan your special day celebration",
-                colors: {
-                  gradient: "from-amber-400 to-orange-500",
-                  border: "border-amber-200 dark:border-amber-800",
-                  text: "text-amber-700 dark:text-amber-100",
-                  textMuted: "text-amber-600 dark:text-amber-300",
-                  button: "from-amber-500 to-orange-500",
-                  buttonHover: "from-amber-600 to-orange-600"
-                }
-              })}
-              data-testid="card-event-type-wedding"
-            >
+        {/* Placeholder for removed event type cards - keeping dialog functionality */}
+        <div className="hidden">
               <div 
                 className="absolute inset-0 bg-cover bg-center" 
                 style={{ backgroundImage: `url(${weddingBg})` }}
