@@ -168,8 +168,6 @@ export default function PromotionsCarousel() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex left-0 -translate-x-1/2" />
-          <CarouselNext className="hidden md:flex right-0 translate-x-1/2" />
         </Carousel>
       </div>
     </section>
