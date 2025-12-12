@@ -8,6 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Search,
   MapPin,
   Bell,
@@ -36,7 +43,11 @@ import {
   Gift,
   Heart,
   Zap,
+  Lock,
+  Globe,
+  PartyPopper,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Event, EventGroup } from "@shared/schema";
 
 interface MobileDashboardProps {
@@ -112,10 +123,34 @@ const promoCards = [
   },
 ];
 
+// Event type cards for the "Create New Event" dialog
+const EVENT_TYPE_CARDS: { 
+  type: string; 
+  label: string; 
+  icon: LucideIcon; 
+  gradient: string;
+  border: string;
+  description: string;
+}[] = [
+  { type: "Birthday Party", label: "Birthday", icon: Cake, gradient: "from-pink-500 to-rose-500", border: "border-pink-300 dark:border-pink-700", description: "Celebrate another year of life" },
+  { type: "Wedding", label: "Wedding", icon: Gem, gradient: "from-rose-500 to-pink-500", border: "border-rose-300 dark:border-rose-700", description: "Your special day celebration" },
+  { type: "College Reunion", label: "Reunion", icon: GraduationCap, gradient: "from-purple-500 to-violet-500", border: "border-purple-300 dark:border-purple-700", description: "Reconnect with classmates" },
+  { type: "Group Ride", label: "Group Ride", icon: Bike, gradient: "from-blue-500 to-cyan-500", border: "border-blue-300 dark:border-blue-700", description: "Adventure on wheels" },
+  { type: "Trekking", label: "Trek", icon: Mountain, gradient: "from-emerald-500 to-teal-500", border: "border-emerald-300 dark:border-emerald-700", description: "Explore the outdoors" },
+  { type: "Fitness Bootcamp", label: "Fitness", icon: Dumbbell, gradient: "from-green-500 to-emerald-500", border: "border-green-300 dark:border-green-700", description: "Get fit together" },
+  { type: "Sports Event", label: "Sports", icon: Trophy, gradient: "from-red-500 to-orange-500", border: "border-red-300 dark:border-red-700", description: "Game on!" },
+  { type: "Baby Shower", label: "Baby Shower", icon: Baby, gradient: "from-sky-400 to-blue-400", border: "border-sky-300 dark:border-sky-700", description: "Welcome the little one" },
+  { type: "Festival Celebration", label: "Festival", icon: PartyPopper, gradient: "from-orange-500 to-amber-500", border: "border-orange-300 dark:border-orange-700", description: "Celebrate festivals together" },
+  { type: "Housewarming", label: "Housewarming", icon: Home, gradient: "from-amber-500 to-yellow-500", border: "border-amber-300 dark:border-amber-700", description: "New home celebration" },
+  { type: "Corporate Event", label: "Corporate", icon: Store, gradient: "from-slate-500 to-gray-500", border: "border-slate-300 dark:border-slate-700", description: "Professional gatherings" },
+  { type: "Other", label: "Other", icon: Sparkles, gradient: "from-violet-500 to-purple-500", border: "border-violet-300 dark:border-violet-700", description: "Any other celebration" },
+];
+
 export default function MobileDashboard({ onOpenEventDialog, privateEvents, publicEvents, groups }: MobileDashboardProps) {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [createEventDialogOpen, setCreateEventDialogOpen] = useState(false);
 
   const handleCategoryClick = (categoryId: string) => {
     const categoryConfigs: Record<string, EventTypeConfig> = {
@@ -444,7 +479,13 @@ export default function MobileDashboard({ onOpenEventDialog, privateEvents, publ
           {quickActions.map((action) => (
             <button
               key={action.id}
-              onClick={() => navigate(action.path)}
+              onClick={() => {
+                if (action.id === "create") {
+                  setCreateEventDialogOpen(true);
+                } else {
+                  navigate(action.path);
+                }
+              }}
               className="flex flex-col items-center gap-2 p-3 rounded-xl bg-card border shadow-sm hover:shadow-md transition-all"
               data-testid={`button-quick-${action.id}`}
             >
@@ -505,7 +546,7 @@ export default function MobileDashboard({ onOpenEventDialog, privateEvents, publ
               </div>
               <h4 className="font-medium text-sm mb-1">No events yet</h4>
               <p className="text-xs text-muted-foreground mb-3">Create your first event to get started</p>
-              <Button size="sm" onClick={() => navigate("/events/create")} className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-create-first-event">
+              <Button size="sm" onClick={() => setCreateEventDialogOpen(true)} className="bg-gradient-to-r from-orange-500 to-amber-500" data-testid="button-create-first-event">
                 <Plus className="w-4 h-4 mr-1" />
                 Create Event
               </Button>
@@ -653,6 +694,50 @@ export default function MobileDashboard({ onOpenEventDialog, privateEvents, publ
           </Card>
         </div>
       </div>
+
+      {/* Event Type Selection Dialog */}
+      <Dialog open={createEventDialogOpen} onOpenChange={setCreateEventDialogOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="dialog-create-event-type-mobile">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-heading font-bold text-center bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+              What are you celebrating?
+            </DialogTitle>
+            <DialogDescription className="text-center text-sm">
+              Choose an event type to get started
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-3 gap-2 py-3">
+            {EVENT_TYPE_CARDS.map((eventCard) => (
+              <button
+                key={eventCard.type}
+                className={`group flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 ${eventCard.border} bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover-elevate cursor-pointer transition-all`}
+                onClick={() => {
+                  setCreateEventDialogOpen(false);
+                  navigate(`/events/create?eventType=${encodeURIComponent(eventCard.type)}`);
+                }}
+                data-testid={`option-event-type-${eventCard.type.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <div className={`p-2.5 bg-gradient-to-br ${eventCard.gradient} rounded-xl shadow-md group-hover:scale-110 transition-transform`}>
+                  <eventCard.icon className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xs font-medium text-center leading-tight">{eventCard.label}</span>
+              </button>
+            ))}
+          </div>
+          
+          {/* Privacy hint */}
+          <div className="flex items-center justify-center gap-3 pt-2 border-t">
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <Lock className="w-3 h-3" />
+              <span>Private by default</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <Globe className="w-3 h-3" />
+              <span>Can make public later</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

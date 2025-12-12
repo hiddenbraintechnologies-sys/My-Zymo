@@ -211,6 +211,29 @@ interface EventTypeConfig {
   };
 }
 
+// Event type cards for the "Create New Event" dialog
+const EVENT_TYPE_CARDS: { 
+  type: string; 
+  label: string; 
+  icon: LucideIcon; 
+  gradient: string;
+  border: string;
+  description: string;
+}[] = [
+  { type: "Birthday Party", label: "Birthday", icon: Cake, gradient: "from-pink-500 to-rose-500", border: "border-pink-300 dark:border-pink-700", description: "Celebrate another year of life" },
+  { type: "Wedding", label: "Wedding", icon: Gem, gradient: "from-rose-500 to-pink-500", border: "border-rose-300 dark:border-rose-700", description: "Your special day celebration" },
+  { type: "College Reunion", label: "Reunion", icon: GraduationCap, gradient: "from-purple-500 to-violet-500", border: "border-purple-300 dark:border-purple-700", description: "Reconnect with classmates" },
+  { type: "Group Ride", label: "Group Ride", icon: Bike, gradient: "from-blue-500 to-cyan-500", border: "border-blue-300 dark:border-blue-700", description: "Adventure on wheels" },
+  { type: "Trekking", label: "Trek", icon: Mountain, gradient: "from-emerald-500 to-teal-500", border: "border-emerald-300 dark:border-emerald-700", description: "Explore the outdoors" },
+  { type: "Fitness Bootcamp", label: "Fitness", icon: Dumbbell, gradient: "from-green-500 to-emerald-500", border: "border-green-300 dark:border-green-700", description: "Get fit together" },
+  { type: "Sports Event", label: "Sports", icon: Trophy, gradient: "from-red-500 to-orange-500", border: "border-red-300 dark:border-red-700", description: "Game on!" },
+  { type: "Baby Shower", label: "Baby Shower", icon: Baby, gradient: "from-sky-400 to-blue-400", border: "border-sky-300 dark:border-sky-700", description: "Welcome the little one" },
+  { type: "Festival Celebration", label: "Festival", icon: PartyPopper, gradient: "from-orange-500 to-amber-500", border: "border-orange-300 dark:border-orange-700", description: "Celebrate festivals together" },
+  { type: "Housewarming", label: "Housewarming", icon: Home, gradient: "from-amber-500 to-yellow-500", border: "border-amber-300 dark:border-amber-700", description: "New home celebration" },
+  { type: "Corporate Event", label: "Corporate", icon: Store, gradient: "from-slate-500 to-gray-500", border: "border-slate-300 dark:border-slate-700", description: "Professional gatherings" },
+  { type: "Other", label: "Other", icon: Sparkles, gradient: "from-violet-500 to-purple-500", border: "border-violet-300 dark:border-violet-700", description: "Any other celebration" },
+];
+
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -662,7 +685,7 @@ export default function Dashboard() {
             <Button
               size="lg"
               className="h-16 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
-              onClick={() => setLocation("/events/create")}
+              onClick={() => setCreateEventDialogOpen(true)}
               data-testid="button-quick-create-event"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -742,7 +765,7 @@ export default function Dashboard() {
                 <CardDescription>Create your first event to get started!</CardDescription>
                 <Button 
                   className="mt-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-                  onClick={() => setLocation("/events/create")}
+                  onClick={() => setCreateEventDialogOpen(true)}
                   data-testid="button-create-first-event"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -955,60 +978,44 @@ export default function Dashboard() {
       </button>
       <QuoteDialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen} />
       <Dialog open={createEventDialogOpen} onOpenChange={setCreateEventDialogOpen}>
-        <DialogContent className="sm:max-w-lg" data-testid="dialog-create-event-type">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="dialog-create-event-type">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-heading font-bold text-center bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-              Choose Event Type
+            <DialogTitle className="text-2xl font-heading font-bold text-center bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+              What are you celebrating?
             </DialogTitle>
             <DialogDescription className="text-center">
-              Select the type of event you want to create
+              Choose an event type to get started
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30"
-              onClick={() => {
-                setCreateEventDialogOpen(false);
-                setLocation("/events/create?type=private");
-              }}
-              data-testid="option-private-event"
-            >
-              <CardHeader className="flex flex-row items-center gap-4 p-4">
-                <div className="p-3 bg-gradient-to-br from-orange-400 to-amber-400 rounded-xl shadow-md">
-                  <Lock className="w-6 h-6 text-white" />
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 py-4">
+            {EVENT_TYPE_CARDS.map((eventCard) => (
+              <button
+                key={eventCard.type}
+                className={`group flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 ${eventCard.border} bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover-elevate cursor-pointer transition-all`}
+                onClick={() => {
+                  setCreateEventDialogOpen(false);
+                  setLocation(`/events/create?eventType=${encodeURIComponent(eventCard.type)}`);
+                }}
+                data-testid={`option-event-type-${eventCard.type.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <div className={`p-3 bg-gradient-to-br ${eventCard.gradient} rounded-xl shadow-md group-hover:scale-110 transition-transform`}>
+                  <eventCard.icon className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg text-orange-700 dark:text-orange-100">Private Event</CardTitle>
-                  <CardDescription className="text-orange-600 dark:text-orange-300">
-                    Invite-only celebration for friends & family
-                  </CardDescription>
-                </div>
-                <ArrowRight className="w-5 h-5 text-orange-400" />
-              </CardHeader>
-            </Card>
-
-            <Card 
-              className="hover-elevate cursor-pointer border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30"
-              onClick={() => {
-                setCreateEventDialogOpen(false);
-                setLocation("/events/create?type=public");
-              }}
-              data-testid="option-public-event"
-            >
-              <CardHeader className="flex flex-row items-center gap-4 p-4">
-                <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl shadow-md">
-                  <Globe className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg text-amber-700 dark:text-amber-100">Public Event</CardTitle>
-                  <CardDescription className="text-amber-600 dark:text-amber-300">
-                    Open event visible to everyone on the platform
-                  </CardDescription>
-                </div>
-                <ArrowRight className="w-5 h-5 text-amber-400" />
-              </CardHeader>
-            </Card>
-
+                <span className="text-sm font-medium text-center">{eventCard.label}</span>
+              </button>
+            ))}
+          </div>
+          
+          {/* Privacy hint */}
+          <div className="flex items-center justify-center gap-4 pt-2 border-t">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Private by default</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Globe className="w-3.5 h-3.5" />
+              <span>Can make public later</span>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

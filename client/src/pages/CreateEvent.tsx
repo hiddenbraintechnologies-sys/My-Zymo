@@ -69,6 +69,7 @@ export default function CreateEvent() {
 
   const urlParams = new URLSearchParams(searchString);
   const eventTypeParam = urlParams.get("type");
+  const eventTypeFromUrl = urlParams.get("eventType");
   const isPublicFromUrl = eventTypeParam === "public";
 
   // Get the effective event type (custom if "Other" is selected)
@@ -91,6 +92,13 @@ export default function CreateEvent() {
       form.setValue("isPublic", eventTypeParam === "public");
     }
   }, [eventTypeParam, form]);
+
+  // Pre-select event type from URL parameter
+  useEffect(() => {
+    if (eventTypeFromUrl && EVENT_TYPES.includes(eventTypeFromUrl)) {
+      setEventType(eventTypeFromUrl);
+    }
+  }, [eventTypeFromUrl]);
 
   const createEventMutation = useMutation({
     mutationFn: async (data: { title: string; description?: string | null; location: string; imageUrl?: string | null; invitationCardUrl?: string | null; date: string; isPublic?: boolean }) => {
