@@ -142,12 +142,12 @@ export default function Expenses() {
               Your Groups
             </h2>
             <Button 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/split-expenses")}
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
               data-testid="button-create-new-group"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
-              Create New Group
+              Create New Expense
             </Button>
           </div>
 
