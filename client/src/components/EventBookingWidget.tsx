@@ -46,14 +46,14 @@ const eventTypes = [
 ];
 
 const cities = [
+  // Major Cities
   "Agra", "Ahmedabad", "Ajmer", "Aligarh", "Allahabad", "Amritsar", "Aurangabad",
   "Bangalore", "Bareilly", "Bhopal", "Bhubaneswar", "Bikaner",
   "Chandigarh", "Chennai", "Coimbatore", "Cuttack",
   "Dehradun", "Delhi", "Dhanbad", "Durgapur",
   "Faridabad", "Firozabad",
   "Ghaziabad", "Goa", "Gorakhpur", "Gurgaon", "Guwahati", "Gwalior",
-  "Hubli", "Hyderabad",
-  "Indore",
+  "Hubli", "Hyderabad", "Indore",
   "Jabalpur", "Jaipur", "Jalandhar", "Jammu", "Jamshedpur", "Jhansi", "Jodhpur",
   "Kanpur", "Kochi", "Kolkata", "Kota",
   "Lucknow", "Ludhiana",
@@ -63,8 +63,92 @@ const cities = [
   "Raipur", "Rajkot", "Ranchi",
   "Salem", "Siliguri", "Srinagar", "Surat",
   "Thane", "Thiruvananthapuram", "Tiruchirappalli", "Tiruppur", "Udaipur",
-  "Vadodara", "Varanasi", "Vijayawada", "Visakhapatnam",
-  "Warangal"
+  "Vadodara", "Varanasi", "Vijayawada", "Visakhapatnam", "Warangal",
+  // Small Towns & Villages - North India
+  "Rishikesh", "Haridwar", "Mussoorie", "Nainital", "Almora", "Pithoragarh", "Rudraprayag",
+  "Mathura", "Vrindavan", "Ayodhya", "Chitrakoot", "Mirzapur", "Sultanpur", "Azamgarh",
+  "Moradabad", "Saharanpur", "Muzaffarnagar", "Shamli", "Baghpat", "Bulandshahr",
+  "Hathras", "Etah", "Mainpuri", "Etawah", "Farrukhabad", "Kannauj", "Hardoi",
+  "Sitapur", "Lakhimpur", "Bahraich", "Shravasti", "Balrampur", "Gonda", "Basti",
+  "Deoria", "Kushinagar", "Maharajganj", "Siddharthnagar", "Sant Kabir Nagar",
+  "Ambala", "Karnal", "Panipat", "Sonipat", "Rohtak", "Jhajjar", "Rewari", "Mahendragarh",
+  "Bhiwani", "Hisar", "Fatehabad", "Sirsa", "Jind", "Kaithal", "Kurukshetra", "Yamunanagar",
+  "Panchkula", "Bathinda", "Moga", "Muktsar", "Fazilka", "Ferozepur", "Kapurthala",
+  "Hoshiarpur", "Gurdaspur", "Pathankot", "Nawanshahr", "Rupnagar", "Fatehgarh Sahib",
+  "Barnala", "Sangrur", "Mansa", "Patiala", "Mohali",
+  // Rajasthan Towns
+  "Pushkar", "Chittorgarh", "Bundi", "Jhalawar", "Kumbhalgarh", "Ranakpur", "Nathdwara",
+  "Kishangarh", "Beawar", "Bhilwara", "Tonk", "Sawai Madhopur", "Karauli", "Dholpur",
+  "Bharatpur", "Alwar", "Dausa", "Sikar", "Jhunjhunu", "Churu", "Nagaur", "Pali",
+  "Jalore", "Sirohi", "Banswara", "Dungarpur", "Pratapgarh", "Rajsamand", "Hanumangarh",
+  "Sri Ganganagar", "Barmer", "Jaisalmer",
+  // Bihar & Jharkhand Towns
+  "Gaya", "Nalanda", "Rajgir", "Bodh Gaya", "Sasaram", "Buxar", "Chapra", "Siwan",
+  "Gopalganj", "Motihari", "Bettiah", "Muzaffarpur", "Sitamarhi", "Madhubani", "Darbhanga",
+  "Samastipur", "Begusarai", "Khagaria", "Munger", "Bhagalpur", "Banka", "Katihar",
+  "Purnia", "Kishanganj", "Araria", "Supaul", "Madhepura", "Saharsa", "Hazaribagh",
+  "Giridih", "Deoghar", "Godda", "Dumka", "Pakur", "Sahebganj", "Bokaro", "Ramgarh",
+  "Chatra", "Koderma", "Lohardaga", "Gumla", "Simdega", "Khunti", "Saraikela",
+  // West Bengal Towns
+  "Darjeeling", "Kalimpong", "Kurseong", "Jalpaiguri", "Cooch Behar", "Alipurduar",
+  "Malda", "Raiganj", "Balurghat", "Murshidabad", "Berhampore", "Krishnanagar", "Kalyani",
+  "Barasat", "Basirhat", "Bongaon", "Barrackpore", "Hooghly", "Chandannagar", "Serampore",
+  "Rishra", "Uttarpara", "Howrah", "Uluberia", "Kharagpur", "Midnapore", "Tamluk",
+  "Haldia", "Contai", "Digha", "Bankura", "Bishnupur", "Purulia", "Asansol", "Bardhaman",
+  // Northeast Towns
+  "Shillong", "Cherrapunji", "Mawsynram", "Tura", "Jowai", "Nongpoh", "Imphal", "Thoubal",
+  "Bishnupur", "Churachandpur", "Ukhrul", "Aizawl", "Lunglei", "Champhai", "Serchhip",
+  "Kohima", "Dimapur", "Mokokchung", "Wokha", "Zunheboto", "Agartala", "Udaipur",
+  "Dharmanagar", "Kailashahar", "Itanagar", "Naharlagun", "Pasighat", "Along", "Ziro",
+  "Tawang", "Bomdila", "Tezpur", "Jorhat", "Dibrugarh", "Tinsukia", "Sibsagar", "Nagaon",
+  "Barpeta", "Nalbari", "Bongaigaon", "Dhubri", "Goalpara", "Silchar", "Karimganj",
+  // Gujarat Towns
+  "Dwarka", "Somnath", "Porbandar", "Junagadh", "Veraval", "Amreli", "Bhavnagar",
+  "Palitana", "Diu", "Bhuj", "Mandvi", "Gandhidham", "Anjar", "Kutch", "Surendranagar",
+  "Morbi", "Gondal", "Jetpur", "Upleta", "Jamnagar", "Mehsana", "Palanpur", "Patan",
+  "Siddhpur", "Gandhinagar", "Nadiad", "Anand", "Kheda", "Dahod", "Godhra", "Bharuch",
+  "Ankleshwar", "Navsari", "Valsad", "Vapi", "Daman", "Silvassa",
+  // Maharashtra Towns
+  "Shirdi", "Lonavala", "Khandala", "Mahabaleshwar", "Panchgani", "Matheran", "Alibaug",
+  "Ratnagiri", "Ganpatipule", "Malvan", "Sawantwadi", "Kolhapur", "Sangli", "Satara",
+  "Karad", "Pandharpur", "Solapur", "Osmanabad", "Latur", "Nanded", "Parbhani", "Hingoli",
+  "Washim", "Akola", "Amravati", "Yavatmal", "Wardha", "Chandrapur", "Gadchiroli", "Gondia",
+  "Bhandara", "Jalgaon", "Dhule", "Nandurbar", "Ahmednagar", "Shrirampur", "Sangamner",
+  // Madhya Pradesh Towns
+  "Khajuraho", "Orchha", "Sanchi", "Ujjain", "Omkareshwar", "Maheshwar", "Mandu",
+  "Pachmarhi", "Amarkantak", "Chitrakoot", "Rewa", "Satna", "Shahdol", "Mandla", "Seoni",
+  "Balaghat", "Chhindwara", "Betul", "Hoshangabad", "Harda", "Khandwa", "Burhanpur",
+  "Dewas", "Shajapur", "Rajgarh", "Vidisha", "Sagar", "Damoh", "Tikamgarh", "Chhatarpur",
+  "Panna", "Datia", "Shivpuri", "Guna", "Ashoknagar", "Neemuch", "Mandsaur", "Ratlam",
+  // South India Towns
+  "Ooty", "Kodaikanal", "Munnar", "Thekkady", "Alleppey", "Kumarakom", "Kovalam", "Varkala",
+  "Wayanad", "Kozhikode", "Kannur", "Kasaragod", "Thrissur", "Palakkad", "Malappuram",
+  "Tirunelveli", "Kanyakumari", "Rameswaram", "Thanjavur", "Kumbakonam", "Chidambaram",
+  "Mamallapuram", "Kanchipuram", "Vellore", "Tiruvannamalai", "Krishnagiri", "Dharmapuri",
+  "Erode", "Namakkal", "Karur", "Dindigul", "Theni", "Virudhunagar", "Sivakasi", "Rajapalayam",
+  "Hampi", "Badami", "Aihole", "Pattadakal", "Bijapur", "Gulbarga", "Bidar", "Raichur",
+  "Bellary", "Hospet", "Chitradurga", "Davangere", "Shimoga", "Udupi", "Karwar", "Gokarna",
+  "Murdeshwar", "Coorg", "Chikmagalur", "Hassan", "Belur", "Halebidu", "Sravanabelagola",
+  "Tirupati", "Tirumala", "Srikalahasti", "Nellore", "Ongole", "Guntur", "Tenali", "Narasaraopet",
+  "Machilipatnam", "Eluru", "Rajahmundry", "Kakinada", "Peddapuram", "Amalapuram",
+  "Anantapur", "Kadapa", "Kurnool", "Nandyal", "Adoni", "Chittoor", "Madanapalle",
+  // Odisha Towns
+  "Puri", "Konark", "Chilika", "Gopalpur", "Berhampur", "Jeypore", "Koraput", "Rayagada",
+  "Sambalpur", "Rourkela", "Sundargarh", "Jharsuguda", "Bargarh", "Bolangir", "Sonepur",
+  "Balangir", "Phulbani", "Baripada", "Balasore", "Bhadrak", "Kendrapara", "Jagatsinghpur",
+  // Chhattisgarh Towns
+  "Jagdalpur", "Kondagaon", "Kanker", "Dantewada", "Bijapur", "Sukma", "Narayanpur",
+  "Korba", "Bilaspur", "Durg", "Bhilai", "Rajnandgaon", "Kawardha", "Mahasamund", "Gariaband",
+  // Himachal & Uttarakhand Towns
+  "Shimla", "Manali", "Kullu", "Dharamshala", "McLeodganj", "Dalhousie", "Khajjiar",
+  "Kasauli", "Chail", "Kufri", "Solan", "Bilaspur", "Hamirpur", "Una", "Kangra", "Palampur",
+  "Mandi", "Sundernagar", "Keylong", "Spiti", "Kaza", "Kinnaur", "Kalpa", "Sarahan",
+  "Badrinath", "Kedarnath", "Gangotri", "Yamunotri", "Uttarkashi", "Joshimath", "Auli",
+  "Chopta", "Tungnath", "Ranikhet", "Kausani", "Binsar", "Mukteshwar", "Bhimtal", "Sattal",
+  // Jammu & Kashmir Towns
+  "Gulmarg", "Pahalgam", "Sonamarg", "Patnitop", "Vaishno Devi", "Katra", "Udhampur",
+  "Rajouri", "Poonch", "Anantnag", "Shopian", "Pulwama", "Budgam", "Baramulla", "Kupwara",
+  "Leh", "Kargil", "Nubra", "Pangong", "Turtuk", "Diskit", "Hunder", "Lamayuru", "Alchi"
 ];
 
 export default function EventBookingWidget() {
