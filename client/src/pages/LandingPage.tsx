@@ -1,6 +1,5 @@
 import Navbar from "@/components/Navbar";
 import LandingHero from "@/components/LandingHero";
-import PromotionsCarousel from "@/components/PromotionsCarousel";
 import EventDiscoveryGrid from "@/components/EventDiscoveryGrid";
 import PlatformAddOnsRail from "@/components/PlatformAddOnsRail";
 import PublicEventsShowcase from "@/components/PublicEventsShowcase";
@@ -13,7 +12,6 @@ export default function LandingPage() {
     <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
       <LandingHero />
-      <PromotionsCarousel />
       <EventDiscoveryGrid />
       <PlatformAddOnsRail />
       <PublicEventsShowcase />
