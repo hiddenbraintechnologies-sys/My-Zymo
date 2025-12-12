@@ -1236,7 +1236,7 @@ export default function Dashboard() {
       <button
         onClick={() => setQuoteDialogOpen(true)}
         data-testid="fab-free-quote"
-        className="hidden md:flex fixed right-4 md:right-8 bottom-24 md:bottom-8 z-40 group items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+        className="hidden md:flex fixed right-4 md:right-8 bottom-32 md:bottom-24 z-40 group items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
       >
         <div className="relative">
           <IndianRupee className="w-5 h-5" />
