@@ -35,8 +35,8 @@ export default function Navbar() {
     { label: "Profile", href: "/profile", icon: User },
   ];
 
-  // If user is authenticated, logo should link to dashboard, otherwise to home
-  const logoHref = user ? "/dashboard" : "/";
+  // Logo always links to home page
+  const logoHref = "/";
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
