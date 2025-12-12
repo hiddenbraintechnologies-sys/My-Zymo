@@ -12,10 +12,10 @@ export default function LandingPage() {
     <div className="min-h-screen pb-20 md:pb-0">
       <Navbar />
       <LandingHero />
+      <VendorShowcase />
       <EventDiscoveryGrid />
       <PlatformAddOnsRail />
       <PublicEventsShowcase />
-      <VendorShowcase />
       <Testimonials />
       <Footer />
     </div>
