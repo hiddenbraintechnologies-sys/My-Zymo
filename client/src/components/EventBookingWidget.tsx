@@ -157,10 +157,34 @@ export default function EventBookingWidget() {
   const [selectedEventType, setSelectedEventType] = useState("reunions");
   const [date, setDate] = useState<Date>();
   const [location, setLocation] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [findLocationSearch, setFindLocationSearch] = useState("");
+  const [showFindLocationSuggestions, setShowFindLocationSuggestions] = useState(false);
   const [attendees, setAttendees] = useState("10-20");
   const [showAllEventTypes, setShowAllEventTypes] = useState(false);
 
   const visibleEventTypes = showAllEventTypes ? eventTypes : eventTypes.slice(0, 6);
+
+  // Filter cities based on search input
+  const filteredCities = locationSearch.trim() 
+    ? cities.filter(city => city.toLowerCase().includes(locationSearch.toLowerCase())).slice(0, 8)
+    : cities.slice(0, 8);
+
+  const filteredFindCities = findLocationSearch.trim()
+    ? cities.filter(city => city.toLowerCase().includes(findLocationSearch.toLowerCase())).slice(0, 8)
+    : cities.slice(0, 8);
+
+  const handleSelectCity = (city: string) => {
+    setLocation(city);
+    setLocationSearch(city);
+    setShowLocationSuggestions(false);
+  };
+
+  const handleSelectFindCity = (city: string) => {
+    setFindLocationSearch(city);
+    setShowFindLocationSuggestions(false);
+  };
 
   const handleCreateEvent = () => {
     navigate("/events/create");
@@ -243,19 +267,38 @@ export default function EventBookingWidget() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label className="text-sm font-medium text-muted-foreground">Location</Label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger className="h-12" data-testid="select-location">
-                    <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Select city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search city..."
+                    className="h-12 pl-10"
+                    value={locationSearch}
+                    onChange={(e) => {
+                      setLocationSearch(e.target.value);
+                      setShowLocationSuggestions(true);
+                    }}
+                    onFocus={() => setShowLocationSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}
+                    data-testid="input-location"
+                  />
+                </div>
+                {showLocationSuggestions && filteredCities.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    {filteredCities.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        onMouseDown={() => handleSelectCity(city)}
+                        data-testid={`suggestion-city-${city}`}
+                      >
+                        {city}
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -329,20 +372,38 @@ export default function EventBookingWidget() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label className="text-sm font-medium text-muted-foreground">Location</Label>
-                <Select>
-                  <SelectTrigger className="h-12" data-testid="select-find-location">
-                    <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Any location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any location</SelectItem>
-                    {cities.map((city) => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search city..."
+                    className="h-12 pl-10"
+                    value={findLocationSearch}
+                    onChange={(e) => {
+                      setFindLocationSearch(e.target.value);
+                      setShowFindLocationSuggestions(true);
+                    }}
+                    onFocus={() => setShowFindLocationSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowFindLocationSuggestions(false), 200)}
+                    data-testid="input-find-location"
+                  />
+                </div>
+                {showFindLocationSuggestions && filteredFindCities.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    {filteredFindCities.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        onMouseDown={() => handleSelectFindCity(city)}
+                        data-testid={`suggestion-find-city-${city}`}
+                      >
+                        {city}
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
