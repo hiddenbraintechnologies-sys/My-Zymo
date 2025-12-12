@@ -95,12 +95,24 @@ Design Requirements:
           size: "1024x1024",
         });
         
-        const imageUrl = response.data?.[0]?.url ?? "";
-        if (!imageUrl) {
-          throw new Error("No image data received from AI");
+        // Debug: Log the response structure
+        console.log("Image API Response:", JSON.stringify(response, null, 2));
+        
+        const imageData = response.data?.[0];
+        
+        // Handle both URL and base64 response formats
+        if (imageData?.url) {
+          console.log("Returning URL format");
+          return imageData.url;
         }
         
-        return imageUrl;
+        if (imageData?.b64_json) {
+          console.log("Returning base64 format");
+          // Return as data URL if base64 is provided
+          return `data:image/png;base64,${imageData.b64_json}`;
+        }
+        
+        throw new Error("No image data received from AI");
       } catch (error: any) {
         console.error("Error generating invitation card:", error);
         if (isRateLimitError(error)) {
