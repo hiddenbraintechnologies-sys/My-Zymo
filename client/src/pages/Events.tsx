@@ -208,8 +208,8 @@ export default function Events() {
             </div>
           </div>
           
-          <div className="relative z-10 pt-3 pb-4 px-4 md:pt-4 md:pb-5 md:px-6 min-h-[100px] md:min-h-[130px] flex items-center">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 w-full">
+          <div className="relative z-10 px-6 md:px-12 py-8 md:py-12 min-h-[200px] md:min-h-[260px] flex items-center">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 w-full">
               <div>
                 <div className="mb-2 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/40 to-orange-500/40 backdrop-blur-sm border border-amber-300/50 text-xs font-medium text-white">
                   <Calendar className="w-3 h-3 mr-1.5" />
