@@ -14,19 +14,15 @@ export default function PublicEventsShowcase() {
 
   if (isLoading) {
     return (
-      <section className="py-12 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-primary/8 rounded-full blur-3xl" />
-        </div>
+      <section className="py-8 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-8">
-            <Skeleton className="h-8 w-64 mx-auto mb-2" />
-            <Skeleton className="h-5 w-96 mx-auto" />
+          <div className="mb-6">
+            <Skeleton className="h-6 w-48 mb-1" />
+            <Skeleton className="h-4 w-64" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-64" />
+              <Skeleton key={i} className="h-40" />
             ))}
           </div>
         </div>
@@ -43,30 +39,36 @@ export default function PublicEventsShowcase() {
   const displayEvents = events.slice(0, 6);
 
   return (
-    <section className="py-12 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10" data-testid="section-public-events">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-primary/8 rounded-full blur-3xl" />
-      </div>
+    <section className="py-8 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10" data-testid="section-public-events">
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-heading font-bold mb-2" data-testid="heading-public-events">
-            Upcoming Public Events
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Join celebrations happening across India. Connect with communities and make memories together.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-6 gap-2">
+          <div>
+            <h2 className="text-xl md:text-2xl font-heading font-bold" data-testid="heading-public-events">
+              Upcoming Public Events
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Join celebrations happening across India
+            </p>
+          </div>
+          {events.length > 3 && (
+            <Link href="/api/login">
+              <Button variant="ghost" size="sm" className="gap-1" data-testid="button-view-all-events">
+                View All
+                <ArrowRight className="w-3 h-3" />
+              </Button>
+            </Link>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {displayEvents.map((event) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {displayEvents.slice(0, 3).map((event) => (
             <Link key={event.id} href={`/events/${event.id}`}>
               <Card 
-                className="hover-elevate cursor-pointer h-full flex flex-col"
+                className="hover-elevate cursor-pointer h-full"
                 data-testid={`card-public-event-${event.id}`}
               >
                 {event.imageUrl && (
-                  <div className="aspect-video w-full overflow-hidden rounded-t-md">
+                  <div className="aspect-[16/9] w-full overflow-hidden rounded-t-md">
                     <img 
                       src={event.imageUrl} 
                       alt={event.title}
@@ -74,53 +76,31 @@ export default function PublicEventsShowcase() {
                     />
                   </div>
                 )}
-                <CardHeader>
-                  <CardTitle className="line-clamp-2" data-testid={`text-event-title-${event.id}`}>
+                <CardHeader className="p-3 pb-2">
+                  <CardTitle className="text-sm line-clamp-1" data-testid={`text-event-title-${event.id}`}>
                     {event.title}
                   </CardTitle>
-                  {event.description && (
-                    <CardDescription className="line-clamp-2">
-                      {event.description}
-                    </CardDescription>
-                  )}
                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col justify-end">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
+                <CardContent className="p-3 pt-0">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
                       <span data-testid={`text-event-date-${event.id}`}>
-                        {format(new Date(event.date), 'PPP')}
+                        {format(new Date(event.date), 'MMM d')}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
                       <span className="line-clamp-1" data-testid={`text-event-location-${event.id}`}>
                         {event.location}
                       </span>
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <Button variant="outline" className="w-full" data-testid={`button-view-event-${event.id}`}>
-                      View Event
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </Link>
           ))}
         </div>
-
-        {events.length > 6 && (
-          <div className="text-center">
-            <Link href="/api/login">
-              <Button size="lg" data-testid="button-view-all-events">
-                View All Events
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        )}
       </div>
     </section>
   );
