@@ -136,11 +136,19 @@ export default function Expenses() {
 
         {/* Groups with Expenses */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Users className="w-5 h-5 text-green-500" />
               Your Groups
             </h2>
+            <Button 
+              onClick={() => navigate("/dashboard")}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+              data-testid="button-create-new-group"
+            >
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Create New Group
+            </Button>
           </div>
 
           {groupsLoading ? (
