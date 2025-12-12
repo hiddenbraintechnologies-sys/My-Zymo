@@ -162,11 +162,14 @@ const signupFormSchema = z.object({
     .min(4, "Username must be at least 4 characters")
     .max(30, "Username cannot exceed 30 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores")
+    .refine((username) => /^[a-zA-Z]/.test(username), {
+      message: "Username must start with a letter",
+    })
     .refine((username) => /[a-zA-Z0-9]/.test(username), {
       message: "Username must contain at least one letter or number",
     })
-    .refine((username) => /^[a-zA-Z]/.test(username), {
-      message: "Username must start with a letter",
+    .refine((username) => (username.match(/_/g) || []).length <= 3, {
+      message: "Username can contain a maximum of 3 underscores",
     }),
   password: z.string()
     .min(1, "Password is required")
