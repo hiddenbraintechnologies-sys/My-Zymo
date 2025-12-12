@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import Navbar from "@/components/Navbar";
 
 interface Vendor {
   id: string;
@@ -211,24 +212,18 @@ export default function VendorMarketplaceDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50/50 to-background dark:from-teal-950/20 dark:via-cyan-950/10 dark:to-background">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50/50 to-background dark:from-teal-950/20 dark:via-cyan-950/10 dark:to-background pb-20 md:pb-0">
+      <Navbar />
+      
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 text-white py-12 px-4">
+      <div className="relative overflow-hidden bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 text-white py-8 px-4">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCAyLTRzMiAyIDIgNC0yIDQtMiA0LTItMi0yLTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
         
         <div className="max-w-5xl mx-auto relative">
-          <div className="flex items-center gap-3 mb-4">
-            <img src={logoUrl} alt="Myzymo" className="w-12 h-12" />
-            <div>
-              <span className="font-heading font-bold text-xl">Myzymo</span>
-              <span className="block text-sm text-white/80">Bringing People Together</span>
-            </div>
-          </div>
-          
           <div className="flex items-center gap-2 mb-3">
             <Badge className="bg-white/20 text-white border-white/30">
               <Store className="w-3 h-3 mr-1" />
-              Try It Free
+              Marketplace
             </Badge>
           </div>
           
