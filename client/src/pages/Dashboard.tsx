@@ -619,7 +619,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
+              <div className="grid grid-cols-4 gap-2 md:gap-3">
                 <div className="text-center bg-gradient-to-br from-orange-500/30 to-amber-500/30 backdrop-blur-sm border border-orange-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
                   <div className="text-xl md:text-3xl font-bold text-white">{privateEvents?.length || 0}</div>
                   <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
