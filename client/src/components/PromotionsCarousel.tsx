@@ -22,6 +22,12 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 
+import reunionImg from "@assets/stock_images/college_students_reu_249c6b76.jpg";
+import splitExpensesImg from "@assets/stock_images/friends_splitting_bi_7e800c45.jpg";
+import groupBookingImg from "@assets/stock_images/group_booking_event__e3402e99.jpg";
+import photoMemoriesImg from "@assets/stock_images/friends_taking_photo_8f8be79d.jpg";
+import earlyBirdImg from "@assets/stock_images/early_booking_deals__dd67b393.jpg";
+
 const promotions = [
   {
     id: 1,
@@ -33,6 +39,7 @@ const promotions = [
     icon: GraduationCap,
     cta: "Plan Reunion",
     link: "/events/create",
+    bgImage: reunionImg,
   },
   {
     id: 2,
@@ -44,6 +51,7 @@ const promotions = [
     icon: IndianRupee,
     cta: "Try Now",
     link: "/split-expenses",
+    bgImage: splitExpensesImg,
   },
   {
     id: 3,
@@ -55,6 +63,7 @@ const promotions = [
     icon: Users,
     cta: "Find Venues",
     link: "/vendors",
+    bgImage: groupBookingImg,
   },
   {
     id: 4,
@@ -66,6 +75,7 @@ const promotions = [
     icon: Camera,
     cta: "Explore",
     link: "/photo-album",
+    bgImage: photoMemoriesImg,
   },
   {
     id: 5,
@@ -77,6 +87,7 @@ const promotions = [
     icon: Bell,
     cta: "Browse Deals",
     link: "/vendors",
+    bgImage: earlyBirdImg,
   },
 ];
 
@@ -116,9 +127,15 @@ export default function PromotionsCarousel() {
                   onClick={() => navigate(promo.link)}
                   data-testid={`card-promo-${promo.id}`}
                 >
-                  <div className={`h-32 bg-gradient-to-r ${promo.gradient} relative overflow-hidden`}>
-                    <div className="absolute inset-0 bg-black/10" />
-                    <promo.icon className="absolute right-4 top-4 w-16 h-16 text-white/20" />
+                  <div className="h-32 relative overflow-hidden">
+                    <img 
+                      src={promo.bgImage} 
+                      alt={promo.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-r ${promo.gradient} opacity-70`} />
+                    <div className="absolute inset-0 bg-black/20" />
+                    <promo.icon className="absolute right-4 top-4 w-16 h-16 text-white/30" />
                     <div className="absolute bottom-4 left-4">
                       {promo.discount && (
                         <Badge className="bg-white text-foreground font-bold">
