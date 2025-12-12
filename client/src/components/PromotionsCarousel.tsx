@@ -95,7 +95,7 @@ export default function PromotionsCarousel() {
   const [, navigate] = useLocation();
 
   return (
-    <section className="py-12 bg-muted/30" data-testid="section-promotions">
+    <section className="py-12 bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background" data-testid="section-promotions">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
