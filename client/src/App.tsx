@@ -32,13 +32,6 @@ import Chat from "@/pages/Chat";
 import ChatInvite from "@/pages/ChatInvite";
 import JoinEvent from "@/pages/JoinEvent";
 import EventPreferencesOnboarding from "@/pages/EventPreferencesOnboarding";
-import ExpenseSplitDemo from "@/pages/ExpenseSplitDemo";
-import EventsDemo from "@/pages/EventsDemo";
-import VendorMarketplaceDemo from "@/pages/VendorMarketplaceDemo";
-import GroupChatDemo from "@/pages/GroupChatDemo";
-import AttendeeManagementDemo from "@/pages/AttendeeManagementDemo";
-import SmartRemindersDemo from "@/pages/SmartRemindersDemo";
-import PhotoAlbumDemo from "@/pages/PhotoAlbumDemo";
 import NotFound from "@/pages/not-found";
 import FloatingChat from "@/components/FloatingChat";
 
@@ -110,13 +103,6 @@ function Router() {
       <Route path="/vendor/dashboard" component={VendorDashboard} />
       <Route path="/groups/:id" component={GroupDetail} />
       <Route path="/onboarding/preferences" component={EventPreferencesOnboarding} />
-      <Route path="/split-expenses" component={ExpenseSplitDemo} />
-      <Route path="/manage-events" component={EventsDemo} />
-      <Route path="/vendor-marketplace" component={VendorMarketplaceDemo} />
-      <Route path="/group-chat-demo" component={GroupChatDemo} />
-      <Route path="/attendee-management" component={AttendeeManagementDemo} />
-      <Route path="/smart-reminders" component={SmartRemindersDemo} />
-      <Route path="/photo-album" component={PhotoAlbumDemo} />
       <Route component={NotFound} />
     </Switch>
   );
