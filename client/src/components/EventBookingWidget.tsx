@@ -46,8 +46,25 @@ const eventTypes = [
 ];
 
 const cities = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", 
-  "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Goa"
+  "Agra", "Ahmedabad", "Ajmer", "Aligarh", "Allahabad", "Amritsar", "Aurangabad",
+  "Bangalore", "Bareilly", "Bhopal", "Bhubaneswar", "Bikaner",
+  "Chandigarh", "Chennai", "Coimbatore", "Cuttack",
+  "Dehradun", "Delhi", "Dhanbad", "Durgapur",
+  "Faridabad", "Firozabad",
+  "Ghaziabad", "Goa", "Gorakhpur", "Gurgaon", "Guwahati", "Gwalior",
+  "Hubli", "Hyderabad",
+  "Indore",
+  "Jabalpur", "Jaipur", "Jalandhar", "Jammu", "Jamshedpur", "Jhansi", "Jodhpur",
+  "Kanpur", "Kochi", "Kolkata", "Kota",
+  "Lucknow", "Ludhiana",
+  "Madurai", "Mangalore", "Meerut", "Mumbai", "Mysore",
+  "Nagpur", "Nashik", "Navi Mumbai", "Noida",
+  "Patna", "Pondicherry", "Pune",
+  "Raipur", "Rajkot", "Ranchi",
+  "Salem", "Siliguri", "Srinagar", "Surat",
+  "Thane", "Thiruvananthapuram", "Tiruchirappalli", "Tiruppur", "Udaipur",
+  "Vadodara", "Varanasi", "Vijayawada", "Visakhapatnam",
+  "Warangal"
 ];
 
 export default function EventBookingWidget() {
