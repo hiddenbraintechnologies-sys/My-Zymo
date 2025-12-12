@@ -168,8 +168,8 @@ const signupFormSchema = z.object({
     .refine((username) => /[a-zA-Z0-9]/.test(username), {
       message: "Username must contain at least one letter or number",
     })
-    .refine((username) => (username.match(/_/g) || []).length <= 3, {
-      message: "Username can contain a maximum of 3 underscores",
+    .refine((username) => (username.match(/_/g) || []).length <= 1, {
+      message: "Username can contain a maximum of 1 underscore",
     }),
   password: z.string()
     .min(1, "Password is required")
