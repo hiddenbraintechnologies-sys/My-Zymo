@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Calendar, MapPin, Plus, LogOut, ArrowUpDown, Filter, Globe, Lock, Users, Sparkles, AlertCircle, UsersRound, PartyPopper, Heart, Star, Gift, Vote, ArrowRight, GraduationCap, Cake, Bike, Dumbbell, Gem, Mountain, Trophy, Music, Home, Baby } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -274,22 +273,38 @@ export default function Events() {
         {/* Filter and Sort Controls */}
         <div className="mb-6 space-y-4">
           {user && (
-            <Tabs value={eventFilter} onValueChange={(value) => setEventFilter(value as EventFilter)} className="w-full">
-              <TabsList className="grid w-full max-w-xl grid-cols-3 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-950/40 dark:to-amber-950/40" data-testid="tabs-event-filter">
-                <TabsTrigger value="public" data-testid="tab-public-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
-                  <Globe className="w-4 h-4 mr-2" />
-                  Public
-                </TabsTrigger>
-                <TabsTrigger value="my-events" data-testid="tab-my-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
-                  <Lock className="w-4 h-4 mr-2" />
-                  My Events
-                </TabsTrigger>
-                <TabsTrigger value="group-events" data-testid="tab-group-events" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">
-                  <UsersRound className="w-4 h-4 mr-2" />
-                  Group Events
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex flex-wrap gap-3" data-testid="tabs-event-filter">
+              <Button
+                onClick={() => setEventFilter("public")}
+                data-testid="tab-public-events"
+                className={eventFilter === "public" 
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg" 
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950/30"}
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Public
+              </Button>
+              <Button
+                onClick={() => setEventFilter("my-events")}
+                data-testid="tab-my-events"
+                className={eventFilter === "my-events" 
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg" 
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950/30"}
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                My Events
+              </Button>
+              <Button
+                onClick={() => setEventFilter("group-events")}
+                data-testid="tab-group-events"
+                className={eventFilter === "group-events" 
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg" 
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"}
+              >
+                <UsersRound className="w-4 h-4 mr-2" />
+                Group Events
+              </Button>
+            </div>
           )}
 
           <div className="flex items-center gap-4 flex-wrap">
