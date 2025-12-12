@@ -38,7 +38,7 @@ const promotions = [
     gradient: "from-purple-500 to-pink-500",
     icon: GraduationCap,
     cta: "Plan Reunion",
-    link: "/events/create",
+    link: "/dashboard?action=reunion",
     bgImage: reunionImg,
   },
   {

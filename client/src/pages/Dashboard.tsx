@@ -240,6 +240,36 @@ export default function Dashboard() {
     setInviteCode("");
     setEventDialogOpen(true);
   };
+
+  // Handle query parameters for deep linking (e.g., from promotions)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("action");
+    
+    if (action === "reunion") {
+      // Clear the query parameter from URL
+      window.history.replaceState({}, "", "/dashboard");
+      // Open reunion dialog
+      openEventDialog({
+        type: "reunion",
+        title: "Reunions",
+        description: "Create a new reunion or join an existing one",
+        icon: GraduationCap,
+        createPath: "/events/create?type=private&category=reunion",
+        joinPath: "/events/join/",
+        createLabel: "Create New Reunion",
+        createDescription: "Start planning a school, college, or family reunion",
+        colors: {
+          gradient: "from-purple-400 to-violet-500",
+          border: "border-purple-200 dark:border-purple-800",
+          text: "text-purple-700 dark:text-purple-100",
+          textMuted: "text-purple-600 dark:text-purple-300",
+          button: "from-purple-500 to-violet-500",
+          buttonHover: "from-purple-600 to-violet-600"
+        }
+      });
+    }
+  }, []);
   
   // Open create form with category context
   const openCreateForm = (category: string) => {
