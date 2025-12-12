@@ -94,7 +94,7 @@ export default function EventBookingWidget() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="create" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 space-y-3 sm:space-y-4 mt-0">
+          <TabsContent value="create" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 space-y-3 sm:space-y-4 mt-0 min-h-[280px] sm:min-h-[220px]">
             <div className="flex flex-wrap gap-2 pb-3 border-b">
               {eventTypes.map((type) => (
                 <Button
@@ -184,7 +184,7 @@ export default function EventBookingWidget() {
             </div>
           </TabsContent>
 
-          <TabsContent value="find" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 space-y-3 sm:space-y-4 mt-0">
+          <TabsContent value="find" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 space-y-3 sm:space-y-4 mt-0 min-h-[280px] sm:min-h-[220px]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">Search Events</Label>
@@ -229,7 +229,7 @@ export default function EventBookingWidget() {
             </div>
           </TabsContent>
 
-          <TabsContent value="expenses" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 mt-0">
+          <TabsContent value="expenses" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 mt-0 min-h-[280px] sm:min-h-[220px]">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="flex-1 space-y-3">
                 <h3 className="text-xl font-semibold">Split Bills Easily</h3>
