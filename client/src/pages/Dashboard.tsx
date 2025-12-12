@@ -1485,12 +1485,17 @@ export default function Dashboard() {
                       : DEFAULT_FORM_CONTENT.namePlaceholder}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={formData.name.trim().length > 0 && formData.name.trim().length < 4 ? "border-destructive" : ""}
+                    className={formData.name.trim().length > 0 && (formData.name.trim().length < 4 || !/[a-zA-Z]/.test(formData.name)) ? "border-destructive" : ""}
                     data-testid="input-group-name"
                   />
                   {formData.name.trim().length > 0 && formData.name.trim().length < 4 && (
                     <p className="text-xs text-destructive mt-1" data-testid="error-group-name">
                       Name must be at least 4 characters
+                    </p>
+                  )}
+                  {formData.name.trim().length >= 4 && !/[a-zA-Z]/.test(formData.name) && (
+                    <p className="text-xs text-destructive mt-1" data-testid="error-group-name-letters">
+                      Name must contain at least one letter
                     </p>
                   )}
                 </div>
