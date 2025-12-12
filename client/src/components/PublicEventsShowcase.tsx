@@ -14,20 +14,19 @@ export default function PublicEventsShowcase() {
 
   if (isLoading) {
     return (
-      <section className="py-20 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+      <section className="py-12 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-2xl" />
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-primary/8 rounded-full blur-3xl" />
         </div>
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-12">
-            <Skeleton className="h-10 w-64 mx-auto mb-4" />
-            <Skeleton className="h-6 w-96 mx-auto" />
+          <div className="text-center mb-8">
+            <Skeleton className="h-8 w-64 mx-auto mb-2" />
+            <Skeleton className="h-5 w-96 mx-auto" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-80" />
+              <Skeleton key={i} className="h-64" />
             ))}
           </div>
         </div>
@@ -44,24 +43,22 @@ export default function PublicEventsShowcase() {
   const displayEvents = events.slice(0, 6);
 
   return (
-    <section className="py-20 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10" data-testid="section-public-events">
+    <section className="py-12 px-4 relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10" data-testid="section-public-events">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-2xl" />
-        <div className="absolute top-1/4 right-1/3 w-48 h-48 bg-primary/6 rounded-full blur-2xl" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-primary/8 rounded-full blur-3xl" />
       </div>
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-heading font-bold mb-4" data-testid="heading-public-events">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-heading font-bold mb-2" data-testid="heading-public-events">
             Upcoming Public Events
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Join celebrations happening across India. Connect with communities and make memories together.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {displayEvents.map((event) => (
             <Link key={event.id} href={`/events/${event.id}`}>
               <Card 
