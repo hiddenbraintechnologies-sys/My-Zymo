@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, 
   Plus, 
@@ -33,10 +34,16 @@ import {
   Edit,
   Share2,
   Bell,
-  MessageCircle
+  MessageCircle,
+  Globe,
+  Star,
+  Gift
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import logoUrl from "@assets/generated_images/myzymo_celebration_app_logo.png";
+import { useQuery } from "@tanstack/react-query";
+import type { Event as EventType } from "@shared/schema";
+import Navbar from "@/components/Navbar";
+import heroImage from "@assets/generated_images/homepage_hero_celebration_image.png";
 
 interface Event {
   id: string;
@@ -276,43 +283,118 @@ export default function EventsDemo() {
     };
   };
 
+  // Fetch real events from API
+  const { data: myEvents } = useQuery<EventType[]>({
+    queryKey: ["/api/events"],
+    enabled: !!user,
+  });
+
+  const { data: publicEventsData } = useQuery<EventType[]>({
+    queryKey: ["/api/events/public"],
+    enabled: !!user,
+  });
+
+  const { data: followedEventsData } = useQuery<EventType[]>({
+    queryKey: ["/api/events/followed"],
+    enabled: !!user,
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50/50 to-background dark:from-orange-950/20 dark:via-amber-950/10 dark:to-background">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-white py-12 px-4">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCAyLTRzMiAyIDIgNC0yIDQtMiA0LTItMi0yLTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-        
-        <div className="max-w-5xl mx-auto relative">
-          <div className="flex items-center gap-3 mb-4">
-            <img src={logoUrl} alt="Myzymo" className="w-12 h-12" />
-            <div>
-              <span className="font-heading font-bold text-xl">Myzymo</span>
-              <span className="block text-sm text-white/80">Bringing People Together</span>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-amber-50/40 dark:from-background dark:via-background dark:to-background">
+      <Navbar />
+      <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 md:pb-8">
+        {/* Hero Banner - Dashboard Style with Floating Icons */}
+        <div className="mb-6 relative overflow-hidden rounded-2xl shadow-xl">
+          <img 
+            src={heroImage} 
+            alt="Events" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/40" />
+          
+          {/* Floating Decorative Icons */}
+          <div className="absolute top-4 left-4 md:top-6 md:left-8 z-10">
+            <div className="bg-gradient-to-br from-orange-500/30 to-amber-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '3s' }}>
+              <Calendar className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute top-8 right-4 md:top-4 md:right-[200px] z-10 hidden sm:block">
+            <div className="bg-gradient-to-br from-pink-500/30 to-rose-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }}>
+              <PartyPopper className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-16 left-8 md:bottom-4 md:left-[120px] z-10 hidden md:block">
+            <div className="bg-gradient-to-br from-violet-500/30 to-purple-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '2.8s', animationDelay: '1s' }}>
+              <Gift className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-4 right-4 md:bottom-6 md:right-8 z-10 hidden sm:block">
+            <div className="bg-gradient-to-br from-amber-500/30 to-yellow-500/30 backdrop-blur-sm rounded-xl p-2 border border-white/20 animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '0.3s' }}>
+              <Star className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
           </div>
           
-          <div className="flex items-center gap-2 mb-3">
-            <Badge className="bg-white/20 text-white border-white/30">
-              <Calendar className="w-3 h-3 mr-1" />
-              Try It Free
-            </Badge>
+          <div className="relative z-10 pt-3 pb-4 px-4 md:pt-4 md:pb-5 md:px-6 min-h-[100px] md:min-h-[130px] flex items-center">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+              <div>
+                {/* Category Badge */}
+                <div className="mb-2 inline-flex px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/40 to-amber-500/40 backdrop-blur-sm border border-orange-300/50 text-xs font-medium text-white">
+                  <Calendar className="w-3 h-3 mr-1.5" />
+                  Events
+                </div>
+                <h1 className="text-2xl md:text-4xl font-heading font-bold mb-1 md:mb-2 text-white">
+                  Your Events
+                </h1>
+                <p className="text-white/80 text-sm md:text-lg mb-3">Manage all your celebrations in one place</p>
+                {/* Quick Action Pills */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <Lock className="w-3.5 h-3.5 text-orange-300" />
+                    <span className="text-xs text-white">Private</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <Globe className="w-3.5 h-3.5 text-teal-300" />
+                    <span className="text-xs text-white">Public</span>
+                  </div>
+                  <div className="hidden md:flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <Heart className="w-3.5 h-3.5 text-pink-300" />
+                    <span className="text-xs text-white">Following</span>
+                  </div>
+                </div>
+              </div>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-3 gap-2 md:gap-3">
+                <div className="text-center bg-gradient-to-br from-orange-500/30 to-amber-500/30 backdrop-blur-sm border border-orange-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
+                  <div className="text-xl md:text-3xl font-bold text-white">{myEvents?.length || 0}</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    My Events
+                  </div>
+                </div>
+                <div className="text-center bg-gradient-to-br from-teal-500/30 to-cyan-500/30 backdrop-blur-sm border border-teal-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
+                  <div className="text-xl md:text-3xl font-bold text-white">{publicEventsData?.length || 0}</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    Public
+                  </div>
+                </div>
+                <div className="text-center bg-gradient-to-br from-rose-500/30 to-pink-500/30 backdrop-blur-sm border border-rose-300/40 rounded-xl p-2 md:p-4 w-[72px] md:w-[90px] h-[56px] md:h-[76px] flex flex-col justify-center">
+                  <div className="text-xl md:text-3xl font-bold text-white">{followedEventsData?.length || 0}</div>
+                  <div className="text-[10px] md:text-xs text-white/80 whitespace-nowrap flex items-center justify-center gap-1">
+                    <Heart className="w-3 h-3" />
+                    Following
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <h1 className="font-heading font-bold text-3xl md:text-4xl mb-3">
-            Manage Events Effortlessly
-          </h1>
-          <p className="text-white/90 text-lg max-w-xl">
-            Create events, invite your group, track RSVPs, and coordinate everything in one place.
-          </p>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-3">
+        {/* Quick Actions Bar */}
+        <div className="flex flex-wrap gap-3 mb-6">
           <Button 
-            onClick={() => setShowCreateEvent(!showCreateEvent)}
-            className="gap-2"
+            onClick={() => navigate("/events/create")}
+            className="gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
             data-testid="button-create-event"
           >
             <Plus className="w-4 h-4" />
@@ -328,6 +410,182 @@ export default function EventsDemo() {
             </Button>
           )}
         </div>
+
+        {/* Tabs Navigation */}
+        <Tabs defaultValue="my-events" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+            <TabsTrigger value="my-events" className="gap-2" data-testid="tab-my-events">
+              <Lock className="w-4 h-4" />
+              <span className="hidden sm:inline">My Events</span>
+              <span className="sm:hidden">Mine</span>
+              <Badge variant="secondary" className="ml-1 text-xs">{myEvents?.length || 0}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="public" className="gap-2" data-testid="tab-public-events">
+              <Globe className="w-4 h-4" />
+              <span className="hidden sm:inline">Public Events</span>
+              <span className="sm:hidden">Public</span>
+              <Badge variant="secondary" className="ml-1 text-xs">{publicEventsData?.length || 0}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="following" className="gap-2" data-testid="tab-following">
+              <Heart className="w-4 h-4" />
+              <span className="hidden sm:inline">Following</span>
+              <span className="sm:hidden">Follow</span>
+              <Badge variant="secondary" className="ml-1 text-xs">{followedEventsData?.length || 0}</Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* My Events Tab */}
+          <TabsContent value="my-events" className="space-y-4">
+            {myEvents && myEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myEvents.map((event) => (
+                  <Card 
+                    key={event.id} 
+                    className="hover-elevate cursor-pointer border shadow-sm hover:shadow-md transition-all"
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    data-testid={`card-event-${event.id}`}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base font-semibold truncate">{event.title}</CardTitle>
+                          <CardDescription className="text-sm mt-1 line-clamp-2">{event.description}</CardDescription>
+                        </div>
+                        <Badge variant={event.isPublic ? "default" : "secondary"} className="shrink-0">
+                          {event.isPublic ? <Globe className="w-3 h-3 mr-1" /> : <Lock className="w-3 h-3 mr-1" />}
+                          {event.isPublic ? "Public" : "Private"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {event.date ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          <span className="truncate max-w-[120px]">{event.location || 'TBD'}</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 bg-muted/30">
+                <CardHeader className="text-center py-8">
+                  <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <CardTitle className="text-lg text-muted-foreground">No events yet</CardTitle>
+                  <CardDescription>Create your first event to get started!</CardDescription>
+                  <Button 
+                    className="mt-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                    onClick={() => navigate("/events/create")}
+                    data-testid="button-create-first-event"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Event
+                  </Button>
+                </CardHeader>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Public Events Tab */}
+          <TabsContent value="public" className="space-y-4">
+            {publicEventsData && publicEventsData.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {publicEventsData.map((event) => (
+                  <Card 
+                    key={event.id} 
+                    className="hover-elevate cursor-pointer border shadow-sm hover:shadow-md transition-all bg-gradient-to-br from-teal-50/50 to-cyan-50/50 dark:from-teal-950/20 dark:to-cyan-950/20"
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    data-testid={`card-public-event-${event.id}`}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base font-semibold truncate">{event.title}</CardTitle>
+                          <CardDescription className="text-sm mt-1 line-clamp-2">{event.description}</CardDescription>
+                        </div>
+                        <Badge className="shrink-0 bg-teal-500">
+                          <Globe className="w-3 h-3 mr-1" />
+                          Public
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {event.date ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          <span className="truncate max-w-[120px]">{event.location || 'TBD'}</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 bg-muted/30">
+                <CardHeader className="text-center py-8">
+                  <Globe className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <CardTitle className="text-lg text-muted-foreground">No public events</CardTitle>
+                  <CardDescription>Discover public events in your area!</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Following Tab */}
+          <TabsContent value="following" className="space-y-4">
+            {followedEventsData && followedEventsData.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {followedEventsData.map((event) => (
+                  <Card 
+                    key={event.id} 
+                    className="hover-elevate cursor-pointer border shadow-sm hover:shadow-md transition-all bg-gradient-to-br from-rose-50/50 to-pink-50/50 dark:from-rose-950/20 dark:to-pink-950/20"
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    data-testid={`card-followed-event-${event.id}`}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base font-semibold truncate">{event.title}</CardTitle>
+                          <CardDescription className="text-sm mt-1 line-clamp-2">{event.description}</CardDescription>
+                        </div>
+                        <Badge className="shrink-0 bg-rose-500">
+                          <Heart className="w-3 h-3 mr-1" />
+                          Following
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {event.date ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'TBD'}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          <span className="truncate max-w-[120px]">{event.location || 'TBD'}</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 bg-muted/30">
+                <CardHeader className="text-center py-8">
+                  <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <CardTitle className="text-lg text-muted-foreground">Not following any events</CardTitle>
+                  <CardDescription>Follow public events to stay updated!</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Legacy Demo Events Section (hidden for now) */}
+        <div className="hidden mt-8 space-y-6">
 
         {/* Create Event Form */}
         {showCreateEvent && (
@@ -814,7 +1072,9 @@ export default function EventsDemo() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+        {/* End of hidden legacy section */}
+      </main>
     </div>
   );
 }

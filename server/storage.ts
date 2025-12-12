@@ -296,8 +296,8 @@ export class DatabaseStorage implements IStorage {
     }
     const isNewUser = !existingUser;
     
-    // If user exists by email but with different ID, update existing user instead
-    if (existingUser && existingUser.id !== userData.id) {
+    // If user exists (by email or id), always update instead of insert to avoid constraint violations
+    if (existingUser) {
       const [updatedUser] = await db
         .update(users)
         .set({
@@ -311,22 +311,45 @@ export class DatabaseStorage implements IStorage {
       return sanitizeUser(updatedUser);
     }
     
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          // Only update auth-related fields, preserve user's profile data
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          profileImageUrl: userData.profileImageUrl,
-          updatedAt: new Date(),
-          // Do NOT update: age, dateOfBirth, phone, bio, college, graduationYear, degree, currentCity, profession, company
-        },
-      })
-      .returning();
+    // Only insert if user doesn't exist at all
+    let user;
+    try {
+      const [insertedUser] = await db
+        .insert(users)
+        .values(userData)
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            profileImageUrl: userData.profileImageUrl,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      user = insertedUser;
+    } catch (error: any) {
+      // Handle race condition where user was created between check and insert
+      if (error.code === '23505') {
+        console.log('[Storage] Duplicate key detected, falling back to update');
+        const existingByEmail = await this.getUserByEmail(userData.email!);
+        if (existingByEmail) {
+          const [updated] = await db
+            .update(users)
+            .set({
+              firstName: userData.firstName || existingByEmail.firstName,
+              lastName: userData.lastName || existingByEmail.lastName,
+              profileImageUrl: userData.profileImageUrl || existingByEmail.profileImageUrl,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.id, existingByEmail.id))
+            .returning();
+          return sanitizeUser(updated);
+        }
+      }
+      throw error;
+    }
     
     // If this is a new user, automatically add them to all sample events
     if (isNewUser) {
