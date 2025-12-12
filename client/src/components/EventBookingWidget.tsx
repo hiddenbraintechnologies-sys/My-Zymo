@@ -22,7 +22,13 @@ import {
   ArrowRight,
   Sparkles,
   IndianRupee,
-  Plus
+  Plus,
+  Heart,
+  Baby,
+  Music,
+  Mountain,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,6 +39,10 @@ const eventTypes = [
   { id: "fitness", label: "Fitness", icon: Dumbbell },
   { id: "sports", label: "Sports", icon: Trophy },
   { id: "family", label: "Family", icon: Home },
+  { id: "weddings", label: "Weddings", icon: Heart },
+  { id: "baby-showers", label: "Baby Showers", icon: Baby },
+  { id: "music", label: "Music Events", icon: Music },
+  { id: "treks", label: "Treks", icon: Mountain },
 ];
 
 const cities = [
@@ -47,6 +57,9 @@ export default function EventBookingWidget() {
   const [date, setDate] = useState<Date>();
   const [location, setLocation] = useState("");
   const [attendees, setAttendees] = useState("10-20");
+  const [showAllEventTypes, setShowAllEventTypes] = useState(false);
+
+  const visibleEventTypes = showAllEventTypes ? eventTypes : eventTypes.slice(0, 6);
 
   const handleCreateEvent = () => {
     navigate("/events/create");
@@ -96,7 +109,7 @@ export default function EventBookingWidget() {
 
           <TabsContent value="create" className="pt-2 pb-4 px-4 sm:pt-3 sm:pb-6 sm:px-6 space-y-3 sm:space-y-4 mt-0 min-h-[280px] sm:min-h-[220px]">
             <div className="flex flex-wrap gap-2 pb-3 border-b">
-              {eventTypes.map((type) => (
+              {visibleEventTypes.map((type) => (
                 <Button
                   key={type.id}
                   variant={selectedEventType === type.id ? "default" : "outline"}
@@ -109,6 +122,23 @@ export default function EventBookingWidget() {
                   {type.label}
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllEventTypes(!showAllEventTypes)}
+                className="gap-1 text-muted-foreground"
+                data-testid="button-toggle-event-types"
+              >
+                {showAllEventTypes ? (
+                  <>
+                    Less <ChevronUp className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    More <ChevronDown className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
